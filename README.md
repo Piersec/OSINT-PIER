@@ -24,9 +24,11 @@ $bytes = [byte[]]::new(32)
 [Convert]::ToBase64String($bytes)
 ```
 
-A interface abre em `http://localhost:5173` e a API usa
-`http://localhost:3000`. Em outro ambiente interno, use HTTPS antes de inserir chaves no
-painel, pois o token administrativo acompanha cada operação em um header.
+A interface Next.js abre em `http://localhost:5173` e, no modo local, mantém a API Fastify
+em `http://localhost:3000`. O cliente usa a rota same-origin `/api` por padrão; defina
+`NEXT_PUBLIC_API_URL` somente se quiser apontar para uma API Fastify separada. Em outro
+ambiente interno, use HTTPS antes de inserir chaves no painel, pois o token administrativo
+acompanha cada operação em um header.
 
 ## Credenciais
 
@@ -153,8 +155,8 @@ valores do cofre.
 
 ## Comandos
 
-- `pnpm dev` — API e frontend em modo de desenvolvimento
-- `pnpm build` — build de produção dos workspaces
+- `pnpm dev` — API Fastify e frontend Next.js em modo de desenvolvimento
+- `pnpm build` — build de produção dos workspaces (API e Next.js)
 - `pnpm typecheck` — validação estática completa
 - `pnpm test` — testes automatizados
 - `pnpm lint` — análise de qualidade

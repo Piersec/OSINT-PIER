@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import Fastify, {
@@ -29,6 +30,7 @@ import { normalizeTarget } from './core/target/normalize-target.js';
 export interface AppDependencies {
   config?: AppConfig;
   registry?: CheckRegistry;
+  checksDirectory?: string;
   vault?: EncryptedCredentialStore;
   environment?: NodeJS.ProcessEnv;
   logger?: boolean;
@@ -77,7 +79,9 @@ export async function createApp(
   dependencies: AppDependencies = {},
 ): Promise<FastifyInstance> {
   const config = dependencies.config ?? loadConfig(dependencies.environment);
-  const checksDirectory = fileURLToPath(new URL('./checks', import.meta.url));
+  const checksDirectory =
+    dependencies.checksDirectory ??
+    path.join(path.dirname(fileURLToPath(import.meta.url)), 'checks');
   const registry =
     dependencies.registry ?? (await loadCheckRegistry(checksDirectory));
   const vault =

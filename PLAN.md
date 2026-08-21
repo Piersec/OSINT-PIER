@@ -210,7 +210,8 @@ produzir `skipped`, sem interromper os outros plugins.
 ## Decisões em aberto (a preencher conforme o projeto avança)
 
 - Stack de backend: Node.js + Fastify + TypeScript + Zod
-- Stack de frontend: React + Vite + TypeScript + TanStack Query
+- Stack de frontend: Next.js + React + TypeScript + TanStack Query (Vite permanece apenas
+  como infraestrutura do Vitest)
 - Monorepo e qualidade: pnpm workspaces, Vitest, React Testing Library, ESLint e Prettier
 - Timeout padrão por plugin: 10 segundos, configurável e com override por plugin
 - Credenciais via painel: cofre local AES-256-GCM, protegido por `ADMIN_TOKEN`, com
@@ -230,7 +231,20 @@ produzir `skipped`, sem interromper os outros plugins.
 - Configuração da Fase 4: flags de plugins são mantidas em `.data/check-settings.json`
   (ou `CHECK_SETTINGS_PATH`), com novos plugins habilitados por padrão. O arquivo contém
   somente booleans; leitura e alteração exigem `ADMIN_TOKEN` pelo painel interno.
-- Estratégia de deploy: _(a definir)_
+- Estratégia de deploy: Vercel com projeto conectado ao GitHub `Piersec/OSINT-PIER`;
+  o serviço permanece interno e o adaptador Next expõe a API Fastify em `/api`.
+
+## Fase 9 — Migração Next.js e preparação para Vercel
+
+- [x] Migrar a aplicação web de Vite para Next.js App Router
+- [x] Manter o dashboard React como cliente e preservar navegação, tema e renderização
+      progressiva dos plugins
+- [x] Adaptar a API Fastify para uma rota serverless `/api/[...path]`, mantendo o loader
+      dinâmico de plugins e fallback para API separada via `NEXT_PUBLIC_API_URL`
+- [x] Configurar build de monorepo no `vercel.json`, incluindo compilação dos contratos e
+      backend antes do Next.js
+- [ ] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy no
+      projeto Vercel conectado
 
 ---
 

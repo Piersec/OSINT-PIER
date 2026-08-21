@@ -10,3 +10,6 @@ coverage/
 *.tmp
 *.log
 .DS_Store
+
+.vercel
+.next/

@@ -57,6 +57,18 @@ async function firstExisting(paths: string[]): Promise<string | undefined> {
   return undefined;
 }
 
+// Keep plugin discovery genuinely runtime-driven. A regular `import()` with a
+// filesystem URL is transformed by Next/Turbopack into a static module map,
+// which cannot represent a plugin directory that is discovered at runtime.
+// This small boundary is used only by the registry and still receives a fully
+// validated path from the code above.
+const importRuntimeModule =
+  process.env.NEXT_RUNTIME === 'nodejs'
+    ? (new Function('specifier', 'return import(specifier);') as (
+        specifier: string,
+      ) => Promise<unknown>)
+    : (specifier: string) => import(specifier);
+
 export async function loadCheckRegistry(
   checksDirectory: string,
 ): Promise<CheckRegistry> {
@@ -90,7 +102,9 @@ export async function loadCheckRegistry(
       throw new Error(`Plugin ${directory.name} não possui index.ts/index.js.`);
     }
 
-    const module = (await import(pathToFileURL(modulePath).href)) as {
+    const module = (await importRuntimeModule(
+      pathToFileURL(modulePath).href,
+    )) as {
       default?: CheckPlugin;
       check?: CheckPlugin;
     };

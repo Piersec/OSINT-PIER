@@ -1,12 +1,13 @@
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { z } from 'zod';
 
-const defaultStorePath = fileURLToPath(
-  new URL('../../../.data/credentials.enc', import.meta.url),
-);
-const defaultCheckSettingsPath = fileURLToPath(
-  new URL('../../../.data/check-settings.json', import.meta.url),
+// Resolve runtime data from the workspace/current deployment instead of a
+// file URL. This keeps the same local layout and allows Next/Turbopack to
+// bundle the Fastify adapter without treating the optional files as imports.
+const defaultStorePath = path.resolve(process.cwd(), '.data/credentials.enc');
+const defaultCheckSettingsPath = path.resolve(
+  process.cwd(),
+  '.data/check-settings.json',
 );
 
 const EnvironmentSchema = z.object({

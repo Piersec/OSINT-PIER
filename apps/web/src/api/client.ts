@@ -14,9 +14,10 @@ import {
 } from '@osint-pier/contracts';
 import { z } from 'zod';
 
-const apiBaseUrl =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
-  'http://localhost:3000';
+// In Next.js the default is same-origin, which lets the Vercel deployment use
+// the serverless `/api` adapter. Set NEXT_PUBLIC_API_URL only when the local
+// Fastify process is intentionally kept separate from the web app.
+const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 export class ApiRequestError extends Error {
   readonly statusCode: number;

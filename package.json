@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @osint-pier/contracts build && pnpm --parallel --filter @osint-pier/api --filter @osint-pier/web dev",
+    "dev": "pnpm --filter @osint-pier/api... build && pnpm --parallel --filter @osint-pier/api --filter @osint-pier/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
