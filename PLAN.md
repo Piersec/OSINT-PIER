@@ -246,6 +246,19 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
+## Fase 10 — Administração de integrações e segurança do deploy
+
+- [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
+      integrações, sem revelar valores armazenados
+- [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
+- [x] Permitir fechar o cofre e limpar o token administrativo da memória da página
+- [x] Confirmar que o Supabase permanece restrito ao histórico agregado, com RLS ativo e
+      sem credenciais persistidas
+- [x] Manter a proteção de deployment do Vercel enquanto o serviço for interno; usar
+      bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
+- [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
+      uma camada adicional de autenticação para o painel administrativo
+
 ---
 
 ## Log de progresso
@@ -351,3 +364,13 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
   plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
   em uma página hospedada e retorna ao endpoint same-origin `/api`.
+- `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
+  status das integrações, mostrando habilitação, presença da chave e origem sem expor
+  segredos. O Supabase foi verificado novamente: existe apenas `public.analysis_history`,
+  com RLS ativo e advisor de segurança sem lints. A proteção do Vercel permanece ativa
+  por coerência com o serviço interno; a documentação do Vercel confirma bypass
+  autenticado para as rotas de API sem desativar a proteção.
+- `2026-08-21` — Corrigido o caminho padrão dos dados locais quando o Next é iniciado
+  pelo workspace `apps/web`: o cofre criptografado e as flags de checks agora continuam
+  apontando para o `.data` da raiz do monorepo, evitando que o painel mostre chaves como
+  ausentes apenas por causa do diretório de execução.

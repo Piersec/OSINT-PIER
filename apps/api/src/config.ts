@@ -1,14 +1,30 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 
 // Resolve runtime data from the workspace/current deployment instead of a
 // file URL. This keeps the same local layout and allows Next/Turbopack to
 // bundle the Fastify adapter without treating the optional files as imports.
-const defaultStorePath = path.resolve(process.cwd(), '.data/credentials.enc');
-const defaultCheckSettingsPath = path.resolve(
-  process.cwd(),
-  '.data/check-settings.json',
-);
+function resolveDefaultDataFile(fileName: string): string {
+  const directories = [
+    path.resolve(process.cwd(), '.data', fileName),
+    path.resolve(process.cwd(), '..', '.data', fileName),
+    path.resolve(process.cwd(), '..', '..', '.data', fileName),
+  ];
+
+  // `pnpm --filter @osint-pier/web dev` runs with apps/web as cwd, while
+  // Vercel and the standalone API normally run from the monorepo root. Keep
+  // the encrypted vault and check flags in the same root .data directory in
+  // both cases, and preserve a sensible default for a fresh deployment.
+  const existing = directories.find((candidate) => existsSync(candidate));
+  if (existing) return existing;
+  return path.basename(process.cwd()) === 'web'
+    ? directories[2]!
+    : directories[0]!;
+}
+
+const defaultStorePath = resolveDefaultDataFile('credentials.enc');
+const defaultCheckSettingsPath = resolveDefaultDataFile('check-settings.json');
 
 const EnvironmentSchema = z.object({
   API_HOST: z.string().min(1).default('127.0.0.1'),

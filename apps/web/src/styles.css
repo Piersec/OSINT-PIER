@@ -104,7 +104,8 @@ html[data-theme='white'] .tool-card,
 html[data-theme='white'] .analysis-card,
 html[data-theme='white'] .analysis-context,
 html[data-theme='white'] .metric-card,
-html[data-theme='white'] .settings-card {
+html[data-theme='white'] .settings-card,
+html[data-theme='white'] .plugin-settings {
   box-shadow: 0 12px 32px rgba(31, 47, 50, 0.06);
 }
 
@@ -113,7 +114,8 @@ html[data-theme='white'] .result-pre {
 }
 
 html[data-theme='white'] .credential-item,
-html[data-theme='white'] .plugin-item {
+html[data-theme='white'] .plugin-item,
+html[data-theme='white'] .plugin-settings {
   background: #f8fafa;
 }
 
@@ -727,6 +729,18 @@ input::placeholder {
   color: #111;
   background: var(--accent);
   box-shadow: 0 10px 30px rgba(72, 233, 255, 0.1);
+}
+
+.button--ghost {
+  border-color: var(--border-strong);
+  color: var(--muted);
+  background: transparent;
+}
+
+.button--ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 
 .button--danger {
@@ -1986,7 +2000,7 @@ input::placeholder {
 
 .admin-unlock {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: end;
   max-width: 760px;
@@ -2045,8 +2059,10 @@ input::placeholder {
 .plugin-settings {
   grid-column: 1 / -1;
   margin-top: 4px;
-  padding-top: 28px;
-  border-top: 1px solid var(--border);
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .plugin-settings__heading {
@@ -2096,6 +2112,10 @@ input::placeholder {
   min-width: 0;
 }
 
+.plugin-item__content {
+  min-width: 0;
+}
+
 .plugin-item strong,
 .plugin-item small {
   display: block;
@@ -2112,6 +2132,45 @@ input::placeholder {
   color: var(--muted);
   font-size: 10px;
   font-weight: 500;
+}
+
+.integration-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.integration-status {
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font:
+    700 8px 'Open Sans',
+    sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.integration-status--success {
+  border-color: rgba(72, 233, 255, 0.18);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.integration-status--warning {
+  border-color: rgba(255, 95, 104, 0.2);
+  color: var(--danger);
+  background: rgba(255, 95, 104, 0.07);
+}
+
+.integration-status--muted {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .plugin-item input {
