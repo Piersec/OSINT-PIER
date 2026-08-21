@@ -19,6 +19,7 @@ import {
   createAnalysisHistoryEntry,
   type AnalysisHistoryEntry,
 } from './features/history/analysis-history';
+import { useAuth } from './features/auth/AuthGate';
 
 type Page = 'analysis' | 'results' | 'history' | 'credentials' | 'settings';
 type Theme = 'dark' | 'white';
@@ -242,6 +243,7 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
+  const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -544,9 +546,9 @@ export function App() {
             </a>
           ))}
         </nav>
-        <div className="sidebar__status" title="Serviço local ativo">
+        <div className="sidebar__status" title="Sessão autenticada">
           <span />
-          <small>Local</small>
+          <small>Autenticado</small>
         </div>
       </aside>
 
@@ -564,6 +566,16 @@ export function App() {
             <span className="internal-badge">
               <i /> Rede interna
             </span>
+            <span className="auth-user" title={user.email ?? undefined}>
+              {user.email ?? 'Usuário autenticado'}
+            </span>
+            <button
+              className="auth-logout"
+              onClick={() => void signOut()}
+              type="button"
+            >
+              Sair
+            </button>
           </div>
         </header>
 
@@ -1078,7 +1090,7 @@ export function App() {
             <>
               <section className="page-lead credentials-lead">
                 <div>
-                  <span className="eyebrow">Sem login de usuário</span>
+                  <span className="eyebrow">Acesso autenticado</span>
                   <h2>Credenciais das integrações</h2>
                 </div>
                 <span className="lock-badge">Cofre local</span>

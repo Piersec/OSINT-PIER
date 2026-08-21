@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
 import type { AppConfig } from './config.js';
+import { SupabaseAuth } from './core/auth/supabase-auth.js';
 import { CheckRegistry } from './core/checks/registry.js';
 import { EncryptedCredentialStore } from './core/credentials/encrypted-store.js';
 
@@ -18,10 +19,13 @@ afterEach(async () => {
   );
 });
 
-async function fixture(options: { rateLimitMax?: number } = {}) {
+async function fixture(
+  options: { rateLimitMax?: number; autoAuthenticate?: boolean } = {},
+) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'osint-pier-app-'));
   temporaryDirectories.push(directory);
   const encodedKey = randomBytes(32).toString('base64');
+  const userToken = 'test-access-token';
   const config: AppConfig = {
     host: '127.0.0.1',
     port: 3000,
@@ -67,15 +71,39 @@ async function fixture(options: { rateLimitMax?: number } = {}) {
     registry,
     environment: {},
     logger: false,
+    supabaseAuth: new SupabaseAuth({
+      url: 'https://project.supabase.co',
+      serviceRoleKey: 'test-service-role-key',
+      fetchImpl: async (_input, init) => {
+        const authorization = new Headers(init?.headers).get('authorization');
+        return new Response(null, {
+          status: authorization === `Bearer ${userToken}` ? 200 : 401,
+        });
+      },
+    }),
   });
+  if (options.autoAuthenticate !== false) {
+    app.addHook('onRequest', async (request) => {
+      request.headers.authorization ??= `Bearer ${userToken}`;
+    });
+  }
   return {
     app,
     token: config.adminToken!,
+    userToken,
     executionCount: () => executionCount,
   };
 }
 
 describe('API', () => {
+  it('exige uma sessão Supabase para as operações da plataforma', async () => {
+    const { app } = await fixture({ autoAuthenticate: false });
+    const response = await app.inject({ method: 'GET', url: '/api/checks' });
+    await app.close();
+
+    expect(response.statusCode).toBe(401);
+  });
+
   it('protege todas as operações administrativas', async () => {
     const { app } = await fixture();
     const response = await app.inject({

@@ -13,6 +13,7 @@ import {
   type CredentialStatus,
 } from '@osint-pier/contracts';
 import { z } from 'zod';
+import { getSupabaseAccessToken } from '../lib/supabase';
 
 // In Next.js the default is same-origin, which lets the Vercel deployment use
 // the serverless `/api` adapter. Set NEXT_PUBLIC_API_URL only when the local
@@ -38,12 +39,14 @@ export class ApiRequestError extends Error {
 }
 
 async function request(path: string, init?: RequestInit): Promise<unknown> {
+  const accessToken = await getSupabaseAccessToken();
+  const headers = new Headers(init?.headers);
+  headers.set('content-type', 'application/json');
+  if (accessToken) headers.set('authorization', `Bearer ${accessToken}`);
+
   const requestInit: RequestInit = {
     ...init,
-    headers: {
-      'content-type': 'application/json',
-      ...init?.headers,
-    },
+    headers,
   };
 
   let response: Response;

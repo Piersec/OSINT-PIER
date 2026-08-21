@@ -10,6 +10,18 @@ const defaultCheckSettingsPath = path.resolve(
   '.data/check-settings.json',
 );
 
+const optionalString = z.preprocess(
+  (value) =>
+    typeof value === 'string' && value.trim() === '' ? undefined : value,
+  z.string().min(1).optional(),
+);
+
+const optionalUrl = z.preprocess(
+  (value) =>
+    typeof value === 'string' && value.trim() === '' ? undefined : value,
+  z.string().url().optional(),
+);
+
 const EnvironmentSchema = z.object({
   API_HOST: z.string().min(1).default('127.0.0.1'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
@@ -45,11 +57,11 @@ const EnvironmentSchema = z.object({
     .max(86_400_000)
     .default(60_000),
   ADMIN_TOKEN: z.string().min(24).optional(),
-  CREDENTIALS_ENCRYPTION_KEY: z.string().optional(),
+  CREDENTIALS_ENCRYPTION_KEY: optionalString,
   CREDENTIAL_STORE_PATH: z.string().optional(),
   CHECK_SETTINGS_PATH: z.string().optional(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  SUPABASE_URL: optionalUrl,
+  SUPABASE_SERVICE_ROLE_KEY: optionalString,
   SUPABASE_HISTORY_LIMIT: z.coerce.number().int().min(1).max(500).default(50),
 });
 
