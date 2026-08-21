@@ -42,21 +42,25 @@ adicionar, substituir ou remover seu valor. O backend:
 - retorna `skipped` quando um plugin não encontra uma credencial obrigatória.
 
 O token administrativo fica somente na memória da aba e é descartado ao recarregar a
-página. O arquivo `.data/credentials.enc` e os arquivos `.env` são ignorados pelo Git.
+página. Em desenvolvimento, o arquivo `.data/credentials.enc` é usado como fallback e
+é ignorado pelo Git. Quando `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e
+`CREDENTIALS_ENCRYPTION_KEY` estão configurados, o cofre passa a persistir no Supabase;
+o navegador continua recebendo apenas status, nunca os valores.
 
 ## Histórico persistente com Supabase
 
-O histórico agregado pode ser persistido em um projeto Supabase configurando
+O histórico agregado e o cofre persistente podem usar um projeto Supabase configurando
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_HISTORY_LIMIT`. A API usa a
-service role apenas no servidor para acessar `public.analysis_history`; essa chave nunca
-vai para o frontend. A migração `create_analysis_history` cria a tabela com RLS habilitado
-e não cria políticas públicas, portanto o acesso fica restrito ao backend interno.
-O SQL reproduzível fica em `supabase/migrations/20260820000000_create_analysis_history.sql`.
+service role apenas no servidor; essa chave nunca vai para o frontend. As migrações
+criam `public.analysis_history` e `public.integration_credentials` com RLS habilitado,
+sem políticas para o navegador, portanto o acesso fica restrito ao backend interno.
+O SQL reproduzível fica em `supabase/migrations/`.
 
-São salvos somente alvo, tipo da consulta, contadores de sucesso/atenção e horários —
-nenhuma resposta detalhada dos plugins ou credencial. Se o Supabase não estiver
-configurado ou estiver temporariamente indisponível, o dashboard continua usando o
-histórico de sessão local.
+São salvos somente alvo, tipo da consulta, contadores de sucesso/atenção e horários no
+histórico. As credenciais ficam cifradas com AES-256-GCM antes de serem persistidas e a
+chave mestra continua somente no ambiente do backend. Se o Supabase não estiver
+configurado, o cofre local é usado no desenvolvimento; em produção, configure o
+Supabase antes de abrir o painel administrativo.
 
 ## Configuração dos plugins
 

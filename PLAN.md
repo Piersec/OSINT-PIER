@@ -214,10 +214,12 @@ produzir `skipped`, sem interromper os outros plugins.
   como infraestrutura do Vitest)
 - Monorepo e qualidade: pnpm workspaces, Vitest, React Testing Library, ESLint e Prettier
 - Timeout padrão por plugin: 10 segundos, configurável e com override por plugin
-- Credenciais via painel: cofre local AES-256-GCM, protegido por `ADMIN_TOKEN`, com
-  variáveis de ambiente como fallback; serviço interno/single-admin
-- Banco de dados: Supabase opcional para o histórico agregado; o restante do estado
-  transitório (cache e rate limit) permanece em memória na instância única
+- Credenciais via painel: cofre AES-256-GCM persistido no Supabase quando
+  `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` estão configurados; filesystem local é
+  fallback para desenvolvimento. Ambos são protegidos por `ADMIN_TOKEN` e a chave
+  mestra fica somente no ambiente do backend
+- Banco de dados: Supabase para histórico agregado e cofre de integrações; o restante
+  do estado transitório (cache e rate limit) permanece em memória na instância única
 - Cache da Fase 3: memória local, TTL padrão de 5 minutos, limite de 1.000 entradas,
   somente `success`, deduplicação em andamento e invalidação ao alterar credenciais
 - Rate limiting da Fase 3: armazenamento local do `@fastify/rate-limit`, 60 execuções por
@@ -252,14 +254,12 @@ produzir `skipped`, sem interromper os outros plugins.
       integrações, sem revelar valores armazenados
 - [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
 - [x] Permitir fechar o cofre e limpar o token administrativo da memória da página
-- [x] Confirmar que o Supabase permanece restrito ao histórico agregado, com RLS ativo e
-      sem credenciais persistidas
+- [x] Persistir o cofre de integrações cifrado no Supabase com RLS, mantendo a chave
+      mestra e o token administrativo fora do banco
 - [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
       falhas de inicialização no log sem devolver stack trace ao cliente
 - [x] Manter a proteção de deployment do Vercel enquanto o serviço for interno; usar
       bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
-- [ ] Decidir a persistência do cofre no Vercel: usar somente variáveis de ambiente ou
-      criar um cofre persistente cifrado no Supabase com RLS e chave mestra fora do banco
 - [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
       uma camada adicional de autenticação para o painel administrativo
 
@@ -391,3 +391,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — O tracing do Next foi ampliado para preservar no bundle serverless todo
   o `apps/api/dist`, incluindo o núcleo de execução e descoberta dinâmica dos plugins;
   o manifesto local da rota agora contém 83 arquivos compilados da API.
+- `2026-08-21` — O cofre de integrações deixou de depender do filesystem efêmero da
+  Vercel: credenciais são cifradas com AES-256-GCM no backend e persistidas em
+  `public.integration_credentials` no Supabase, com RLS e acesso somente para
+  `service_role`. A interface continua administrada por `ADMIN_TOKEN` e nunca recebe
+  os valores armazenados.

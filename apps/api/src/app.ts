@@ -24,14 +24,18 @@ import type { CheckRegistry } from './core/checks/registry.js';
 import { CheckSettingsStore } from './core/checks/settings-store.js';
 import { SupabaseHistoryStore } from './core/history/supabase-history-store.js';
 import { AppCredentialProvider } from './core/credentials/credential-provider.js';
-import { EncryptedCredentialStore } from './core/credentials/encrypted-store.js';
+import {
+  EncryptedCredentialStore,
+  type CredentialStore,
+} from './core/credentials/encrypted-store.js';
+import { SupabaseCredentialStore } from './core/credentials/supabase-credential-store.js';
 import { normalizeTarget } from './core/target/normalize-target.js';
 
 export interface AppDependencies {
   config?: AppConfig;
   registry?: CheckRegistry;
   checksDirectory?: string;
-  vault?: EncryptedCredentialStore;
+  vault?: CredentialStore;
   environment?: NodeJS.ProcessEnv;
   logger?: boolean;
   cache?: CheckResultCache;
@@ -56,7 +60,7 @@ function authorizeAdmin(
   request: FastifyRequest,
   reply: FastifyReply,
   config: AppConfig,
-  vault: EncryptedCredentialStore,
+  vault: CredentialStore,
 ): boolean {
   if (!config.adminToken || !vault.enabled) {
     void reply.code(503).send({
@@ -86,10 +90,16 @@ export async function createApp(
     dependencies.registry ?? (await loadCheckRegistry(checksDirectory));
   const vault =
     dependencies.vault ??
-    new EncryptedCredentialStore({
-      filePath: config.credentialStorePath,
-      encodedKey: config.encryptionKey,
-    });
+    (config.supabaseUrl && config.supabaseServiceRoleKey
+      ? new SupabaseCredentialStore({
+          url: config.supabaseUrl,
+          serviceRoleKey: config.supabaseServiceRoleKey,
+          encodedKey: config.encryptionKey,
+        })
+      : new EncryptedCredentialStore({
+          filePath: config.credentialStorePath,
+          encodedKey: config.encryptionKey,
+        }));
   const credentialProvider = new AppCredentialProvider(
     vault,
     dependencies.environment ?? process.env,

@@ -142,8 +142,9 @@ export function CredentialsPanel() {
       </div>
       <p className="muted section-copy">
         Isto não cria login de usuário: é apenas o acesso administrativo ao
-        cofre de chaves das integrações. O token fica somente na memória desta
-        página e valores já armazenados nunca são exibidos.
+        cofre de chaves das integrações. Com o Supabase configurado, elas ficam
+        persistentes entre deploys e instâncias da Vercel. O token fica somente
+        na memória desta página e valores já armazenados nunca são exibidos.
       </p>
 
       <div className="admin-unlock">
