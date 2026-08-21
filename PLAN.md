@@ -243,8 +243,8 @@ produzir `skipped`, sem interromper os outros plugins.
       dinâmico de plugins e fallback para API separada via `NEXT_PUBLIC_API_URL`
 - [x] Configurar build de monorepo no `vercel.json`, incluindo compilação dos contratos e
       backend antes do Next.js
-- [ ] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy no
-      projeto Vercel conectado
+- [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
+      preview protegido no projeto Vercel conectado
 
 ---
 
@@ -342,3 +342,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   com navegação direta por rolagem, sem recolhimento global. A nova página Configurações
   permite alternar entre os temas Dark e White, mantendo Dark como padrão e persistindo
   a escolha somente no navegador local.
+- `2026-08-21` — Fase 9 concluída: frontend migrado para Next.js 16.3.2 (versão corrigida),
+  API Fastify adaptada para `/api/[...path]`, build monorepo configurado no Vercel e
+  repositório atualizado no GitHub. Deploy de preview protegido validado como `READY` em
+  `osint-pier-ou73mbxld-rhuanoliveira.vercel.app`; credenciais continuam fora do Git e
+  precisam ser cadastradas nas variáveis/cofre do ambiente Vercel.
