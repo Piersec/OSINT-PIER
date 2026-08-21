@@ -256,6 +256,8 @@ produzir `skipped`, sem interromper os outros plugins.
       sem credenciais persistidas
 - [x] Manter a proteção de deployment do Vercel enquanto o serviço for interno; usar
       bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
+- [ ] Decidir a persistência do cofre no Vercel: usar somente variáveis de ambiente ou
+      criar um cofre persistente cifrado no Supabase com RLS e chave mestra fora do banco
 - [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
       uma camada adicional de autenticação para o painel administrativo
 
