@@ -248,17 +248,13 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
-<<<<<<< HEAD
-## Fase 10 — Acesso interno com Supabase Auth
+## Fase 10 — Acesso interno, cofre e segurança do deploy
 
 - [x] Exibir somente um formulário de login por e-mail e senha, sem cadastro externo
 - [x] Persistir a sessão no navegador e oferecer saída da conta autenticada
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
-=======
-## Fase 10 — Administração de integrações e segurança do deploy
-
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
       integrações, sem revelar valores armazenados
 - [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
@@ -272,7 +268,6 @@ produzir `skipped`, sem interromper os outros plugins.
       bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
 - [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
       uma camada adicional de autenticação para o painel administrativo
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
 
 ---
 
@@ -379,7 +374,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
   plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
   em uma página hospedada e retorna ao endpoint same-origin `/api`.
-<<<<<<< HEAD
 - `2026-08-21` — Fase 10 iniciada: login fechado por e-mail e senha com Supabase Auth,
   sem cadastro no frontend. A sessão é persistida no navegador, o access token segue
   para a API e o backend valida a sessão antes das operações da plataforma. A criação
@@ -388,7 +382,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — Pipeline de colaboração criado em `COLLABORATION.md`: leitura
   obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
   conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
-=======
 - `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
   status das integrações, mostrando habilitação, presença da chave e origem sem expor
   segredos. O Supabase foi verificado novamente: existe apenas `public.analysis_history`,
@@ -421,4 +414,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   temporariamente do fluxo do painel enquanto ainda não existem contas de usuário.
   As rotas administrativas continuam separadas e deverão receber autenticação/RBAC
   antes de qualquer exposição pública.
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
+- `2026-08-21` — GAB-76: corrigido o erro genérico ao salvar credenciais quando o cofre
+  persistente está ausente ou indisponível. A API agora responde `503` com orientação
+  segura para configurar Supabase e a chave mestra, sem incluir o segredo enviado. Os
+  conflitos Git persistidos em configuração, testes, documentação e plano também foram
+  resolvidos preservando autenticação Supabase e o cofre sem `ADMIN_TOKEN`.

@@ -12,9 +12,8 @@ identidades. Cada checagem é um plugin independente, descoberto automaticamente
 
 1. Instale as dependências com `pnpm install`.
 2. Copie `.env.sample` para `.env` sem versionar o novo arquivo.
-3. Gere um token administrativo longo.
-4. Gere 32 bytes aleatórios em base64 para `CREDENTIALS_ENCRYPTION_KEY`.
-5. Inicie API e frontend com `pnpm dev`.
+3. Gere 32 bytes aleatórios em base64 para `CREDENTIALS_ENCRYPTION_KEY`.
+4. Inicie API e frontend com `pnpm dev`.
 
 Exemplo para gerar a chave mestra:
 
@@ -27,8 +26,8 @@ $bytes = [byte[]]::new(32)
 A interface Next.js abre em `http://localhost:5173` e, no modo local, mantém a API Fastify
 em `http://localhost:3000`. O cliente usa a rota same-origin `/api` por padrão; defina
 `NEXT_PUBLIC_API_URL` somente se quiser apontar para uma API Fastify separada. Em outro
-ambiente interno, use HTTPS antes de inserir chaves no painel, pois o token administrativo
-acompanha cada operação em um header.
+ambiente interno, use HTTPS antes de inserir chaves no painel. As operações protegidas usam
+a sessão autenticada do Supabase.
 
 ## Credenciais
 
@@ -40,15 +39,20 @@ adicionar, substituir ou remover seu valor. O backend:
 - usa variáveis de ambiente como fallback;
 - retorna `skipped` quando um plugin não encontra uma credencial obrigatória.
 
-O modo interno atual não exige token administrativo. Em desenvolvimento, o arquivo
+O modo interno atual não exige `ADMIN_TOKEN`. Em desenvolvimento, o arquivo
 `.data/credentials.enc` é usado como fallback e é ignorado pelo Git. Quando
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e
 `CREDENTIALS_ENCRYPTION_KEY` estão configurados, o cofre passa a persistir no Supabase;
 o navegador continua recebendo apenas status, nunca os valores.
 
-> Atenção: enquanto a autenticação de usuários não for implementada, as rotas do painel
-> de credenciais permitem adicionar, substituir e remover chaves para qualquer pessoa
-> que consiga alcançar o deployment. Mantenha o serviço restrito à rede interna.
+> Atenção: a sessão Supabase já protege as rotas, mas o RBAC que separará usuários comuns de
+> administradores ainda está pendente. Mantenha o serviço restrito à rede interna até essa
+> camada ser concluída.
+
+Se o painel retornar `503` ao salvar uma chave, configure no ambiente do backend (por
+exemplo, em Vercel) `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e
+`CREDENTIALS_ENCRYPTION_KEY`, e faça um novo deploy. A `service_role` e a chave mestra
+ficam exclusivamente no backend; nunca use prefixo `NEXT_PUBLIC_` para elas.
 
 ## Histórico persistente com Supabase
 

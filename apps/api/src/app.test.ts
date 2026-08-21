@@ -7,7 +7,10 @@ import { createApp } from './app.js';
 import type { AppConfig } from './config.js';
 import { SupabaseAuth } from './core/auth/supabase-auth.js';
 import { CheckRegistry } from './core/checks/registry.js';
-import { EncryptedCredentialStore } from './core/credentials/encrypted-store.js';
+import {
+  EncryptedCredentialStore,
+  type CredentialStore,
+} from './core/credentials/encrypted-store.js';
 
 const temporaryDirectories: string[] = [];
 
@@ -20,7 +23,11 @@ afterEach(async () => {
 });
 
 async function fixture(
-  options: { rateLimitMax?: number; autoAuthenticate?: boolean } = {},
+  options: {
+    rateLimitMax?: number;
+    autoAuthenticate?: boolean;
+    vault?: CredentialStore;
+  } = {},
 ) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'osint-pier-app-'));
   temporaryDirectories.push(directory);
@@ -67,7 +74,7 @@ async function fixture(
   ]);
   const app = await createApp({
     config,
-    vault,
+    vault: options.vault ?? vault,
     registry,
     environment: {},
     logger: false,
@@ -96,7 +103,6 @@ async function fixture(
 }
 
 describe('API', () => {
-<<<<<<< HEAD
   it('exige uma sessão Supabase para as operações da plataforma', async () => {
     const { app } = await fixture({ autoAuthenticate: false });
     const response = await app.inject({ method: 'GET', url: '/api/checks' });
@@ -105,10 +111,7 @@ describe('API', () => {
     expect(response.statusCode).toBe(401);
   });
 
-  it('protege todas as operações administrativas', async () => {
-=======
   it('permite operações do cofre sem token no modo interno temporário', async () => {
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
     const { app } = await fixture();
     const response = await app.inject({
       method: 'GET',
@@ -117,6 +120,33 @@ describe('API', () => {
     await app.close();
 
     expect(response.statusCode).toBe(200);
+  });
+
+  it('retorna 503 acionável quando o cofre não está configurado', async () => {
+    const { app } = await fixture({
+      vault: {
+        enabled: false,
+        configurationError:
+          'Configure SUPABASE_URL e CREDENTIALS_ENCRYPTION_KEY.',
+        get: async () => undefined,
+        listNames: async () => [],
+        set: async () => undefined,
+        remove: async () => false,
+      },
+    });
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/api/admin/credentials/SHODAN_API_KEY',
+      payload: { value: 'secret-do-teste' },
+    });
+    await app.close();
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toEqual({
+      error: 'Cofre de credenciais indisponível neste deployment.',
+      details: 'Configure SUPABASE_URL e CREDENTIALS_ENCRYPTION_KEY.',
+    });
+    expect(response.body).not.toContain('secret-do-teste');
   });
 
   it('expõe o histórico agregado mesmo quando o Supabase está opcionalmente desabilitado', async () => {
