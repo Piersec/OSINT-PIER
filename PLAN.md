@@ -376,3 +376,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   pelo workspace `apps/web`: o cofre criptografado e as flags de checks agora continuam
   apontando para o `.data` da raiz do monorepo, evitando que o painel mostre chaves como
   ausentes apenas por causa do diretório de execução.
+- `2026-08-21` — Corrigido erro de hidratação no Next.js: a página inicial agora usa
+  estado determinístico no servidor e aplica hash da rota e tema persistido somente após
+  a montagem no navegador. A navegação direta para `/#credentials` não deve mais gerar
+  divergência entre as classes da barra lateral.

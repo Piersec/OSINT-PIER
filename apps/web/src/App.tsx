@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ApiRequestError,
@@ -249,9 +249,10 @@ export function App() {
     queryFn: () => listHistory(50),
     retry: false,
   });
-  const [page, setPage] = useState<Page>(() =>
-    readPage(typeof window === 'undefined' ? '' : window.location.hash),
-  );
+  // Keep the first render identical on the server and browser. The hash is
+  // only available in the browser, so reading it during useState would make
+  // `/` and `/#credentials` produce different trees during hydration.
+  const [page, setPage] = useState<Page>('analysis');
   const [target, setTarget] = useState('');
   const [lastTarget, setLastTarget] = useState<string | null>(null);
   const [lastTargetKind, setLastTargetKind] = useState<TargetKind | 'auto'>(
@@ -262,18 +263,28 @@ export function App() {
   const [toolTarget, setToolTarget] = useState('');
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(true);
-  const [theme, setTheme] = useState<Theme>(readTheme);
+  const [theme, setTheme] = useState<Theme>('dark');
+  const themeInitialized = useRef(false);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
 
   useEffect(() => {
     const handleHashChange = () => setPage(readPage(window.location.hash));
+    setPage(readPage(window.location.hash));
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   useEffect(() => {
+    if (!themeInitialized.current) {
+      themeInitialized.current = true;
+      const storedTheme = readTheme();
+      if (storedTheme !== theme) {
+        setTheme(storedTheme);
+        return;
+      }
+    }
     document.documentElement.dataset.theme = theme;
     try {
       window.localStorage.setItem('osint-pier-theme', theme);
