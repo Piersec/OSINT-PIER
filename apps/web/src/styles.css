@@ -148,6 +148,22 @@ body {
   margin-top: 12px;
 }
 
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.auth-notice {
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 194, 92, 0.28);
+  border-radius: 10px;
+  color: #ffe0a1;
+  background: rgba(255, 194, 92, 0.08);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .auth-error {
   margin: 12px 0 0;
   padding: 11px 13px;

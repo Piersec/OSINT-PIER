@@ -42,7 +42,7 @@ function applyStoredTheme() {
   }
 }
 
-function LoginForm() {
+function LoginForm({ notice }: { notice?: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +100,12 @@ function LoginForm() {
             value={password}
           />
 
+          {notice && (
+            <p className="auth-notice" role="status">
+              {notice}
+            </p>
+          )}
+
           {error && (
             <p className="auth-error" role="alert">
               {error}
@@ -108,7 +114,7 @@ function LoginForm() {
 
           <button
             className="button auth-submit"
-            disabled={submitting}
+            disabled={submitting || !supabase}
             type="submit"
           >
             {submitting ? 'Validando acesso…' : 'Entrar'}
@@ -177,23 +183,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (error && !user) {
-    return (
-      <main className="auth-shell">
-        <section className="auth-card auth-card--message" role="alert">
-          <div className="auth-brand">
-            <img src="/piersec-logo.svg" alt="" />
-            <span>OSINT Pier</span>
-          </div>
-          <span className="eyebrow">Configuração necessária</span>
-          <h1>Login indisponível</h1>
-          <p className="auth-copy">{error}</p>
-        </section>
-      </main>
-    );
-  }
-
-  if (!user) return <LoginForm />;
+  if (!user) return <LoginForm notice={error} />;
 
   return (
     <AuthContext.Provider
