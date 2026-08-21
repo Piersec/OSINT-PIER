@@ -385,6 +385,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   para a API e o backend valida a sessão antes das operações da plataforma. A criação
   de usuários e o bloqueio do cadastro público continuam sendo configurações manuais
   no painel do Supabase.
+- `2026-08-21` — Pipeline de colaboração criado em `COLLABORATION.md`: leitura
+  obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
+  conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
 =======
 - `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
   status das integrações, mostrando habilitação, presença da chave e origem sem expor

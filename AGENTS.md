@@ -118,7 +118,7 @@ Quando o usuário mandar um link de repositório/API nova:
 
 ## 5. Fluxo de trabalho esperado do agente de IA
 
-1. Ler `AGENTS.md` (este arquivo) e `PLAN.md` antes de qualquer alteração.
+1. Ler `AGENTS.md` (este arquivo), `PLAN.md` e `COLLABORATION.md` antes de qualquer alteração.
 2. Verificar em qual fase do `PLAN.md` o projeto está.
 3. Implementar apenas o escopo da fase atual, a menos que o usuário peça explicitamente
    para adiantar algo.
@@ -128,6 +128,9 @@ Quando o usuário mandar um link de repositório/API nova:
    antes de decidir sozinho.
 6. Ao adicionar uma integração nova (a partir de um link que o usuário mandar), seguir
    o processo da seção 2.3 deste arquivo.
+7. Registrar o escopo, a posse, o handoff e o resultado da tarefa na issue correspondente
+   do Linear conforme o `COLLABORATION.md`.
+8. Fazer um commit atômico ao concluir cada etapa relevante e informar o hash no handoff.
 
 ---
 
