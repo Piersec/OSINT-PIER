@@ -15,6 +15,9 @@
     "test": "pnpm --filter @osint-pier/contracts build && pnpm -r test",
     "typecheck": "pnpm --filter @osint-pier/contracts build && pnpm -r typecheck"
   },
+  "dependencies": {
+    "next": "16.3.2"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
     "eslint": "^10.0.0",
