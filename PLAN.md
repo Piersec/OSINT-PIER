@@ -256,6 +256,10 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Persistir a sessão no navegador e oferecer saída da conta autenticada
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
+- [x] Disponibilizar perfil autenticado com avatar privado, troca de senha e medidor de
+      força para rejeitar a senha inicial fraca
+- [x] Exigir a troca da senha no primeiro acesso por modal sem opção de fechar
+- [ ] Conectar configuração e verificação de MFA por TOTP
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
 ### Administração de integrações
 
@@ -421,3 +425,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — Pipeline de colaboração atualizada em `COLLABORATION.md`: toda tarefa
   sincroniza a base com `pull`, usa branch exclusiva e faz `push`; após validação, a
   entrega é integrada e publicada na `master` autorizada pelo proprietário.
+- `2026-08-21` — GAB-79: perfil autenticado implementado com upload de avatar em bucket
+  privado do Supabase, troca de senha com análise local de força e modal obrigatório para
+  contas sem `password_changed_at` (incluindo o acesso inicial `admin123`). O cartão de MFA
+  ficou preparado como próxima etapa; a migration `create_profile_avatars` foi aplicada no
+  projeto Supabase conectado e as policies restringem cada arquivo ao próprio usuário.

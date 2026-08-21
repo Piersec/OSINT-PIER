@@ -20,8 +20,10 @@ import {
   type AnalysisHistoryEntry,
 } from './features/history/analysis-history';
 import { useAuth } from './features/auth/AuthGate';
+import { ProfilePage } from './features/profile/ProfilePage';
 
-type Page = 'analysis' | 'results' | 'history' | 'credentials' | 'settings';
+type Page =
+  'analysis' | 'results' | 'history' | 'credentials' | 'profile' | 'settings';
 type Theme = 'dark' | 'white';
 
 const pageMeta: Record<
@@ -49,6 +51,11 @@ const pageMeta: Record<
     title: 'Cofre de integrações',
     description:
       'Gerencie chaves de APIs e a disponibilidade dos plugins internos.',
+  },
+  profile: {
+    eyebrow: 'OSINT Pier / identidade',
+    title: 'Seu perfil',
+    description: 'Atualize sua foto e mantenha a segurança da conta em dia.',
   },
   settings: {
     eyebrow: 'OSINT Pier / preferências',
@@ -182,9 +189,14 @@ function ToolLogo({ checkId, label }: { checkId: string; label: string }) {
 
 function readPage(hash: string): Page {
   const value = hash.replace(/^#/, '') as Page;
-  return ['analysis', 'results', 'history', 'credentials', 'settings'].includes(
-    value,
-  )
+  return [
+    'analysis',
+    'results',
+    'history',
+    'credentials',
+    'profile',
+    'settings',
+  ].includes(value)
     ? value
     : 'analysis';
 }
@@ -243,7 +255,7 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -508,6 +520,7 @@ export function App() {
               ['results', 'Ferramentas', 'results'],
               ['history', 'Histórico', 'history'],
               ['credentials', 'Credenciais', 'credentials'],
+              ['profile', 'Perfil', 'profile'],
               ['settings', 'Configurações', 'settings'],
             ] as const
           ).map(([itemPage, label, icon]) => (
@@ -550,6 +563,12 @@ export function App() {
                   <>
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.5v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1Z" />
+                  </>
+                )}
+                {icon === 'profile' && (
+                  <>
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5 21a7 7 0 0 1 14 0" />
                   </>
                 )}
               </svg>
@@ -1113,6 +1132,10 @@ export function App() {
               </p>
               <CredentialsPanel />
             </>
+          )}
+
+          {page === 'profile' && (
+            <ProfilePage onUserUpdated={updateUser} user={user} />
           )}
 
           {page === 'settings' && (

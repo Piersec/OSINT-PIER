@@ -9,10 +9,13 @@ import {
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import { PasswordRotationModal } from '../profile/ProfilePage';
+import { analyzePassword } from './password-strength';
 
 interface AuthContextValue {
   user: User;
   signOut: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -42,7 +45,13 @@ function applyStoredTheme() {
   }
 }
 
-function LoginForm({ notice }: { notice?: string | null }) {
+function LoginForm({
+  notice,
+  onWeakPassword,
+}: {
+  notice?: string | null;
+  onWeakPassword: () => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +69,11 @@ function LoginForm({ notice }: { notice?: string | null }) {
     });
     setSubmitting(false);
 
-    if (signInError) setError(authErrorMessage(signInError.message));
+    if (signInError) {
+      setError(authErrorMessage(signInError.message));
+      return;
+    }
+    if (analyzePassword(password).strength !== 'strong') onWeakPassword();
   }
 
   return (
@@ -139,6 +152,18 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setMustChangePassword(false);
+      return;
+    }
+    const changedAt = user.user_metadata?.password_changed_at;
+    setMustChangePassword(
+      !(typeof changedAt === 'string' && changedAt.length > 0),
+    );
+  }, [user]);
 
   useEffect(() => {
     applyStoredTheme();
@@ -183,7 +208,21 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return <LoginForm notice={error} />;
+  if (!user)
+    return (
+      <LoginForm
+        notice={error}
+        onWeakPassword={() => setMustChangePassword(true)}
+      />
+    );
+
+  function updateAuthenticatedUser(nextUser: User) {
+    setUser(nextUser);
+    const changedAt = nextUser.user_metadata?.password_changed_at;
+    setMustChangePassword(
+      !(typeof changedAt === 'string' && changedAt.length > 0),
+    );
+  }
 
   return (
     <AuthContext.Provider
@@ -192,9 +231,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         signOut: async () => {
           await supabase?.auth.signOut();
         },
+        updateUser: updateAuthenticatedUser,
       }}
     >
       {children}
+      {mustChangePassword && (
+        <PasswordRotationModal
+          onUserUpdated={updateAuthenticatedUser}
+          user={user}
+        />
+      )}
     </AuthContext.Provider>
   );
 }
