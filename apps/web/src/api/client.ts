@@ -96,25 +96,19 @@ export async function listChecks(): Promise<CheckCatalogItem[]> {
   return z.array(CheckCatalogItemSchema).parse(await request('/api/checks'));
 }
 
-export async function listCheckSettings(
-  token: string,
-): Promise<CheckCatalogItem[]> {
+export async function listCheckSettings(): Promise<CheckCatalogItem[]> {
   return z
     .array(CheckCatalogItemSchema)
-    .parse(
-      await request('/api/admin/checks', { headers: adminHeaders(token) }),
-    );
+    .parse(await request('/api/admin/checks'));
 }
 
 export async function setCheckEnabled(
-  token: string,
   id: string,
   enabled: boolean,
 ): Promise<CheckCatalogItem> {
   return CheckCatalogItemSchema.parse(
     await request(`/api/admin/checks/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: adminHeaders(token),
       body: JSON.stringify(CheckEnabledWriteSchema.parse({ enabled })),
     }),
   );
@@ -156,38 +150,24 @@ export async function saveHistory(input: {
   return response.entry ?? null;
 }
 
-function adminHeaders(token: string): HeadersInit {
-  return { 'x-admin-token': token };
-}
-
-export async function listCredentials(
-  token: string,
-): Promise<CredentialStatus[]> {
+export async function listCredentials(): Promise<CredentialStatus[]> {
   return z
     .array(CredentialStatusSchema)
-    .parse(
-      await request('/api/admin/credentials', { headers: adminHeaders(token) }),
-    );
+    .parse(await request('/api/admin/credentials'));
 }
 
 export async function saveCredential(
-  token: string,
   name: string,
   value: string,
 ): Promise<void> {
   await request(`/api/admin/credentials/${encodeURIComponent(name)}`, {
     method: 'PUT',
-    headers: adminHeaders(token),
     body: JSON.stringify({ value }),
   });
 }
 
-export async function removeCredential(
-  token: string,
-  name: string,
-): Promise<void> {
+export async function removeCredential(name: string): Promise<void> {
   await request(`/api/admin/credentials/${encodeURIComponent(name)}`, {
     method: 'DELETE',
-    headers: adminHeaders(token),
   });
 }

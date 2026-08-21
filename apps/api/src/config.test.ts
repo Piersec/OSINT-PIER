@@ -17,4 +17,10 @@ describe('loadConfig', () => {
     expect(config.supabaseServiceRoleKey).toBeUndefined();
     expect(config.supabaseHistoryLimit).toBe(50);
   });
+
+  it('não derruba as rotas públicas quando uma URL opcional está malformada', () => {
+    const config = loadConfig({ SUPABASE_URL: '"not-a-url"' });
+
+    expect(config.supabaseUrl).toBeUndefined();
+  });
 });

@@ -11,7 +11,6 @@ import {
 
 export function CredentialsPanel() {
   const queryClient = useQueryClient();
-  const [token, setToken] = useState('');
   const [credentials, setCredentials] = useState<CredentialStatus[] | null>(
     null,
   );
@@ -28,8 +27,8 @@ export function CredentialsPanel() {
     setMessage(null);
     try {
       const [nextCredentials, nextCheckSettings] = await Promise.all([
-        listCredentials(token),
-        listCheckSettings(token),
+        listCredentials(),
+        listCheckSettings(),
       ]);
       setCredentials(nextCredentials);
       setCheckSettings(nextCheckSettings);
@@ -50,10 +49,10 @@ export function CredentialsPanel() {
     setBusy(true);
     setMessage(null);
     try {
-      await saveCredential(token, name.trim().toUpperCase(), value);
+      await saveCredential(name.trim().toUpperCase(), value);
       setName('');
       setValue('');
-      setCredentials(await listCredentials(token));
+      setCredentials(await listCredentials());
       setMessage('Credencial armazenada com segurança.');
     } catch (error) {
       setMessage(
@@ -71,8 +70,8 @@ export function CredentialsPanel() {
     setBusy(true);
     setMessage(null);
     try {
-      await removeCredential(token, credentialName);
-      setCredentials(await listCredentials(token));
+      await removeCredential(credentialName);
+      setCredentials(await listCredentials());
       setMessage('Credencial removida do cofre.');
     } catch (error) {
       setMessage(
@@ -89,7 +88,7 @@ export function CredentialsPanel() {
     setBusy(true);
     setMessage(null);
     try {
-      const updated = await setCheckEnabled(token, check.id, !check.enabled);
+      const updated = await setCheckEnabled(check.id, !check.enabled);
       setCheckSettings(
         (current) =>
           current?.map((item) =>
@@ -141,36 +140,24 @@ export function CredentialsPanel() {
         <span className="lock-badge">Cofre AES-256-GCM</span>
       </div>
       <p className="muted section-copy">
-        Isto não cria login de usuário: é apenas o acesso administrativo ao
-        cofre de chaves das integrações. Com o Supabase configurado, elas ficam
-        persistentes entre deploys e instâncias da Vercel. O token fica somente
-        na memória desta página e valores já armazenados nunca são exibidos.
+        Acesso interno ao cofre de chaves das integrações. Com o Supabase
+        configurado, elas ficam persistentes entre deploys e instâncias da
+        Vercel. Os valores já armazenados nunca são exibidos.
       </p>
 
       <div className="admin-unlock">
-        <label>
-          Token administrativo
-          <input
-            autoComplete="current-password"
-            onChange={(event) => setToken(event.target.value)}
-            placeholder="ADMIN_TOKEN"
-            type="password"
-            value={token}
-          />
-        </label>
         <button
           className="button button--secondary"
-          disabled={!token || busy}
+          disabled={busy}
           onClick={refresh}
         >
-          {busy ? 'Verificando…' : 'Abrir cofre'}
+          {busy ? 'Carregando…' : 'Atualizar credenciais'}
         </button>
         {credentials && (
           <button
             className="button button--ghost"
             disabled={busy}
             onClick={() => {
-              setToken('');
               setCredentials(null);
               setCheckSettings(null);
               setMessage(null);

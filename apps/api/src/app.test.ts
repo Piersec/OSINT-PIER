@@ -76,7 +76,7 @@ async function fixture(options: { rateLimitMax?: number } = {}) {
 }
 
 describe('API', () => {
-  it('protege todas as operações administrativas', async () => {
+  it('permite operações do cofre sem token no modo interno temporário', async () => {
     const { app } = await fixture();
     const response = await app.inject({
       method: 'GET',
@@ -84,7 +84,7 @@ describe('API', () => {
     });
     await app.close();
 
-    expect(response.statusCode).toBe(401);
+    expect(response.statusCode).toBe(200);
   });
 
   it('expõe o histórico agregado mesmo quando o Supabase está opcionalmente desabilitado', async () => {

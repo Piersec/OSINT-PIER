@@ -37,15 +37,18 @@ adicionar, substituir ou remover seu valor. O backend:
 
 - criptografa o cofre com AES-256-GCM;
 - nunca devolve um segredo armazenado;
-- exige `ADMIN_TOKEN` em todas as operações do cofre;
 - usa variáveis de ambiente como fallback;
 - retorna `skipped` quando um plugin não encontra uma credencial obrigatória.
 
-O token administrativo fica somente na memória da aba e é descartado ao recarregar a
-página. Em desenvolvimento, o arquivo `.data/credentials.enc` é usado como fallback e
-é ignorado pelo Git. Quando `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e
+O modo interno atual não exige token administrativo. Em desenvolvimento, o arquivo
+`.data/credentials.enc` é usado como fallback e é ignorado pelo Git. Quando
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e
 `CREDENTIALS_ENCRYPTION_KEY` estão configurados, o cofre passa a persistir no Supabase;
 o navegador continua recebendo apenas status, nunca os valores.
+
+> Atenção: enquanto a autenticação de usuários não for implementada, as rotas do painel
+> de credenciais permitem adicionar, substituir e remover chaves para qualquer pessoa
+> que consiga alcançar o deployment. Mantenha o serviço restrito à rede interna.
 
 ## Histórico persistente com Supabase
 

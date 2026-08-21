@@ -31,11 +31,19 @@ function emptyToUndefined(value: unknown): unknown {
 }
 
 const optionalText = z.preprocess(emptyToUndefined, z.string().optional());
-const optionalToken = z.preprocess(
-  emptyToUndefined,
-  z.string().min(24).optional(),
-);
-const optionalUrl = z.preprocess(emptyToUndefined, z.string().url().optional());
+const optionalUrl = z.preprocess((value) => {
+  const normalized = emptyToUndefined(value);
+  if (typeof normalized !== 'string') return normalized;
+  const trimmed = normalized.trim().replace(/^("|')|("|')$/g, '');
+  try {
+    new URL(trimmed);
+    return trimmed;
+  } catch {
+    // Optional deployment configuration must not prevent public routes from
+    // starting. The store remains disabled until a valid URL is provided.
+    return undefined;
+  }
+}, z.string().url().optional());
 const optionalPositiveNumber = (defaultValue: number) =>
   z.preprocess(
     emptyToUndefined,
@@ -76,7 +84,9 @@ const EnvironmentSchema = z.object({
     .min(1000)
     .max(86_400_000)
     .default(60_000),
-  ADMIN_TOKEN: optionalToken,
+  // Retained as a future authentication seam; the current internal build does
+  // not require a token for the credentials panel.
+  ADMIN_TOKEN: optionalText,
   CREDENTIALS_ENCRYPTION_KEY: optionalText,
   CREDENTIAL_STORE_PATH: optionalText,
   CHECK_SETTINGS_PATH: optionalText,

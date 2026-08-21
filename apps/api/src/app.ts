@@ -1,4 +1,3 @@
-import { timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import cors from '@fastify/cors';
@@ -43,39 +42,16 @@ export interface AppDependencies {
   historyStore?: SupabaseHistoryStore;
 }
 
-function tokenMatches(
-  candidate: string | undefined,
-  expected: string | undefined,
-): boolean {
-  if (!candidate || !expected) return false;
-  const candidateBytes = Buffer.from(candidate);
-  const expectedBytes = Buffer.from(expected);
-  return (
-    candidateBytes.length === expectedBytes.length &&
-    timingSafeEqual(candidateBytes, expectedBytes)
-  );
-}
-
 function authorizeAdmin(
-  request: FastifyRequest,
+  _request: FastifyRequest,
   reply: FastifyReply,
-  config: AppConfig,
-  vault: CredentialStore,
+  _config: AppConfig,
+  _vault: CredentialStore,
 ): boolean {
-  if (!config.adminToken || !vault.enabled) {
-    void reply.code(503).send({
-      error:
-        'Painel indisponível: configure ADMIN_TOKEN e CREDENTIALS_ENCRYPTION_KEY.',
-    });
-    return false;
-  }
-
-  const header = request.headers['x-admin-token'];
-  const token = Array.isArray(header) ? header[0] : header;
-  if (!tokenMatches(token, config.adminToken)) {
-    void reply.code(401).send({ error: 'Token administrativo inválido.' });
-    return false;
-  }
+  // Temporary internal mode requested by the owner. Keep the authorization
+  // seam isolated so a future Supabase Auth/RBAC layer can replace this
+  // function without changing credential endpoints or storage.
+  void reply;
   return true;
 }
 

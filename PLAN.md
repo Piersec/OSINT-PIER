@@ -253,7 +253,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
       integrações, sem revelar valores armazenados
 - [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
-- [x] Permitir fechar o cofre e limpar o token administrativo da memória da página
+- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a fase sem usuários,
+      mantendo a autorização isolada para substituição futura por RBAC
 - [x] Persistir o cofre de integrações cifrado no Supabase com RLS, mantendo a chave
       mestra e o token administrativo fora do banco
 - [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
@@ -394,5 +395,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — O cofre de integrações deixou de depender do filesystem efêmero da
   Vercel: credenciais são cifradas com AES-256-GCM no backend e persistidas em
   `public.integration_credentials` no Supabase, com RLS e acesso somente para
-  `service_role`. A interface continua administrada por `ADMIN_TOKEN` e nunca recebe
-  os valores armazenados.
+  `service_role`. Na implementação original, a interface exigia `ADMIN_TOKEN` e nunca
+  recebia os valores armazenados.
+- `2026-08-21` — Por decisão explícita do proprietário, o `ADMIN_TOKEN` foi removido
+  temporariamente do fluxo do painel enquanto ainda não existem contas de usuário.
+  As rotas administrativas continuam separadas e deverão receber autenticação/RBAC
+  antes de qualquer exposição pública.
