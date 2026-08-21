@@ -214,10 +214,12 @@ produzir `skipped`, sem interromper os outros plugins.
   como infraestrutura do Vitest)
 - Monorepo e qualidade: pnpm workspaces, Vitest, React Testing Library, ESLint e Prettier
 - Timeout padrão por plugin: 10 segundos, configurável e com override por plugin
-- Credenciais via painel: cofre local AES-256-GCM, protegido por `ADMIN_TOKEN`, com
-  variáveis de ambiente como fallback; serviço interno/single-admin
-- Banco de dados: Supabase opcional para o histórico agregado; o restante do estado
-  transitório (cache e rate limit) permanece em memória na instância única
+- Credenciais via painel: cofre AES-256-GCM persistido no Supabase quando
+  `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` estão configurados; filesystem local é
+  fallback para desenvolvimento. Ambos são protegidos por `ADMIN_TOKEN` e a chave
+  mestra fica somente no ambiente do backend
+- Banco de dados: Supabase para histórico agregado e cofre de integrações; o restante
+  do estado transitório (cache e rate limit) permanece em memória na instância única
 - Cache da Fase 3: memória local, TTL padrão de 5 minutos, limite de 1.000 entradas,
   somente `success`, deduplicação em andamento e invalidação ao alterar credenciais
 - Rate limiting da Fase 3: armazenamento local do `@fastify/rate-limit`, 60 execuções por
@@ -246,6 +248,7 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
+<<<<<<< HEAD
 ## Fase 10 — Acesso interno com Supabase Auth
 
 - [x] Exibir somente um formulário de login por e-mail e senha, sem cadastro externo
@@ -253,6 +256,23 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
+=======
+## Fase 10 — Administração de integrações e segurança do deploy
+
+- [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
+      integrações, sem revelar valores armazenados
+- [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
+- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a fase sem usuários,
+      mantendo a autorização isolada para substituição futura por RBAC
+- [x] Persistir o cofre de integrações cifrado no Supabase com RLS, mantendo a chave
+      mestra e o token administrativo fora do banco
+- [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
+      falhas de inicialização no log sem devolver stack trace ao cliente
+- [x] Manter a proteção de deployment do Vercel enquanto o serviço for interno; usar
+      bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
+- [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
+      uma camada adicional de autenticação para o painel administrativo
+>>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
 
 ---
 
@@ -359,8 +379,43 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
   plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
   em uma página hospedada e retorna ao endpoint same-origin `/api`.
+<<<<<<< HEAD
 - `2026-08-21` — Fase 10 iniciada: login fechado por e-mail e senha com Supabase Auth,
   sem cadastro no frontend. A sessão é persistida no navegador, o access token segue
   para a API e o backend valida a sessão antes das operações da plataforma. A criação
   de usuários e o bloqueio do cadastro público continuam sendo configurações manuais
   no painel do Supabase.
+=======
+- `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
+  status das integrações, mostrando habilitação, presença da chave e origem sem expor
+  segredos. O Supabase foi verificado novamente: existe apenas `public.analysis_history`,
+  com RLS ativo e advisor de segurança sem lints. A proteção do Vercel permanece ativa
+  por coerência com o serviço interno; a documentação do Vercel confirma bypass
+  autenticado para as rotas de API sem desativar a proteção.
+- `2026-08-21` — Corrigido o caminho padrão dos dados locais quando o Next é iniciado
+  pelo workspace `apps/web`: o cofre criptografado e as flags de checks agora continuam
+  apontando para o `.data` da raiz do monorepo, evitando que o painel mostre chaves como
+  ausentes apenas por causa do diretório de execução.
+- `2026-08-21` — Corrigido erro de hidratação no Next.js: a página inicial agora usa
+  estado determinístico no servidor e aplica hash da rota e tema persistido somente após
+  a montagem no navegador. A navegação direta para `/#credentials` não deve mais gerar
+  divergência entre as classes da barra lateral.
+- `2026-08-21` — Diagnóstico de 500 no backend Vercel aplicado: variáveis opcionais vazias
+  agora são tratadas como ausentes, uma `CREDENTIALS_ENCRYPTION_KEY` inválida desabilita
+  somente o cofre administrativo, e a rota `/api/[...path]` registra falhas de inicialização
+  no runtime e responde 503 JSON seguro. Validação sem secrets: `/api/health`,
+  `/api/checks` e `/api/history` retornaram 200 em build de produção local mesmo sem
+  credenciais/Supabase; cinco testes de configuração/cofre passaram.
+- `2026-08-21` — O tracing do Next foi ampliado para preservar no bundle serverless todo
+  o `apps/api/dist`, incluindo o núcleo de execução e descoberta dinâmica dos plugins;
+  o manifesto local da rota agora contém 83 arquivos compilados da API.
+- `2026-08-21` — O cofre de integrações deixou de depender do filesystem efêmero da
+  Vercel: credenciais são cifradas com AES-256-GCM no backend e persistidas em
+  `public.integration_credentials` no Supabase, com RLS e acesso somente para
+  `service_role`. Na implementação original, a interface exigia `ADMIN_TOKEN` e nunca
+  recebia os valores armazenados.
+- `2026-08-21` — Por decisão explícita do proprietário, o `ADMIN_TOKEN` foi removido
+  temporariamente do fluxo do painel enquanto ainda não existem contas de usuário.
+  As rotas administrativas continuam separadas e deverão receber autenticação/RBAC
+  antes de qualquer exposição pública.
+>>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca

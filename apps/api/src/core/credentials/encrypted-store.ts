@@ -3,7 +3,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { CredentialNameSchema } from '@osint-pier/contracts';
 
-interface VaultEnvelope {
+export interface VaultEnvelope {
   version: 1;
   algorithm: 'aes-256-gcm';
   iv: string;
@@ -12,6 +12,15 @@ interface VaultEnvelope {
 }
 
 type VaultValues = Record<string, string>;
+
+export interface CredentialStore {
+  readonly enabled: boolean;
+  readonly configurationError?: string;
+  get(name: string): Promise<string | undefined>;
+  listNames(): Promise<string[]>;
+  set(name: string, value: string): Promise<void>;
+  remove(name: string): Promise<boolean>;
+}
 
 export class CredentialStoreDisabledError extends Error {
   constructor() {
@@ -29,14 +38,64 @@ function decodeKey(encodedKey: string): Buffer {
   return key;
 }
 
-export class EncryptedCredentialStore {
+export function decodeEncryptionKey(encodedKey: string): Buffer {
+  return decodeKey(encodedKey);
+}
+
+export function encryptVaultValue(value: string, key: Buffer): VaultEnvelope {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const ciphertext = Buffer.concat([
+    cipher.update(value, 'utf8'),
+    cipher.final(),
+  ]);
+  return {
+    version: 1,
+    algorithm: 'aes-256-gcm',
+    iv: iv.toString('base64'),
+    authTag: cipher.getAuthTag().toString('base64'),
+    ciphertext: ciphertext.toString('base64'),
+  };
+}
+
+export function decryptVaultValue(
+  envelope: VaultEnvelope,
+  key: Buffer,
+): string {
+  if (envelope.version !== 1 || envelope.algorithm !== 'aes-256-gcm') {
+    throw new Error('Formato de cofre não suportado.');
+  }
+  const decipher = createDecipheriv(
+    'aes-256-gcm',
+    key,
+    Buffer.from(envelope.iv, 'base64'),
+  );
+  decipher.setAuthTag(Buffer.from(envelope.authTag, 'base64'));
+  const plaintext = Buffer.concat([
+    decipher.update(Buffer.from(envelope.ciphertext, 'base64')),
+    decipher.final(),
+  ]);
+  return plaintext.toString('utf8');
+}
+
+export class EncryptedCredentialStore implements CredentialStore {
   readonly #filePath: string;
   readonly #key?: Buffer;
+  readonly configurationError?: string;
   #writeQueue: Promise<void> = Promise.resolve();
 
   constructor(options: { filePath: string; encodedKey?: string }) {
     this.#filePath = options.filePath;
-    this.#key = options.encodedKey ? decodeKey(options.encodedKey) : undefined;
+    if (!options.encodedKey) return;
+    try {
+      this.#key = decodeKey(options.encodedKey);
+    } catch {
+      // A malformed deployment secret must not prevent public health,
+      // catalog, or history routes from starting. Admin operations remain
+      // unavailable until the key is corrected, and no secret is echoed.
+      this.configurationError =
+        'CREDENTIALS_ENCRYPTION_KEY inválida ou incompatível.';
+    }
   }
 
   get enabled(): boolean {
@@ -102,35 +161,15 @@ export class EncryptedCredentialStore {
       throw new Error('Formato de cofre não suportado.');
     }
 
-    const decipher = createDecipheriv(
-      'aes-256-gcm',
-      this.#key,
-      Buffer.from(envelope.iv, 'base64'),
-    );
-    decipher.setAuthTag(Buffer.from(envelope.authTag, 'base64'));
-    const plaintext = Buffer.concat([
-      decipher.update(Buffer.from(envelope.ciphertext, 'base64')),
-      decipher.final(),
-    ]);
-    const values = JSON.parse(plaintext.toString('utf8')) as VaultValues;
+    const values = JSON.parse(
+      decryptVaultValue(envelope, this.#key),
+    ) as VaultValues;
     return values;
   }
 
   async #writeValues(values: VaultValues): Promise<void> {
     if (!this.#key) throw new CredentialStoreDisabledError();
-    const iv = randomBytes(12);
-    const cipher = createCipheriv('aes-256-gcm', this.#key, iv);
-    const ciphertext = Buffer.concat([
-      cipher.update(JSON.stringify(values), 'utf8'),
-      cipher.final(),
-    ]);
-    const envelope: VaultEnvelope = {
-      version: 1,
-      algorithm: 'aes-256-gcm',
-      iv: iv.toString('base64'),
-      authTag: cipher.getAuthTag().toString('base64'),
-      ciphertext: ciphertext.toString('base64'),
-    };
+    const envelope = encryptVaultValue(JSON.stringify(values), this.#key);
 
     await mkdir(path.dirname(this.#filePath), { recursive: true });
     const temporaryPath = `${this.#filePath}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;

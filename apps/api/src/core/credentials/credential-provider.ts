@@ -1,9 +1,9 @@
 import type { CredentialProvider } from '../checks/contract.js';
-import type { EncryptedCredentialStore } from './encrypted-store.js';
+import type { CredentialStore } from './encrypted-store.js';
 
 export class AppCredentialProvider implements CredentialProvider {
   constructor(
-    readonly vault: EncryptedCredentialStore,
+    readonly vault: CredentialStore,
     readonly environment: NodeJS.ProcessEnv = process.env,
   ) {}
 

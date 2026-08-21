@@ -1,4 +1,3 @@
-import { timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import cors from '@fastify/cors';
@@ -25,14 +24,18 @@ import { CheckSettingsStore } from './core/checks/settings-store.js';
 import { SupabaseHistoryStore } from './core/history/supabase-history-store.js';
 import { SupabaseAuth } from './core/auth/supabase-auth.js';
 import { AppCredentialProvider } from './core/credentials/credential-provider.js';
-import { EncryptedCredentialStore } from './core/credentials/encrypted-store.js';
+import {
+  EncryptedCredentialStore,
+  type CredentialStore,
+} from './core/credentials/encrypted-store.js';
+import { SupabaseCredentialStore } from './core/credentials/supabase-credential-store.js';
 import { normalizeTarget } from './core/target/normalize-target.js';
 
 export interface AppDependencies {
   config?: AppConfig;
   registry?: CheckRegistry;
   checksDirectory?: string;
-  vault?: EncryptedCredentialStore;
+  vault?: CredentialStore;
   environment?: NodeJS.ProcessEnv;
   logger?: boolean;
   cache?: CheckResultCache;
@@ -41,39 +44,16 @@ export interface AppDependencies {
   supabaseAuth?: SupabaseAuth;
 }
 
-function tokenMatches(
-  candidate: string | undefined,
-  expected: string | undefined,
-): boolean {
-  if (!candidate || !expected) return false;
-  const candidateBytes = Buffer.from(candidate);
-  const expectedBytes = Buffer.from(expected);
-  return (
-    candidateBytes.length === expectedBytes.length &&
-    timingSafeEqual(candidateBytes, expectedBytes)
-  );
-}
-
 function authorizeAdmin(
-  request: FastifyRequest,
+  _request: FastifyRequest,
   reply: FastifyReply,
-  config: AppConfig,
-  vault: EncryptedCredentialStore,
+  _config: AppConfig,
+  _vault: CredentialStore,
 ): boolean {
-  if (!config.adminToken || !vault.enabled) {
-    void reply.code(503).send({
-      error:
-        'Painel indisponível: configure ADMIN_TOKEN e CREDENTIALS_ENCRYPTION_KEY.',
-    });
-    return false;
-  }
-
-  const header = request.headers['x-admin-token'];
-  const token = Array.isArray(header) ? header[0] : header;
-  if (!tokenMatches(token, config.adminToken)) {
-    void reply.code(401).send({ error: 'Token administrativo inválido.' });
-    return false;
-  }
+  // Temporary internal mode requested by the owner. Keep the authorization
+  // seam isolated so a future Supabase Auth/RBAC layer can replace this
+  // function without changing credential endpoints or storage.
+  void reply;
   return true;
 }
 
@@ -115,10 +95,16 @@ export async function createApp(
     dependencies.registry ?? (await loadCheckRegistry(checksDirectory));
   const vault =
     dependencies.vault ??
-    new EncryptedCredentialStore({
-      filePath: config.credentialStorePath,
-      encodedKey: config.encryptionKey,
-    });
+    (config.supabaseUrl && config.supabaseServiceRoleKey
+      ? new SupabaseCredentialStore({
+          url: config.supabaseUrl,
+          serviceRoleKey: config.supabaseServiceRoleKey,
+          encodedKey: config.encryptionKey,
+        })
+      : new EncryptedCredentialStore({
+          filePath: config.credentialStorePath,
+          encodedKey: config.encryptionKey,
+        }));
   const credentialProvider = new AppCredentialProvider(
     vault,
     dependencies.environment ?? process.env,

@@ -1,14 +1,54 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 
 // Resolve runtime data from the workspace/current deployment instead of a
 // file URL. This keeps the same local layout and allows Next/Turbopack to
 // bundle the Fastify adapter without treating the optional files as imports.
-const defaultStorePath = path.resolve(process.cwd(), '.data/credentials.enc');
-const defaultCheckSettingsPath = path.resolve(
-  process.cwd(),
-  '.data/check-settings.json',
-);
+function resolveDefaultDataFile(fileName: string): string {
+  const directories = [
+    path.resolve(process.cwd(), '.data', fileName),
+    path.resolve(process.cwd(), '..', '.data', fileName),
+    path.resolve(process.cwd(), '..', '..', '.data', fileName),
+  ];
+
+  // `pnpm --filter @osint-pier/web dev` runs with apps/web as cwd, while
+  // Vercel and the standalone API normally run from the monorepo root. Keep
+  // the encrypted vault and check flags in the same root .data directory in
+  // both cases, and preserve a sensible default for a fresh deployment.
+  const existing = directories.find((candidate) => existsSync(candidate));
+  if (existing) return existing;
+  return path.basename(process.cwd()) === 'web'
+    ? directories[2]!
+    : directories[0]!;
+}
+
+const defaultStorePath = resolveDefaultDataFile('credentials.enc');
+const defaultCheckSettingsPath = resolveDefaultDataFile('check-settings.json');
+
+function emptyToUndefined(value: unknown): unknown {
+  return typeof value === 'string' && value.trim() === '' ? undefined : value;
+}
+
+const optionalText = z.preprocess(emptyToUndefined, z.string().optional());
+const optionalUrl = z.preprocess((value) => {
+  const normalized = emptyToUndefined(value);
+  if (typeof normalized !== 'string') return normalized;
+  const trimmed = normalized.trim().replace(/^("|')|("|')$/g, '');
+  try {
+    new URL(trimmed);
+    return trimmed;
+  } catch {
+    // Optional deployment configuration must not prevent public routes from
+    // starting. The store remains disabled until a valid URL is provided.
+    return undefined;
+  }
+}, z.string().url().optional());
+const optionalPositiveNumber = (defaultValue: number) =>
+  z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(500).default(defaultValue),
+  );
 
 const optionalString = z.preprocess(
   (value) =>
@@ -56,6 +96,7 @@ const EnvironmentSchema = z.object({
     .min(1000)
     .max(86_400_000)
     .default(60_000),
+<<<<<<< HEAD
   ADMIN_TOKEN: z.string().min(24).optional(),
   CREDENTIALS_ENCRYPTION_KEY: optionalString,
   CREDENTIAL_STORE_PATH: z.string().optional(),
@@ -63,6 +104,17 @@ const EnvironmentSchema = z.object({
   SUPABASE_URL: optionalUrl,
   SUPABASE_SERVICE_ROLE_KEY: optionalString,
   SUPABASE_HISTORY_LIMIT: z.coerce.number().int().min(1).max(500).default(50),
+=======
+  // Retained as a future authentication seam; the current internal build does
+  // not require a token for the credentials panel.
+  ADMIN_TOKEN: optionalText,
+  CREDENTIALS_ENCRYPTION_KEY: optionalText,
+  CREDENTIAL_STORE_PATH: optionalText,
+  CHECK_SETTINGS_PATH: optionalText,
+  SUPABASE_URL: optionalUrl,
+  SUPABASE_SERVICE_ROLE_KEY: optionalText,
+  SUPABASE_HISTORY_LIMIT: optionalPositiveNumber(50),
+>>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
 });
 
 export interface AppConfig {
