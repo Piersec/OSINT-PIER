@@ -25,6 +25,7 @@ import { SupabaseHistoryStore } from './core/history/supabase-history-store.js';
 import { SupabaseAuth } from './core/auth/supabase-auth.js';
 import { AppCredentialProvider } from './core/credentials/credential-provider.js';
 import {
+  CredentialStoreDisabledError,
   EncryptedCredentialStore,
   type CredentialStore,
 } from './core/credentials/encrypted-store.js';
@@ -57,6 +58,26 @@ function authorizeAdmin(
   void _vault;
   void reply;
   return true;
+}
+
+function credentialStoreUnavailable(
+  reply: FastifyReply,
+  vault: CredentialStore,
+): FastifyReply {
+  return reply.code(503).send({
+    error: 'Cofre de credenciais indisponível neste deployment.',
+    details:
+      vault.configurationError ??
+      'Configure SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY e CREDENTIALS_ENCRYPTION_KEY no backend.',
+  });
+}
+
+function credentialStoreFailure(reply: FastifyReply): FastifyReply {
+  return reply.code(503).send({
+    error: 'Não foi possível atualizar o cofre de credenciais.',
+    details:
+      'Verifique a configuração do Supabase e tente novamente. Nenhum segredo foi exposto.',
+  });
 }
 
 async function authorizeUser(
@@ -294,18 +315,23 @@ export async function createApp(
     { preHandler: requireUser },
     async (request, reply) => {
       if (!authorizeAdmin(request, reply, config, vault)) return reply;
-      const names = new Set(await vault.listNames());
-      for (const check of registry.all()) {
-        for (const name of check.requiredEnv) names.add(name);
-      }
+      try {
+        const names = new Set(vault.enabled ? await vault.listNames() : []);
+        for (const check of registry.all()) {
+          for (const name of check.requiredEnv) names.add(name);
+        }
 
-      return Promise.all(
-        [...names].sort().map(async (name) => ({
-          name,
-          configured: Boolean(await credentialProvider.get(name)),
-          source: await credentialProvider.source(name),
-        })),
-      );
+        return await Promise.all(
+          [...names].sort().map(async (name) => ({
+            name,
+            configured: Boolean(await credentialProvider.get(name)),
+            source: await credentialProvider.source(name),
+          })),
+        );
+      } catch (error) {
+        app.log.error(error);
+        return credentialStoreFailure(reply);
+      }
     },
   );
 
@@ -371,7 +397,13 @@ export async function createApp(
         z.object({ name: z.string() }).parse(request.params).name,
       );
       const { value } = CredentialWriteSchema.parse(request.body);
-      await vault.set(name, value);
+      if (!vault.enabled) return credentialStoreUnavailable(reply, vault);
+      try {
+        await vault.set(name, value);
+      } catch (error) {
+        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        return credentialStoreFailure(reply);
+      }
       cache.clear();
       return { name, configured: true, source: 'vault' as const };
     },
@@ -385,7 +417,13 @@ export async function createApp(
       const name = CredentialNameSchema.parse(
         z.object({ name: z.string() }).parse(request.params).name,
       );
-      await vault.remove(name);
+      if (!vault.enabled) return credentialStoreUnavailable(reply, vault);
+      try {
+        await vault.remove(name);
+      } catch (error) {
+        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        return credentialStoreFailure(reply);
+      }
       cache.clear();
       const source = await credentialProvider.source(name);
       return { name, configured: Boolean(source), source };

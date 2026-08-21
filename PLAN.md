@@ -248,7 +248,7 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
-## Fase 10 — Acesso interno, administração de integrações e segurança do deploy
+## Fase 10 — Acesso interno, administração de integrações, cofre e segurança do deploy
 
 ### Autenticação interna
 
@@ -257,7 +257,6 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
-
 ### Administração de integrações
 
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
@@ -414,6 +413,11 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   `service_role`. O gate adicional de `ADMIN_TOKEN` foi removido durante a transição
   para Supabase Auth; as rotas administrativas continuam protegidas por sessão
   autenticada e aguardam uma camada de RBAC mais granular.
-- `2026-08-21` — Pipeline de colaboração criada em `COLLABORATION.md`: leitura
-  obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
-  conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
+- `2026-08-21` — GAB-76: corrigido o erro genérico ao salvar credenciais quando o cofre
+  persistente está ausente ou indisponível. A API agora responde `503` com orientação
+  segura para configurar Supabase e a chave mestra, sem incluir o segredo enviado. Os
+  conflitos Git persistidos em configuração, testes, documentação e plano também foram
+  resolvidos preservando autenticação Supabase e o cofre sem `ADMIN_TOKEN`.
+- `2026-08-21` — Pipeline de colaboração atualizada em `COLLABORATION.md`: toda tarefa
+  sincroniza a base com `pull`, usa branch exclusiva e faz `push`; após validação, a
+  entrega é integrada e publicada na `master` autorizada pelo proprietário.

@@ -60,6 +60,7 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   }
   const payload = (await response.json().catch(() => ({}))) as {
     error?: string;
+    details?: string;
     retryAfterMs?: number;
   };
   if (!response.ok) {
@@ -70,7 +71,10 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
         ? Math.ceil(payload.retryAfterMs / 1000)
         : undefined;
     throw new ApiRequestError({
-      message: payload.error ?? `A API respondeu com HTTP ${response.status}.`,
+      message:
+        payload.error && payload.details
+          ? `${payload.error} ${payload.details}`
+          : (payload.error ?? `A API respondeu com HTTP ${response.status}.`),
       statusCode: response.status,
       retryAfterSeconds,
     });
