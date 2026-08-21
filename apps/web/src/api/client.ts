@@ -16,8 +16,10 @@ import { z } from 'zod';
 
 // In Next.js the default is same-origin, which lets the Vercel deployment use
 // the serverless `/api` adapter. Set NEXT_PUBLIC_API_URL only when the local
-// Fastify process is intentionally kept separate from the web app.
-const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+// Fastify process is intentionally kept separate from the web app. If an old
+// local URL was accidentally promoted to a hosted build, ignore it in the
+// browser and keep the deployment on its same-origin adapter.
+const apiBaseUrl = resolveApiBaseUrl();
 
 export class ApiRequestError extends Error {
   readonly statusCode: number;
@@ -36,13 +38,23 @@ export class ApiRequestError extends Error {
 }
 
 async function request(path: string, init?: RequestInit): Promise<unknown> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const requestInit: RequestInit = {
     ...init,
     headers: {
       'content-type': 'application/json',
       ...init?.headers,
     },
-  });
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, requestInit);
+  } catch (error) {
+    // A stale NEXT_PUBLIC_API_URL should not make a hosted deployment look
+    // offline. Retry only transport failures; HTTP errors remain explicit.
+    if (!apiBaseUrl || typeof window === 'undefined') throw error;
+    response = await fetch(path, requestInit);
+  }
   const payload = (await response.json().catch(() => ({}))) as {
     error?: string;
     retryAfterMs?: number;
@@ -61,6 +73,23 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
     });
   }
   return payload;
+}
+
+function resolveApiBaseUrl(): string {
+  const configured = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+  if (!configured || typeof window === 'undefined') return configured;
+
+  try {
+    const configuredUrl = new URL(configured, window.location.origin);
+    const localHosts = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+    const isHostedPage = !localHosts.has(window.location.hostname);
+    if (isHostedPage && localHosts.has(configuredUrl.hostname)) return '';
+  } catch {
+    // An invalid public URL is safer as same-origin than as a broken endpoint.
+    return '';
+  }
+
+  return configured;
 }
 
 export async function listChecks(): Promise<CheckCatalogItem[]> {

@@ -347,3 +347,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   repositório atualizado no GitHub. Deploy de preview protegido validado como `READY` em
   `osint-pier-ou73mbxld-rhuanoliveira.vercel.app`; credenciais continuam fora do Git e
   precisam ser cadastradas nas variáveis/cofre do ambiente Vercel.
+- `2026-08-21` — Corrigido o empacotamento serverless do adaptador Next: o rastreamento
+  agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
+  plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
+  em uma página hospedada e retorna ao endpoint same-origin `/api`.
