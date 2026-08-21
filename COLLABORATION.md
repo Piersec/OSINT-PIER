@@ -70,6 +70,35 @@ Uma issue representa uma unidade de entrega. Não misture correção de bug, ref
 - Leia a issue no Linear e procure issues relacionadas antes de criar outra solução.
 - Confirme que não há outro agente trabalhando nos mesmos arquivos.
 
+### 1.1 Sincronizar e criar branch
+
+O ciclo Git é obrigatório para toda alteração relevante: `pull` da base, branch exclusiva,
+commit atômico e `push` da branch. Nunca comece uma tarefa nova diretamente na `master`.
+
+Para uma issue nova, parta da base atualizada:
+
+```text
+git switch master
+git pull --ff-only origin master
+git switch -c codex/GAB-<n>-<slug>
+```
+
+Se a branch da issue já existir, atualize-a antes de editar:
+
+```text
+git switch codex/GAB-<n>-<slug>
+git pull --rebase origin codex/GAB-<n>-<slug>
+```
+
+Depois do commit e das validações, publique a branch:
+
+```text
+git push -u origin codex/GAB-<n>-<slug>
+```
+
+O `push` deve ser feito somente para a branch da issue, sem `--force`. A integração na
+`master` acontece pelo coordenador/revisor após a revisão.
+
 ### 2. Declarar posse
 
 Ao começar, atualize a issue para `In Progress` e deixe um comentário com:
@@ -147,9 +176,11 @@ Depois do handoff, mova a issue para `In Review`. O coordenador move para `Done`
 ## Branches e workspace
 
 - Para trabalho paralelo, use uma branch por issue: `codex/GAB-<n>-<slug>`, ou o nome de branch sugerido pelo Linear.
+- Sempre faça `pull` da base antes de criar ou atualizar a branch de trabalho.
+- Sempre faça `push` da branch ao concluir uma etapa validada, para que o restante da equipe consiga revisar e continuar o trabalho.
 - Nunca use a mesma working tree para dois agentes que escrevem ao mesmo tempo.
 - Se worktrees não estiverem disponíveis, somente um agente pode editar; os demais ficam em leitura/revisão.
-- Não faça `pull`, `push`, rebase ou merge automático sem que isso esteja no escopo autorizado.
+- Nunca faça push direto na `master`; não use `--force` em branches compartilhadas.
 - O coordenador é responsável por integrar commits e resolver conflitos.
 
 ## Arquivos de alto conflito
@@ -202,11 +233,14 @@ Toda mudança de escopo, bloqueio, decisão de arquitetura, novo segredo/configu
 [ ] Li AGENTS.md, PLAN.md e COLLABORATION.md.
 [ ] Identifiquei a fase e a issue do Linear.
 [ ] Verifiquei git status e alterações existentes.
+[ ] Fiz pull da base remota antes de criar/atualizar a branch.
+[ ] Criei ou atualizei uma branch exclusiva da issue.
 [ ] Declarei escopo e arquivos exclusivos.
 [ ] Confirmei que não há outro agente editando os mesmos arquivos.
 [ ] Implementei somente o escopo combinado.
 [ ] Rodei os testes/typecheck/lint/build adequados.
 [ ] Atualizei documentação e Linear.
 [ ] Fiz commit atômico.
+[ ] Fiz push da branch para o remoto.
 [ ] Entreguei handoff com commit, validações e pendências.
 ```
