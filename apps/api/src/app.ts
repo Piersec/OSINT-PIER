@@ -53,6 +53,8 @@ function authorizeAdmin(
   // Temporary internal mode requested by the owner. Keep the authorization
   // seam isolated so a future Supabase Auth/RBAC layer can replace this
   // function without changing credential endpoints or storage.
+  void _config;
+  void _vault;
   void reply;
   return true;
 }

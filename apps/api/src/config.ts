@@ -50,18 +50,6 @@ const optionalPositiveNumber = (defaultValue: number) =>
     z.coerce.number().int().min(1).max(500).default(defaultValue),
   );
 
-const optionalString = z.preprocess(
-  (value) =>
-    typeof value === 'string' && value.trim() === '' ? undefined : value,
-  z.string().min(1).optional(),
-);
-
-const optionalUrl = z.preprocess(
-  (value) =>
-    typeof value === 'string' && value.trim() === '' ? undefined : value,
-  z.string().url().optional(),
-);
-
 const EnvironmentSchema = z.object({
   API_HOST: z.string().min(1).default('127.0.0.1'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
@@ -96,15 +84,6 @@ const EnvironmentSchema = z.object({
     .min(1000)
     .max(86_400_000)
     .default(60_000),
-<<<<<<< HEAD
-  ADMIN_TOKEN: z.string().min(24).optional(),
-  CREDENTIALS_ENCRYPTION_KEY: optionalString,
-  CREDENTIAL_STORE_PATH: z.string().optional(),
-  CHECK_SETTINGS_PATH: z.string().optional(),
-  SUPABASE_URL: optionalUrl,
-  SUPABASE_SERVICE_ROLE_KEY: optionalString,
-  SUPABASE_HISTORY_LIMIT: z.coerce.number().int().min(1).max(500).default(50),
-=======
   // Retained as a future authentication seam; the current internal build does
   // not require a token for the credentials panel.
   ADMIN_TOKEN: optionalText,
@@ -114,7 +93,6 @@ const EnvironmentSchema = z.object({
   SUPABASE_URL: optionalUrl,
   SUPABASE_SERVICE_ROLE_KEY: optionalText,
   SUPABASE_HISTORY_LIMIT: optionalPositiveNumber(50),
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
 });
 
 export interface AppConfig {

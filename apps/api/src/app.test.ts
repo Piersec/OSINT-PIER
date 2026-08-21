@@ -96,7 +96,6 @@ async function fixture(
 }
 
 describe('API', () => {
-<<<<<<< HEAD
   it('exige uma sessão Supabase para as operações da plataforma', async () => {
     const { app } = await fixture({ autoAuthenticate: false });
     const response = await app.inject({ method: 'GET', url: '/api/checks' });
@@ -106,9 +105,6 @@ describe('API', () => {
   });
 
   it('protege todas as operações administrativas', async () => {
-=======
-  it('permite operações do cofre sem token no modo interno temporário', async () => {
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
     const { app } = await fixture();
     const response = await app.inject({
       method: 'GET',

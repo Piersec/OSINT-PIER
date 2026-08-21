@@ -248,22 +248,23 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
-<<<<<<< HEAD
-## Fase 10 — Acesso interno com Supabase Auth
+## Fase 10 — Acesso interno, administração de integrações e segurança do deploy
+
+### Autenticação interna
 
 - [x] Exibir somente um formulário de login por e-mail e senha, sem cadastro externo
 - [x] Persistir a sessão no navegador e oferecer saída da conta autenticada
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
-=======
-## Fase 10 — Administração de integrações e segurança do deploy
+
+### Administração de integrações
 
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
       integrações, sem revelar valores armazenados
 - [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
-- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a fase sem usuários,
-      mantendo a autorização isolada para substituição futura por RBAC
+- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a transição para Supabase
+      Auth, mantendo a autorização isolada para substituição futura por RBAC
 - [x] Persistir o cofre de integrações cifrado no Supabase com RLS, mantendo a chave
       mestra e o token administrativo fora do banco
 - [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
@@ -272,7 +273,6 @@ produzir `skipped`, sem interromper os outros plugins.
       bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
 - [ ] Definir, com autorização explícita, eventual exposição pública do deployment e
       uma camada adicional de autenticação para o painel administrativo
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
 
 ---
 
@@ -379,22 +379,18 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
   plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
   em uma página hospedada e retorna ao endpoint same-origin `/api`.
-<<<<<<< HEAD
-- `2026-08-21` — Fase 10 iniciada: login fechado por e-mail e senha com Supabase Auth,
-  sem cadastro no frontend. A sessão é persistida no navegador, o access token segue
-  para a API e o backend valida a sessão antes das operações da plataforma. A criação
-  de usuários e o bloqueio do cadastro público continuam sendo configurações manuais
-  no painel do Supabase.
-- `2026-08-21` — Pipeline de colaboração criado em `COLLABORATION.md`: leitura
-  obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
-  conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
-=======
 - `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
   status das integrações, mostrando habilitação, presença da chave e origem sem expor
-  segredos. O Supabase foi verificado novamente: existe apenas `public.analysis_history`,
-  com RLS ativo e advisor de segurança sem lints. A proteção do Vercel permanece ativa
-  por coerência com o serviço interno; a documentação do Vercel confirma bypass
-  autenticado para as rotas de API sem desativar a proteção.
+  segredos. O cofre passou a persistir valores cifrados em `public.integration_credentials`
+  com RLS e acesso exclusivo para `service_role`.
+- `2026-08-21` — O login fechado por e-mail e senha com Supabase Auth foi adicionado sem
+  cadastro no frontend. A sessão é persistida no navegador, o access token segue para a
+  API e o backend valida a sessão antes das operações da plataforma. A criação de
+  usuários e o bloqueio do cadastro público continuam sendo configurações manuais no
+  painel do Supabase.
+- `2026-08-21` — A proteção do Vercel permanece ativa por coerência com o serviço interno;
+  testes autenticados podem usar bypass sem tornar `/api` e o painel administrativo
+  públicos.
 - `2026-08-21` — Corrigido o caminho padrão dos dados locais quando o Next é iniciado
   pelo workspace `apps/web`: o cofre criptografado e as flags de checks agora continuam
   apontando para o `.data` da raiz do monorepo, evitando que o painel mostre chaves como
@@ -415,10 +411,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — O cofre de integrações deixou de depender do filesystem efêmero da
   Vercel: credenciais são cifradas com AES-256-GCM no backend e persistidas em
   `public.integration_credentials` no Supabase, com RLS e acesso somente para
-  `service_role`. Na implementação original, a interface exigia `ADMIN_TOKEN` e nunca
-  recebia os valores armazenados.
-- `2026-08-21` — Por decisão explícita do proprietário, o `ADMIN_TOKEN` foi removido
-  temporariamente do fluxo do painel enquanto ainda não existem contas de usuário.
-  As rotas administrativas continuam separadas e deverão receber autenticação/RBAC
-  antes de qualquer exposição pública.
->>>>>>> 36846af18258b57a7a7474b5340ff41dc7ddd9ca
+  `service_role`. O gate adicional de `ADMIN_TOKEN` foi removido durante a transição
+  para Supabase Auth; as rotas administrativas continuam protegidas por sessão
+  autenticada e aguardam uma camada de RBAC mais granular.
+- `2026-08-21` — Pipeline de colaboração criada em `COLLABORATION.md`: leitura
+  obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
+  conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
