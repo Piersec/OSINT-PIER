@@ -388,3 +388,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   no runtime e responde 503 JSON seguro. Validação sem secrets: `/api/health`,
   `/api/checks` e `/api/history` retornaram 200 em build de produção local mesmo sem
   credenciais/Supabase; cinco testes de configuração/cofre passaram.
+- `2026-08-21` — O tracing do Next foi ampliado para preservar no bundle serverless todo
+  o `apps/api/dist`, incluindo o núcleo de execução e descoberta dinâmica dos plugins;
+  o manifesto local da rota agora contém 83 arquivos compilados da API.

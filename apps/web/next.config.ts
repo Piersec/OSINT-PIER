@@ -9,7 +9,18 @@ const nextConfig: NextConfig = {
   // not guaranteed to exist in the deployment bundle.
   outputFileTracingRoot: path.join(__dirname, '../..'),
   outputFileTracingIncludes: {
-    '/*': ['./apps/api/dist/**/*', './apps/api/package.json', './.data/**/*'],
+    // Keep both workspace-relative forms: Vercel may evaluate these globs
+    // from the monorepo root, while local `next build` resolves them from
+    // apps/web. The dynamic plugin loader needs the complete compiled API,
+    // including apps/api/dist/core and not only each plugin entrypoint.
+    '/*': [
+      './apps/api/dist/**/*',
+      '../api/dist/**/*',
+      './apps/api/package.json',
+      '../api/package.json',
+      './.data/**/*',
+      '../.data/**/*',
+    ],
   },
 };
 
