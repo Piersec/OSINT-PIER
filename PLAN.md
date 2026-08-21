@@ -254,6 +254,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Permitir fechar o cofre e limpar o token administrativo da memória da página
 - [x] Confirmar que o Supabase permanece restrito ao histórico agregado, com RLS ativo e
       sem credenciais persistidas
+- [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
+      falhas de inicialização no log sem devolver stack trace ao cliente
 - [x] Manter a proteção de deployment do Vercel enquanto o serviço for interno; usar
       bypass autenticado para testes em vez de tornar `/api` e o painel admin públicos
 - [ ] Decidir a persistência do cofre no Vercel: usar somente variáveis de ambiente ou
@@ -380,3 +382,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   estado determinístico no servidor e aplica hash da rota e tema persistido somente após
   a montagem no navegador. A navegação direta para `/#credentials` não deve mais gerar
   divergência entre as classes da barra lateral.
+- `2026-08-21` — Diagnóstico de 500 no backend Vercel aplicado: variáveis opcionais vazias
+  agora são tratadas como ausentes, uma `CREDENTIALS_ENCRYPTION_KEY` inválida desabilita
+  somente o cofre administrativo, e a rota `/api/[...path]` registra falhas de inicialização
+  no runtime e responde 503 JSON seguro. Validação sem secrets: `/api/health`,
+  `/api/checks` e `/api/history` retornaram 200 em build de produção local mesmo sem
+  credenciais/Supabase; cinco testes de configuração/cofre passaram.

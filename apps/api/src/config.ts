@@ -26,6 +26,22 @@ function resolveDefaultDataFile(fileName: string): string {
 const defaultStorePath = resolveDefaultDataFile('credentials.enc');
 const defaultCheckSettingsPath = resolveDefaultDataFile('check-settings.json');
 
+function emptyToUndefined(value: unknown): unknown {
+  return typeof value === 'string' && value.trim() === '' ? undefined : value;
+}
+
+const optionalText = z.preprocess(emptyToUndefined, z.string().optional());
+const optionalToken = z.preprocess(
+  emptyToUndefined,
+  z.string().min(24).optional(),
+);
+const optionalUrl = z.preprocess(emptyToUndefined, z.string().url().optional());
+const optionalPositiveNumber = (defaultValue: number) =>
+  z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(500).default(defaultValue),
+  );
+
 const EnvironmentSchema = z.object({
   API_HOST: z.string().min(1).default('127.0.0.1'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
@@ -60,13 +76,13 @@ const EnvironmentSchema = z.object({
     .min(1000)
     .max(86_400_000)
     .default(60_000),
-  ADMIN_TOKEN: z.string().min(24).optional(),
-  CREDENTIALS_ENCRYPTION_KEY: z.string().optional(),
-  CREDENTIAL_STORE_PATH: z.string().optional(),
-  CHECK_SETTINGS_PATH: z.string().optional(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-  SUPABASE_HISTORY_LIMIT: z.coerce.number().int().min(1).max(500).default(50),
+  ADMIN_TOKEN: optionalToken,
+  CREDENTIALS_ENCRYPTION_KEY: optionalText,
+  CREDENTIAL_STORE_PATH: optionalText,
+  CHECK_SETTINGS_PATH: optionalText,
+  SUPABASE_URL: optionalUrl,
+  SUPABASE_SERVICE_ROLE_KEY: optionalText,
+  SUPABASE_HISTORY_LIMIT: optionalPositiveNumber(50),
 });
 
 export interface AppConfig {

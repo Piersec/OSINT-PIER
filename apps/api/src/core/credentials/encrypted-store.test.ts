@@ -55,4 +55,16 @@ describe('EncryptedCredentialStore', () => {
       'não está configurado',
     );
   });
+
+  it('não derruba a aplicação quando a chave mestra é inválida', () => {
+    const store = new EncryptedCredentialStore({
+      filePath: 'unused',
+      encodedKey: 'chave-invalida',
+    });
+
+    expect(store.enabled).toBe(false);
+    expect(store.configurationError).toBe(
+      'CREDENTIALS_ENCRYPTION_KEY inválida ou incompatível.',
+    );
+  });
 });

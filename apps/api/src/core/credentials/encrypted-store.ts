@@ -32,11 +32,21 @@ function decodeKey(encodedKey: string): Buffer {
 export class EncryptedCredentialStore {
   readonly #filePath: string;
   readonly #key?: Buffer;
+  readonly configurationError?: string;
   #writeQueue: Promise<void> = Promise.resolve();
 
   constructor(options: { filePath: string; encodedKey?: string }) {
     this.#filePath = options.filePath;
-    this.#key = options.encodedKey ? decodeKey(options.encodedKey) : undefined;
+    if (!options.encodedKey) return;
+    try {
+      this.#key = decodeKey(options.encodedKey);
+    } catch {
+      // A malformed deployment secret must not prevent public health,
+      // catalog, or history routes from starting. Admin operations remain
+      // unavailable until the key is corrected, and no secret is echoed.
+      this.configurationError =
+        'CREDENTIALS_ENCRYPTION_KEY inválida ou incompatível.';
+    }
   }
 
   get enabled(): boolean {

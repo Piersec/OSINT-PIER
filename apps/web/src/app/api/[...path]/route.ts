@@ -36,34 +36,53 @@ async function getApp() {
       // preserves dynamic plugin discovery while allowing new checks to ship
       // without changing this route.
       checksDirectory: await resolveChecksDirectory(),
+    }).catch((error) => {
+      // Keep the original error in Vercel runtime logs, but never send stack
+      // traces, environment values, or filesystem paths to the browser.
+      console.error('[osint-pier] API initialization failed', error);
+      appPromise = undefined;
+      throw error;
     });
   }
   return appPromise;
 }
 
 async function forward(request: NextRequest): Promise<NextResponse> {
-  const app = await getApp();
-  const url = new URL(request.url);
-  const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
-  const payload = hasBody ? await request.text() : undefined;
-  const response = await app.inject({
-    method: request.method as InjectMethod,
-    url: `${url.pathname}${url.search}`,
-    headers: Object.fromEntries(request.headers.entries()),
-    payload,
-  });
+  try {
+    const app = await getApp();
+    const url = new URL(request.url);
+    const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+    const payload = hasBody ? await request.text() : undefined;
+    const response = await app.inject({
+      method: request.method as InjectMethod,
+      url: `${url.pathname}${url.search}`,
+      headers: Object.fromEntries(request.headers.entries()),
+      payload,
+    });
 
-  const headers = new Headers();
-  for (const [name, value] of Object.entries(response.headers)) {
-    if (value === undefined || name.toLowerCase() === 'content-length')
-      continue;
-    headers.set(name, Array.isArray(value) ? value.join(', ') : String(value));
+    const headers = new Headers();
+    for (const [name, value] of Object.entries(response.headers)) {
+      if (value === undefined || name.toLowerCase() === 'content-length')
+        continue;
+      headers.set(
+        name,
+        Array.isArray(value) ? value.join(', ') : String(value),
+      );
+    }
+
+    return new NextResponse(response.body || null, {
+      status: response.statusCode,
+      headers,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: 'Backend da API indisponível neste deployment.' },
+      {
+        status: 503,
+        headers: { 'cache-control': 'no-store' },
+      },
+    );
   }
-
-  return new NextResponse(response.body || null, {
-    status: response.statusCode,
-    headers,
-  });
 }
 
 export const GET = forward;
