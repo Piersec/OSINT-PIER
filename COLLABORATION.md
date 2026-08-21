@@ -90,14 +90,16 @@ git switch codex/GAB-<n>-<slug>
 git pull --rebase origin codex/GAB-<n>-<slug>
 ```
 
-Depois do commit e das validações, publique a branch:
+Depois do commit e das validações, publique a branch para rastreabilidade e revisão:
 
 ```text
 git push -u origin codex/GAB-<n>-<slug>
 ```
 
-O `push` deve ser feito somente para a branch da issue, sem `--force`. A integração na
-`master` acontece pelo coordenador/revisor após a revisão.
+Depois da revisão local e com os critérios de aceite atendidos, a entrega não deve ficar
+somente na branch: o coordenador integra a branch na `master` e publica
+`origin/master`. Neste projeto, o agente que recebeu autorização explícita do proprietário
+atua como integrador. Não use `--force`.
 
 ### 2. Declarar posse
 
@@ -178,9 +180,10 @@ Depois do handoff, mova a issue para `In Review`. O coordenador move para `Done`
 - Para trabalho paralelo, use uma branch por issue: `codex/GAB-<n>-<slug>`, ou o nome de branch sugerido pelo Linear.
 - Sempre faça `pull` da base antes de criar ou atualizar a branch de trabalho.
 - Sempre faça `push` da branch ao concluir uma etapa validada, para que o restante da equipe consiga revisar e continuar o trabalho.
+- Nunca deixe uma entrega concluída apenas na branch: após as validações, integre-a na `master` e faça push para `origin/master`.
 - Nunca use a mesma working tree para dois agentes que escrevem ao mesmo tempo.
 - Se worktrees não estiverem disponíveis, somente um agente pode editar; os demais ficam em leitura/revisão.
-- Nunca faça push direto na `master`; não use `--force` em branches compartilhadas.
+- Só publique na `master` depois de validar a entrega e confirmar que não há mudanças remotas pendentes; não use `--force`.
 - O coordenador é responsável por integrar commits e resolver conflitos.
 
 ## Arquivos de alto conflito
@@ -242,5 +245,6 @@ Toda mudança de escopo, bloqueio, decisão de arquitetura, novo segredo/configu
 [ ] Atualizei documentação e Linear.
 [ ] Fiz commit atômico.
 [ ] Fiz push da branch para o remoto.
+[ ] Integrei a entrega validada na `master` e fiz push para `origin/master`.
 [ ] Entreguei handoff com commit, validações e pendências.
 ```
