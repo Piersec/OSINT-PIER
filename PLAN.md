@@ -259,7 +259,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Disponibilizar perfil autenticado com avatar privado, troca de senha e medidor de
       força para rejeitar a senha inicial fraca
 - [x] Exigir a troca da senha no primeiro acesso por modal sem opção de fechar
-- [ ] Conectar configuração e verificação de MFA por TOTP
+- [x] Conectar configuração e verificação de MFA por TOTP no perfil, com desafio após
+      login e enforcement de `aal2` nas rotas da API
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
 ### Administração de integrações
 
@@ -430,3 +431,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   contas sem `password_changed_at` (incluindo o acesso inicial `admin123`). O cartão de MFA
   ficou preparado como próxima etapa; a migration `create_profile_avatars` foi aplicada no
   projeto Supabase conectado e as policies restringem cada arquivo ao próprio usuário.
+- `2026-08-22` — GAB-80: MFA TOTP conectado ao perfil e ao login. O usuário pode iniciar
+  enrollment com QR Code/segredo, confirmar o autenticador, remover fatores e informar o
+  código no próximo login. O backend também rejeita tokens `aal1` quando o usuário possui
+  um fator TOTP verificado, liberando as rotas apenas após `aal2`. SMS e recovery codes
+  continuam fora do escopo.

@@ -2366,6 +2366,220 @@ input::placeholder {
   width: fit-content;
 }
 
+.mfa-factor-list {
+  display: grid;
+  gap: 9px;
+}
+
+.mfa-factor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 15px;
+  border: 1px solid rgba(72, 233, 255, 0.18);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.mfa-factor-row > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.mfa-factor-row strong,
+.mfa-factor-row span {
+  overflow-wrap: anywhere;
+}
+
+.mfa-factor-row strong {
+  font-size: 12px;
+}
+
+.mfa-factor-row span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.mfa-enrollment {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.mfa-enrollment__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.mfa-enrollment__heading h4 {
+  margin: 5px 0 0;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.mfa-enrollment__body {
+  display: grid;
+  grid-template-columns: 164px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+}
+
+.mfa-qr-frame {
+  display: grid;
+  width: 164px;
+  height: 164px;
+  place-items: center;
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.mfa-qr-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mfa-enrollment__instructions {
+  display: grid;
+  gap: 16px;
+}
+
+.mfa-enrollment__instructions p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.mfa-secret {
+  display: grid;
+  gap: 7px;
+}
+
+.mfa-secret span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mfa-secret code {
+  overflow-wrap: anywhere;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--accent);
+  background: var(--surface);
+  font:
+    700 11px 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.08em;
+}
+
+.mfa-secret small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mfa-verify-form {
+  display: grid;
+  gap: 15px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.mfa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.mfa-challenge-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.mfa-challenge-card {
+  width: min(100%, 460px);
+  padding: 38px;
+  border: 1px solid rgba(72, 233, 255, 0.24);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+}
+
+.mfa-challenge-card h1 {
+  margin: 0;
+  font-size: clamp(32px, 7vw, 46px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.mfa-challenge-form {
+  display: grid;
+  gap: 10px;
+}
+
+.mfa-challenge-form label {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mfa-challenge-form input {
+  width: 100%;
+  padding: 16px 15px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--surface-soft);
+  outline: none;
+  font:
+    700 24px 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.24em;
+  text-align: center;
+}
+
+.mfa-challenge-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.mfa-challenge-error {
+  display: grid;
+  gap: 15px;
+}
+
+.mfa-challenge-error p {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.mfa-sign-out {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .password-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -2951,6 +3165,32 @@ input::placeholder {
   }
 
   .profile-mfa-card .button {
+    width: 100%;
+  }
+
+  .mfa-factor-row,
+  .mfa-enrollment__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mfa-factor-row .button {
+    width: 100%;
+  }
+
+  .mfa-enrollment__body {
+    grid-template-columns: 1fr;
+  }
+
+  .mfa-qr-frame {
+    width: min(100%, 220px);
+    height: auto;
+    aspect-ratio: 1;
+    justify-self: center;
+  }
+
+  .mfa-actions,
+  .mfa-actions .button {
     width: 100%;
   }
 

@@ -26,6 +26,7 @@ async function fixture(
   options: {
     rateLimitMax?: number;
     autoAuthenticate?: boolean;
+    mfaRequired?: boolean;
     vault?: CredentialStore;
   } = {},
 ) {
@@ -83,9 +84,17 @@ async function fixture(
       serviceRoleKey: 'test-service-role-key',
       fetchImpl: async (_input, init) => {
         const authorization = new Headers(init?.headers).get('authorization');
-        return new Response(null, {
-          status: authorization === `Bearer ${userToken}` ? 200 : 401,
-        });
+        if (authorization !== `Bearer ${userToken}`) {
+          return new Response(null, { status: 401 });
+        }
+        return new Response(
+          options.mfaRequired
+            ? JSON.stringify({
+                factors: [{ factor_type: 'totp', status: 'verified' }],
+              })
+            : null,
+          { status: 200 },
+        );
       },
     }),
   });
@@ -109,6 +118,17 @@ describe('API', () => {
     await app.close();
 
     expect(response.statusCode).toBe(401);
+  });
+
+  it('bloqueia operações quando a sessão autenticada ainda não atingiu AAL2', async () => {
+    const { app } = await fixture({ mfaRequired: true });
+    const response = await app.inject({ method: 'GET', url: '/api/checks' });
+    await app.close();
+
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toEqual({
+      error: 'Confirme o código do seu autenticador para acessar a plataforma.',
+    });
   });
 
   it('protege todas as operações administrativas', async () => {

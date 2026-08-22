@@ -96,6 +96,12 @@ async function authorizeUser(
 
   const status = await auth.validateAccessToken(accessToken);
   if (status === 'authorized') return true;
+  if (status === 'mfa_required') {
+    void reply.code(403).send({
+      error: 'Confirme o código do seu autenticador para acessar a plataforma.',
+    });
+    return false;
+  }
   if (status === 'unavailable') {
     void reply
       .code(503)
@@ -401,7 +407,8 @@ export async function createApp(
       try {
         await vault.set(name, value);
       } catch (error) {
-        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        if (!(error instanceof CredentialStoreDisabledError))
+          app.log.error(error);
         return credentialStoreFailure(reply);
       }
       cache.clear();
@@ -421,7 +428,8 @@ export async function createApp(
       try {
         await vault.remove(name);
       } catch (error) {
-        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        if (!(error instanceof CredentialStoreDisabledError))
+          app.log.error(error);
         return credentialStoreFailure(reply);
       }
       cache.clear();

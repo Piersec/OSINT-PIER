@@ -3,11 +3,12 @@
 import {
   type ChangeEvent,
   type FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { Factor, User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import {
   analyzePassword,
@@ -21,6 +22,13 @@ const avatarExtensions: Record<string, string> = {
   'image/png': 'png',
   'image/webp': 'webp',
 };
+
+interface PendingMfaEnrollment {
+  factorId: string;
+  qrCode: string;
+  secret: string;
+  uri: string;
+}
 
 interface ProfilePageProps {
   user: User;
@@ -97,6 +105,22 @@ function avatarErrorMessage(message: string): string {
     return 'O armazenamento de avatares ainda não está disponível neste ambiente.';
   }
   return 'Não foi possível atualizar sua foto agora. Tente novamente.';
+}
+
+function mfaErrorMessage(message: string): string {
+  const normalized = message.toLowerCase();
+  if (normalized.includes('already') || normalized.includes('factor')) {
+    return 'Este autenticador já está vinculado ou não pode ser alterado agora.';
+  }
+  if (normalized.includes('invalid') || normalized.includes('verification')) {
+    return 'O código do autenticador é inválido ou expirou.';
+  }
+  return 'Não foi possível atualizar o MFA agora. Tente novamente.';
+}
+
+function qrCodeSource(qrCode: string): string {
+  if (qrCode.startsWith('data:')) return qrCode;
+  return `data:image/svg+xml;utf-8,${encodeURIComponent(qrCode)}`;
 }
 
 export function PasswordChangeForm({
@@ -281,6 +305,310 @@ export function PasswordRotationModal({
   );
 }
 
+export function MfaSettings({ user }: { user: User }) {
+  const [factors, setFactors] = useState<Factor<'totp', 'verified'>[]>([]);
+  const [pendingEnrollment, setPendingEnrollment] =
+    useState<PendingMfaEnrollment | null>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busyAction, setBusyAction] = useState<
+    'enroll' | 'verify' | 'cancel' | 'remove' | null
+  >(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadFactors = useCallback(async () => {
+    if (!supabase) {
+      setLoading(false);
+      setError('O serviço de autenticação não está configurado.');
+      return;
+    }
+
+    setLoading(true);
+    const { data, error: factorsError } = await supabase.auth.mfa.listFactors();
+    setLoading(false);
+    if (factorsError || !data) {
+      setError(
+        factorsError
+          ? mfaErrorMessage(factorsError.message)
+          : 'Não foi possível consultar os autenticadores ativos.',
+      );
+      return;
+    }
+
+    setFactors(data.totp);
+  }, []);
+
+  useEffect(() => {
+    void loadFactors();
+  }, [loadFactors]);
+
+  async function startEnrollment() {
+    if (!supabase) {
+      setError('O serviço de autenticação não está configurado.');
+      return;
+    }
+
+    setBusyAction('enroll');
+    setError(null);
+    setMessage(null);
+    const { data, error: enrollmentError } = await supabase.auth.mfa.enroll({
+      factorType: 'totp',
+      friendlyName: user.email ? `OSINT Pier · ${user.email}` : 'OSINT Pier',
+      issuer: 'OSINT Pier',
+    });
+    setBusyAction(null);
+
+    if (enrollmentError || !data) {
+      setError(
+        enrollmentError
+          ? mfaErrorMessage(enrollmentError.message)
+          : 'Não foi possível iniciar a configuração do autenticador.',
+      );
+      return;
+    }
+
+    setPendingEnrollment({
+      factorId: data.id,
+      qrCode: data.totp.qr_code,
+      secret: data.totp.secret,
+      uri: data.totp.uri,
+    });
+    setVerificationCode('');
+  }
+
+  async function verifyEnrollment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !pendingEnrollment) return;
+    if (!/^\d{6}$/.test(verificationCode)) {
+      setError('Digite o código de 6 dígitos exibido no autenticador.');
+      return;
+    }
+
+    setBusyAction('verify');
+    setError(null);
+    const { data: challengeData, error: challengeError } =
+      await supabase.auth.mfa.challenge({
+        factorId: pendingEnrollment.factorId,
+      });
+    if (challengeError || !challengeData) {
+      setBusyAction(null);
+      setError(
+        challengeError
+          ? mfaErrorMessage(challengeError.message)
+          : 'Não foi possível iniciar a confirmação do autenticador.',
+      );
+      return;
+    }
+
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      challengeId: challengeData.id,
+      code: verificationCode,
+      factorId: pendingEnrollment.factorId,
+    });
+    setBusyAction(null);
+    if (verifyError) {
+      setError(mfaErrorMessage(verifyError.message));
+      return;
+    }
+
+    setPendingEnrollment(null);
+    setVerificationCode('');
+    setMessage('Autenticação multifator ativada nesta conta.');
+    await loadFactors();
+  }
+
+  async function cancelEnrollment() {
+    if (!supabase || !pendingEnrollment) return;
+
+    setBusyAction('cancel');
+    setError(null);
+    const { error: unenrollError } = await supabase.auth.mfa.unenroll({
+      factorId: pendingEnrollment.factorId,
+    });
+    setBusyAction(null);
+    if (unenrollError) {
+      setError(mfaErrorMessage(unenrollError.message));
+      return;
+    }
+
+    setPendingEnrollment(null);
+    setVerificationCode('');
+    setMessage('Configuração do autenticador cancelada.');
+  }
+
+  async function removeFactor(factorId: string) {
+    if (!supabase) return;
+    if (removingFactorId !== factorId) {
+      setRemovingFactorId(factorId);
+      setError(null);
+      return;
+    }
+
+    setBusyAction('remove');
+    setError(null);
+    const { error: unenrollError } = await supabase.auth.mfa.unenroll({
+      factorId,
+    });
+    setBusyAction(null);
+    setRemovingFactorId(null);
+    if (unenrollError) {
+      setError(mfaErrorMessage(unenrollError.message));
+      return;
+    }
+
+    setFactors((current) => current.filter((factor) => factor.id !== factorId));
+    setMessage('Autenticador removido desta conta.');
+  }
+
+  return (
+    <section className="profile-card profile-mfa-card">
+      <div className="profile-card__heading">
+        <div>
+          <span className="eyebrow">Próxima camada</span>
+          <h3>Autenticação multifator</h3>
+        </div>
+        <span
+          className={
+            factors.length ? 'profile-status-dot' : 'profile-coming-badge'
+          }
+        >
+          {factors.length ? 'Ativo' : 'Não configurado'}
+        </span>
+      </div>
+      <p className="muted">
+        Use um autenticador TOTP, como Google Authenticator ou 1Password, para
+        adicionar uma segunda confirmação ao login.
+      </p>
+
+      {loading && <p className="profile-help">Consultando autenticadores…</p>}
+
+      {!loading && factors.length > 0 && (
+        <div className="mfa-factor-list" aria-label="Autenticadores ativos">
+          {factors.map((factor) => (
+            <div className="mfa-factor-row" key={factor.id}>
+              <div>
+                <strong>
+                  {factor.friendly_name ?? 'Aplicativo autenticador'}
+                </strong>
+                <span>TOTP ativo · verificado</span>
+              </div>
+              <button
+                className="button button--danger button--small"
+                disabled={busyAction === 'remove'}
+                onClick={() => void removeFactor(factor.id)}
+                type="button"
+              >
+                {removingFactorId === factor.id
+                  ? 'Confirmar remoção'
+                  : 'Remover'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && !pendingEnrollment && (
+        <button
+          className="button button--secondary"
+          disabled={busyAction === 'enroll'}
+          onClick={() => void startEnrollment()}
+          type="button"
+        >
+          {busyAction === 'enroll'
+            ? 'Preparando autenticador…'
+            : factors.length
+              ? 'Adicionar outro autenticador'
+              : 'Configurar autenticador'}
+        </button>
+      )}
+
+      {pendingEnrollment && (
+        <div className="mfa-enrollment">
+          <div className="mfa-enrollment__heading">
+            <div>
+              <span className="eyebrow">Configuração em andamento</span>
+              <h4>Escaneie o QR Code</h4>
+            </div>
+            <span className="section-count">Passo 1 de 2</span>
+          </div>
+          <div className="mfa-enrollment__body">
+            <div className="mfa-qr-frame">
+              <img
+                alt="QR Code para configurar o autenticador TOTP"
+                src={qrCodeSource(pendingEnrollment.qrCode)}
+              />
+            </div>
+            <div className="mfa-enrollment__instructions">
+              <p>
+                Abra o aplicativo autenticador, escaneie o código e digite o
+                número de 6 dígitos gerado por ele.
+              </p>
+              <label className="mfa-secret">
+                <span>Segredo alternativo</span>
+                <code>{pendingEnrollment.secret}</code>
+                <small>{pendingEnrollment.uri}</small>
+              </label>
+            </div>
+          </div>
+          <form className="mfa-verify-form" onSubmit={verifyEnrollment}>
+            <label className="profile-field" htmlFor="mfa-enrollment-code">
+              Código de confirmação
+              <input
+                autoComplete="one-time-code"
+                id="mfa-enrollment-code"
+                inputMode="numeric"
+                maxLength={6}
+                onChange={(event) =>
+                  setVerificationCode(
+                    event.target.value.replace(/\D/g, '').slice(0, 6),
+                  )
+                }
+                pattern="[0-9]{6}"
+                placeholder="000000"
+                required
+                type="text"
+                value={verificationCode}
+              />
+            </label>
+            <div className="mfa-actions">
+              <button
+                className="button"
+                disabled={
+                  busyAction === 'verify' || verificationCode.length !== 6
+                }
+                type="submit"
+              >
+                {busyAction === 'verify' ? 'Confirmando…' : 'Ativar MFA'}
+              </button>
+              <button
+                className="button button--ghost"
+                disabled={busyAction === 'verify' || busyAction === 'cancel'}
+                onClick={() => void cancelEnrollment()}
+                type="button"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {message && (
+        <p className="profile-form-success" role="status">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="profile-form-error" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export function ProfilePage({ user, onUserUpdated }: ProfilePageProps) {
   const avatarPath = metadataString(user, 'avatar_path');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -439,23 +767,7 @@ export function ProfilePage({ user, onUserUpdated }: ProfilePageProps) {
           <PasswordChangeForm onUserUpdated={onUserUpdated} user={user} />
         </section>
 
-        <section className="profile-card profile-mfa-card">
-          <div className="profile-card__heading">
-            <div>
-              <span className="eyebrow">Próxima camada</span>
-              <h3>Autenticação multifator</h3>
-            </div>
-            <span className="profile-coming-badge">Em breve</span>
-          </div>
-          <p className="muted">
-            O perfil já está preparado para conectar um autenticador TOTP, como
-            Google Authenticator ou 1Password. A ativação será adicionada em uma
-            próxima etapa sem alterar sua sessão atual.
-          </p>
-          <button className="button button--secondary" disabled type="button">
-            Configurar MFA em breve
-          </button>
-        </section>
+        <MfaSettings user={user} />
       </div>
     </section>
   );

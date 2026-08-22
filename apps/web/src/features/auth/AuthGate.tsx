@@ -3,12 +3,14 @@
 import {
   createContext,
   type FormEvent,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import { MfaCheckErrorScreen, MfaChallengeScreen } from './MfaChallenge';
 import { PasswordRotationModal } from '../profile/ProfilePage';
 import { analyzePassword } from './password-strength';
 
@@ -19,6 +21,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+type MfaState = 'idle' | 'checking' | 'required' | 'verified' | 'error';
 
 function authErrorMessage(message: string): string {
   const normalized = message.toLowerCase();
@@ -153,6 +156,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [mfaState, setMfaState] = useState<MfaState>('idle');
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaError, setMfaError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -164,6 +170,55 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       !(typeof changedAt === 'string' && changedAt.length > 0),
     );
   }, [user]);
+
+  const passwordRotationRequired = Boolean(
+    user &&
+    (mustChangePassword ||
+      !(
+        typeof user.user_metadata?.password_changed_at === 'string' &&
+        user.user_metadata.password_changed_at.length > 0
+      )),
+  );
+
+  const assessMfa = useCallback(async () => {
+    if (!user || passwordRotationRequired) {
+      setMfaState('idle');
+      setMfaFactorId(null);
+      setMfaError(null);
+      return;
+    }
+    if (!supabase) {
+      setMfaState('verified');
+      return;
+    }
+
+    setMfaState('checking');
+    setMfaError(null);
+    const [aalResult, factorsResult] = await Promise.all([
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      supabase.auth.mfa.listFactors(),
+    ]);
+
+    if (aalResult.error || factorsResult.error || !aalResult.data) {
+      setMfaState('error');
+      setMfaFactorId(null);
+      setMfaError(
+        'Não foi possível confirmar o estado do seu autenticador. A sessão foi mantida bloqueada por segurança.',
+      );
+      return;
+    }
+
+    const factorId = factorsResult.data?.totp?.[0]?.id ?? null;
+    const requiresMfa =
+      aalResult.data.currentLevel !== 'aal2' &&
+      aalResult.data.nextLevel === 'aal2';
+    setMfaFactorId(factorId);
+    setMfaState(requiresMfa && factorId ? 'required' : 'verified');
+  }, [passwordRotationRequired, user]);
+
+  useEffect(() => {
+    void assessMfa();
+  }, [assessMfa]);
 
   useEffect(() => {
     applyStoredTheme();
@@ -224,13 +279,55 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
+  async function signOut() {
+    await supabase?.auth.signOut();
+  }
+
+  if (
+    !passwordRotationRequired &&
+    (mfaState === 'idle' || mfaState === 'checking')
+  ) {
+    return (
+      <main className="auth-shell">
+        <div className="auth-loading" role="status">
+          Validando autenticação adicional…
+        </div>
+      </main>
+    );
+  }
+
+  if (!passwordRotationRequired && mfaState === 'required') {
+    return (
+      <MfaChallengeScreen
+        factorId={mfaFactorId}
+        onRetry={() => void assessMfa()}
+        onSignOut={signOut}
+        onVerified={() => {
+          setMfaState('verified');
+          setMfaError(null);
+        }}
+      />
+    );
+  }
+
+  if (!passwordRotationRequired && mfaState === 'error') {
+    return (
+      <MfaCheckErrorScreen
+        message={
+          mfaError ??
+          'Não foi possível validar a autenticação multifator desta sessão.'
+        }
+        onRetry={() => void assessMfa()}
+        onSignOut={signOut}
+      />
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        signOut: async () => {
-          await supabase?.auth.signOut();
-        },
+        signOut,
         updateUser: updateAuthenticatedUser,
       }}
     >
