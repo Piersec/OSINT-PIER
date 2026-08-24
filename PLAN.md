@@ -259,6 +259,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Disponibilizar perfil autenticado com avatar privado, troca de senha e medidor de
       força para rejeitar a senha inicial fraca
 - [x] Exigir a troca da senha no primeiro acesso por modal sem opção de fechar
+- [x] Oferecer sugestão local de senha forte no modal obrigatório, com preenchimento
+      editável e opção de visualizar antes de salvar
 - [x] Conectar configuração e verificação de MFA por TOTP no perfil, com desafio após
       login e enforcement de `aal2` nas rotas da API
 - [x] Solicitar a ativação opcional do MFA no login para contas sem fator verificado,
@@ -447,3 +449,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   projeto hospedado deve ser confirmada manualmente no Auth do Supabase em 3600 segundos;
   a documentação do Supabase indica esse valor como padrão de 1 hora, mas a configuração
   atual do projeto não foi exposta pelo conector disponível.
+- `2026-08-24` — GAB-82: o modal obrigatório de troca de senha agora oferece uma sugestão
+  forte gerada localmente com Web Crypto, preenche confirmação automaticamente e permite
+  visualizar ou editar a combinação antes do envio. Nenhuma senha sugerida é persistida ou
+  registrada.

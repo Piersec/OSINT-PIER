@@ -83,3 +83,44 @@ export function analyzePassword(password: string): PasswordAnalysis {
 export function isStrongPassword(password: string): boolean {
   return analyzePassword(password).strength === 'strong';
 }
+
+const passwordCharacterSets = [
+  'abcdefghijkmnopqrstuvwxyz',
+  'ABCDEFGHJKLMNPQRSTUVWXYZ',
+  '23456789',
+  '!@#$%^&*_-+=?',
+];
+const passwordAlphabet = passwordCharacterSets.join('');
+
+function randomIndex(max: number): number {
+  const values = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(values);
+  return values[0]! % max;
+}
+
+export function generateStrongPassword(length = 18): string {
+  const targetLength = Math.max(12, length);
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const characters = passwordCharacterSets.map(
+      (characterSet) => characterSet[randomIndex(characterSet.length)]!,
+    );
+
+    while (characters.length < targetLength) {
+      characters.push(passwordAlphabet[randomIndex(passwordAlphabet.length)]!);
+    }
+
+    for (let index = characters.length - 1; index > 0; index -= 1) {
+      const swapIndex = randomIndex(index + 1);
+      [characters[index], characters[swapIndex]] = [
+        characters[swapIndex]!,
+        characters[index]!,
+      ];
+    }
+
+    const password = characters.join('');
+    if (isStrongPassword(password)) return password;
+  }
+
+  throw new Error('Não foi possível gerar uma senha forte.');
+}

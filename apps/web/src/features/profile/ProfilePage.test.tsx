@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@supabase/supabase-js';
+import { isStrongPassword } from '../auth/password-strength';
 
 vi.mock('../../lib/supabase', () => ({
   supabase: null,
@@ -52,5 +53,29 @@ describe('ProfilePage', () => {
       }),
     ).toBeTruthy();
     expect(screen.getByText('Obrigatório')).toBeTruthy();
+  });
+
+  it('preenche os campos com uma sugestão forte e permite visualizá-la', async () => {
+    render(
+      <PasswordRotationModal onUserUpdated={() => undefined} user={user} />,
+    );
+
+    screen.getByRole('button', { name: 'Sugerir senha forte' }).click();
+
+    const passwordInput = screen.getByLabelText(
+      'Nova senha',
+    ) as HTMLInputElement;
+    const confirmationInput = screen.getByLabelText(
+      'Confirmar nova senha',
+    ) as HTMLInputElement;
+
+    await waitFor(() => expect(passwordInput.value).toHaveLength(18));
+    expect(passwordInput.value).toBe(confirmationInput.value);
+    expect(isStrongPassword(passwordInput.value)).toBe(true);
+    expect(passwordInput.type).toBe('text');
+    expect(screen.getByRole('button', { name: 'Ocultar senha' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Atualizar senha' }),
+    ).toHaveProperty('disabled', false);
   });
 });

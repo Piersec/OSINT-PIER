@@ -12,6 +12,7 @@ import type { Factor, User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import {
   analyzePassword,
+  generateStrongPassword,
   type PasswordAnalysis,
 } from '../auth/password-strength';
 
@@ -134,8 +135,24 @@ export function PasswordChangeForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const analysis = useMemo(() => analyzePassword(password), [password]);
   const mismatch = confirmation.length > 0 && confirmation !== password;
+
+  function suggestStrongPassword() {
+    try {
+      const suggestedPassword = generateStrongPassword();
+      setPassword(suggestedPassword);
+      setConfirmation(suggestedPassword);
+      setPasswordVisible(true);
+      setError(null);
+      setSuccess(null);
+    } catch {
+      setError(
+        'Não foi possível sugerir uma senha agora. Digite uma combinação forte.',
+      );
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -180,6 +197,7 @@ export function PasswordChangeForm({
     onUserUpdated(updatedUser);
     setPassword('');
     setConfirmation('');
+    setPasswordVisible(false);
     setSuccess('Senha atualizada com sucesso.');
     onComplete?.();
   }
@@ -202,11 +220,21 @@ export function PasswordChangeForm({
           : 'A senha precisa ter pelo menos 12 caracteres e combinar diferentes tipos de caracteres.'}
       </p>
 
-      <label
-        className="profile-field"
-        htmlFor={forced ? 'forced-new-password' : 'new-password'}
-      >
-        Nova senha
+      <div className="profile-field">
+        <div className="profile-field__heading">
+          <label htmlFor={forced ? 'forced-new-password' : 'new-password'}>
+            Nova senha
+          </label>
+          {forced && (
+            <button
+              className="profile-field__action"
+              onClick={suggestStrongPassword}
+              type="button"
+            >
+              Sugerir senha forte
+            </button>
+          )}
+        </div>
         <input
           autoComplete="new-password"
           autoFocus={forced}
@@ -215,10 +243,19 @@ export function PasswordChangeForm({
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Crie uma senha única"
           required
-          type="password"
+          type={passwordVisible ? 'text' : 'password'}
           value={password}
         />
-      </label>
+        {password && (
+          <button
+            className="profile-field__visibility"
+            onClick={() => setPasswordVisible((visible) => !visible)}
+            type="button"
+          >
+            {passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}
+          </button>
+        )}
+      </div>
 
       {password && <PasswordStrengthMeter analysis={analysis} />}
 
@@ -233,7 +270,7 @@ export function PasswordChangeForm({
           onChange={(event) => setConfirmation(event.target.value)}
           placeholder="Digite a senha novamente"
           required
-          type="password"
+          type={passwordVisible ? 'text' : 'password'}
           value={confirmation}
         />
       </label>
