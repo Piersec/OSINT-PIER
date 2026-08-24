@@ -116,13 +116,15 @@ Cada nova integração deve:
 - [x] Tratamento de erro amigável no frontend (mensagem clara quando um check falha)
 - [x] Responsividade mobile do dashboard
 - [x] Gráficos Recharts e insights progressivos no resultado da análise, derivados
-      exclusivamente dos estados e durações reais dos checks
+      exclusivamente dos sinais reais de segurança, exposição e criticidade
 - [x] Panorama de risco com vulnerabilidades/CVEs, CISA KEV, EPSS alto e falhas de
       headers, cookies, TLS e reputação, persistido na sessão do navegador
 - [x] Card curado do AbuseIPDB com confiança visual, contexto de rede e links externos;
       ocultar da grade os checks sem resposta bem-sucedida, mantendo atenção no panorama
 - [x] Filtrar checks pelo tipo de alvo inferido antes da execução, evitando chamadas
       incompatíveis e cards redundantes de erro na análise principal
+- [x] Panorama de segurança com índice de risco, postura radial, radar de exposição,
+      mapa de criticidade, reputação externa e falhas priorizadas
 
 ---
 
@@ -527,3 +529,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   principal mantém somente respostas bem-sucedidas. Falhas e checks pulados seguem
   agregados no panorama, enquanto a página individual de ferramentas preserva seus
   detalhes de diagnóstico.
+- `2026-08-24` — GAB-92: o Panorama de segurança deixou de exibir métricas operacionais
+  de cobertura, sucesso, atenção, duração e distribuição dos checks. A seção agora
+  concentra índice de risco, CVEs críticas, exploração conhecida, postura, radar de
+  exposição, mapa de criticidade, reputação externa e falhas de segurança priorizadas.

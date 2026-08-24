@@ -5808,6 +5808,21 @@ html[data-theme='white'] .documentation-brand img {
   color: var(--accent);
 }
 
+.analysis-insight-card--critical {
+  border-color: rgba(255, 95, 104, 0.35);
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(255, 95, 104, 0.16),
+      transparent 52%
+    ),
+    linear-gradient(135deg, rgba(255, 95, 104, 0.08), var(--surface-soft));
+}
+
+.analysis-insight-card--critical strong {
+  color: var(--danger);
+}
+
 .analysis-insight-card--attention {
   border-color: rgba(255, 95, 104, 0.2);
   background: linear-gradient(
@@ -5823,17 +5838,23 @@ html[data-theme='white'] .documentation-brand img {
 
 .analysis-insights__charts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 9px;
   margin-top: 9px;
 }
 
 .analysis-chart-card {
+  grid-column: span 2;
   min-width: 0;
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface-soft);
+}
+
+.analysis-chart-card--reputation,
+.analysis-chart-card--failures {
+  grid-column: span 3;
 }
 
 .analysis-chart-card__heading {
@@ -5859,8 +5880,34 @@ html[data-theme='white'] .documentation-brand img {
 
 .analysis-chart {
   position: relative;
-  min-height: 220px;
+  min-height: 235px;
   margin-top: 9px;
+}
+
+.analysis-chart--radial__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.analysis-chart--radial__center strong {
+  color: var(--text);
+  font-size: 38px;
+  letter-spacing: -0.09em;
+  line-height: 1;
+}
+
+.analysis-chart--radial__center span {
+  margin-top: 6px;
+  color: var(--muted);
+  font:
+    9px 'IBM Plex Mono',
+    monospace;
+  text-transform: uppercase;
 }
 
 .analysis-chart--donut__center {
@@ -5890,7 +5937,7 @@ html[data-theme='white'] .documentation-brand img {
 
 .analysis-chart__empty {
   display: grid;
-  min-height: 220px;
+  min-height: 235px;
   place-items: center;
   color: var(--muted);
   font-size: 11px;
@@ -5976,11 +6023,27 @@ html[data-theme='white'] .analysis-insights {
   .analysis-insights__cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .analysis-insights__charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analysis-chart-card,
+  .analysis-chart-card--reputation,
+  .analysis-chart-card--failures {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 1000px) {
   .analysis-insights__charts {
     grid-template-columns: 1fr;
+  }
+
+  .analysis-chart-card,
+  .analysis-chart-card--reputation,
+  .analysis-chart-card--failures {
+    grid-column: auto;
   }
 }
 

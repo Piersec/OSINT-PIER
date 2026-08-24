@@ -4,32 +4,25 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Pie,
-  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  RadialBar,
+  RadialBarChart,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
+  ZAxis,
 } from 'recharts';
 import type { CardState } from '../checks/ResultCard';
 
-type AnalysisStatus = 'idle' | 'loading' | 'success' | 'error' | 'skipped';
-
-interface StatusDatum {
-  key: AnalysisStatus;
-  name: string;
-  value: number;
-  color: string;
-}
-
-interface DurationDatum {
-  id: string;
-  label: string;
-  fullLabel: string;
-  durationMs: number;
-}
-
 type SecuritySeverity = 'critical' | 'high' | 'medium' | 'low' | 'unknown';
+type InsightTone = 'neutral' | 'positive' | 'attention' | 'critical';
 
 interface VulnerabilityDatum {
   key: SecuritySeverity;
@@ -45,68 +38,86 @@ interface SecurityFailureDatum {
   detail: string;
 }
 
-export interface AnalysisInsight {
-  label: string;
-  value: string;
+interface ReputationDatum {
+  id: string;
+  name: string;
+  value: number;
+  rawValue: number;
   detail: string;
-  tone: 'neutral' | 'positive' | 'attention';
+  color: string;
 }
 
-export interface AnalysisSnapshot {
-  total: number;
-  resolved: number;
-  loading: number;
-  success: number;
-  error: number;
-  skipped: number;
-  coverage: number;
-  successRate: number;
-  averageDurationMs: number | null;
-  statuses: StatusDatum[];
-  durations: DurationDatum[];
+interface PostureAxisDatum {
+  subject: string;
+  score: number;
+  fullMark: 100;
+  detail: string;
+}
+
+interface CriticalityPoint {
+  x: number;
+  y: number;
+  z: number;
+  name: string;
+  detail: string;
+  color: string;
+}
+
+interface ReputationSnapshot {
+  entries: ReputationDatum[];
+  malicious: number;
+  suspicious: number;
+  abuseConfidenceScore: number | null;
+  hasEvidence: boolean;
+}
+
+interface RiskSignals {
   vulnerabilities: VulnerabilityDatum[];
   vulnerabilityTotal: number;
+  criticalVulnerabilityTotal: number;
+  hasVulnerabilityEvidence: boolean;
   kevCount: number;
   highEpssCount: number;
   securityFailures: SecurityFailureDatum[];
   securityFailureTotal: number;
+  hasFailureEvidence: boolean;
+  postureScore: number | null;
+  riskScore: number | null;
+  criticalityLabel: string;
+  postureAxes: PostureAxisDatum[];
+  criticalityPoints: CriticalityPoint[];
+  reputation: ReputationSnapshot;
+}
+
+export interface AnalysisInsight {
+  label: string;
+  value: string;
+  detail: string;
+  tone: InsightTone;
+}
+
+export interface AnalysisSnapshot extends RiskSignals {
   insights: AnalysisInsight[];
 }
 
-const statusMeta: Record<AnalysisStatus, Omit<StatusDatum, 'value'>> = {
-  idle: { key: 'idle', name: 'Aguardando', color: '#727a7d' },
-  loading: { key: 'loading', name: 'Carregando', color: '#ffc25c' },
-  success: { key: 'success', name: 'Sucesso', color: '#48e9ff' },
-  error: { key: 'error', name: 'Erro', color: '#ff5f68' },
-  skipped: { key: 'skipped', name: 'Pulado', color: '#ff9d63' },
-};
-
 const vulnerabilityMeta: Record<
   SecuritySeverity,
-  { name: string; color: string }
+  { name: string; color: string; weight: number; axis: number }
 > = {
-  critical: { name: 'Crítica', color: '#ff5f68' },
-  high: { name: 'Alta', color: '#ff9d63' },
-  medium: { name: 'Média', color: '#f2cf66' },
-  low: { name: 'Baixa', color: '#48e9ff' },
-  unknown: { name: 'Sem score', color: '#727a7d' },
+  critical: { name: 'Crítica', color: '#ff5f68', weight: 30, axis: 5 },
+  high: { name: 'Alta', color: '#ff9d63', weight: 18, axis: 4 },
+  medium: { name: 'Média', color: '#f2cf66', weight: 9, axis: 3 },
+  low: { name: 'Baixa', color: '#48e9ff', weight: 4, axis: 2 },
+  unknown: { name: 'Sem score', color: '#727a7d', weight: 2, axis: 1 },
 };
 
-function analysisStatus(state: CardState | undefined): AnalysisStatus {
-  if (!state || state.status === 'idle') return 'idle';
-  if (state.status === 'loading') return 'loading';
-  if (state.status === 'request-error') return 'error';
-  return state.result.status;
-}
-
-function formatDuration(value: number): string {
-  if (value < 1000) return `${Math.round(value)} ms`;
-  return `${(value / 1000).toFixed(1)} s`;
-}
-
-function shortLabel(label: string): string {
-  return label.length > 17 ? `${label.slice(0, 16)}…` : label;
-}
+const criticalityLabels: Record<number, string> = {
+  1: 'Sem score',
+  2: 'Baixa',
+  3: 'Média',
+  4: 'Alta',
+  5: 'Crítica',
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -114,6 +125,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function numberValue(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function clamp(value: number, minimum = 0, maximum = 100): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function headerLabel(value: string): string {
+  return value
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function addSecurityFailure(
@@ -133,24 +155,33 @@ function addSecurityFailure(
   });
 }
 
-function headerLabel(value: string): string {
-  return value
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+function criticalityLabel(riskScore: number | null): string {
+  if (riskScore === null) return 'Sem leitura';
+  if (riskScore >= 70) return 'Crítica';
+  if (riskScore >= 40) return 'Alta';
+  if (riskScore >= 15) return 'Moderada';
+  return 'Controlada';
+}
+
+function postureTone(riskScore: number | null): InsightTone {
+  if (riskScore === null) return 'neutral';
+  if (riskScore >= 70) return 'critical';
+  if (riskScore >= 15) return 'attention';
+  return 'positive';
+}
+
+function postureColor(postureScore: number | null): string {
+  if (postureScore === null) return 'var(--muted)';
+  if (postureScore < 30) return 'var(--danger)';
+  if (postureScore < 60) return '#ff9d63';
+  if (postureScore < 85) return '#f2cf66';
+  return 'var(--accent)';
 }
 
 function collectRiskSignals(
   checks: CheckCatalogItem[],
   states: Record<string, CardState>,
-): {
-  vulnerabilities: VulnerabilityDatum[];
-  vulnerabilityTotal: number;
-  kevCount: number;
-  highEpssCount: number;
-  securityFailures: SecurityFailureDatum[];
-  securityFailureTotal: number;
-} {
+): RiskSignals {
   const vulnerabilityCounts: Record<SecuritySeverity, number> = {
     critical: 0,
     high: 0,
@@ -159,8 +190,21 @@ function collectRiskSignals(
     unknown: 0,
   };
   const failures = new Map<string, SecurityFailureDatum>();
+  const reputationStats = {
+    malicious: 0,
+    suspicious: 0,
+    harmless: 0,
+    undetected: 0,
+    timeout: 0,
+    total: 0,
+  };
   let kevCount = 0;
   let highEpssCount = 0;
+  let abuseConfidenceScore: number | null = null;
+  let hasSecurityEvidence = false;
+  let hasVulnerabilityEvidence = false;
+  let hasFailureEvidence = false;
+  let tlsRiskScore = 0;
 
   for (const check of checks) {
     const state = states[check.id];
@@ -171,6 +215,8 @@ function collectRiskSignals(
 
     const data = state.result.data;
     if (check.id === 'shodan-vulnerabilities') {
+      hasSecurityEvidence = true;
+      hasVulnerabilityEvidence = true;
       const severityCounts = isRecord(data.severityCounts)
         ? data.severityCounts
         : {};
@@ -191,6 +237,8 @@ function collectRiskSignals(
     }
 
     if (check.id === 'http-headers') {
+      hasSecurityEvidence = true;
+      hasFailureEvidence = true;
       const security = isRecord(data.security) ? data.security : {};
       const missingHeaders = Object.entries(security).filter(
         ([, value]) => isRecord(value) && value.present === false,
@@ -219,6 +267,8 @@ function collectRiskSignals(
     }
 
     if (check.id === 'cookies') {
+      hasSecurityEvidence = true;
+      hasFailureEvidence = true;
       const count = Math.max(0, numberValue(data.count) ?? 0);
       const summary = isRecord(data.summary) ? data.summary : {};
       for (const [key, label] of [
@@ -238,7 +288,10 @@ function collectRiskSignals(
     }
 
     if (check.id === 'ssl-certificate') {
+      hasSecurityEvidence = true;
+      hasFailureEvidence = true;
       if (data.authorized === false) {
+        tlsRiskScore += 50;
         addSecurityFailure(
           failures,
           'tls-authorization',
@@ -248,6 +301,7 @@ function collectRiskSignals(
         );
       }
       if (data.hostnameMatches === false) {
+        tlsRiskScore += 40;
         addSecurityFailure(
           failures,
           'tls-hostname',
@@ -257,20 +311,30 @@ function collectRiskSignals(
         );
       }
       const daysRemaining = numberValue(data.daysRemaining);
-      if (daysRemaining !== null && daysRemaining < 0) {
-        addSecurityFailure(
-          failures,
-          'tls-expired',
-          'Certificado expirado',
-          1,
-          'A validade do certificado terminou',
-        );
+      if (daysRemaining !== null) {
+        if (daysRemaining < 0) {
+          tlsRiskScore += 50;
+          addSecurityFailure(
+            failures,
+            'tls-expired',
+            'Certificado expirado',
+            1,
+            'A validade do certificado terminou',
+          );
+        } else if (daysRemaining < 30) {
+          tlsRiskScore += 20;
+        }
       }
     }
 
     if (check.id === 'abuse-ipdb') {
-      const score = numberValue(data.abuseConfidenceScore) ?? 0;
-      if (score >= 75) {
+      hasSecurityEvidence = true;
+      hasFailureEvidence = true;
+      const score = numberValue(data.abuseConfidenceScore);
+      if (score !== null) {
+        abuseConfidenceScore = Math.max(abuseConfidenceScore ?? 0, score);
+      }
+      if ((score ?? 0) >= 75) {
         addSecurityFailure(
           failures,
           'abuse-high-confidence',
@@ -278,7 +342,7 @@ function collectRiskSignals(
           1,
           'Reputação IP acima de 75%',
         );
-      } else if (score >= 25) {
+      } else if ((score ?? 0) >= 25) {
         addSecurityFailure(
           failures,
           'abuse-confidence',
@@ -287,6 +351,25 @@ function collectRiskSignals(
           'Reputação IP entre 25% e 74%',
         );
       }
+    }
+
+    if (check.id === 'virus-total') {
+      hasSecurityEvidence = true;
+      const analysis = isRecord(data.analysis) ? data.analysis : {};
+      const stats = isRecord(analysis.stats) ? analysis.stats : {};
+      for (const key of [
+        'malicious',
+        'suspicious',
+        'harmless',
+        'undetected',
+        'timeout',
+      ] as const) {
+        reputationStats[key] += Math.max(0, numberValue(stats[key]) ?? 0);
+      }
+      reputationStats.total = Object.values(reputationStats).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
     }
   }
 
@@ -300,6 +383,127 @@ function collectRiskSignals(
   const securityFailures = [...failures.values()]
     .sort((left, right) => right.value - left.value)
     .slice(0, 8);
+  const vulnerabilityRisk = (
+    Object.keys(vulnerabilityCounts) as SecuritySeverity[]
+  ).reduce(
+    (sum, severity) =>
+      sum + vulnerabilityCounts[severity] * vulnerabilityMeta[severity].weight,
+    0,
+  );
+  const exploitationRisk = kevCount * 40 + highEpssCount * 15;
+  const hygieneRisk =
+    [...failures.values()].reduce((sum, item) => sum + item.value, 0) * 12;
+  const reputationRisk = Math.max(
+    abuseConfidenceScore ?? 0,
+    reputationStats.malicious * 35 + reputationStats.suspicious * 18,
+  );
+  const axes: PostureAxisDatum[] = [
+    {
+      subject: 'Exposição',
+      score: clamp(vulnerabilityRisk),
+      fullMark: 100,
+      detail: `${vulnerabilityCounts.critical + vulnerabilityCounts.high} CVEs críticas/altas`,
+    },
+    {
+      subject: 'Exploração',
+      score: clamp(exploitationRisk),
+      fullMark: 100,
+      detail: `${kevCount} KEV e ${highEpssCount} EPSS alto`,
+    },
+    {
+      subject: 'Reputação',
+      score: clamp(reputationRisk),
+      fullMark: 100,
+      detail: `${reputationStats.malicious} detecções maliciosas e AbuseIPDB`,
+    },
+    {
+      subject: 'Higiene',
+      score: clamp(hygieneRisk),
+      fullMark: 100,
+      detail: `${securityFailures.reduce((sum, item) => sum + item.value, 0)} falhas de proteção`,
+    },
+    {
+      subject: 'TLS',
+      score: clamp(tlsRiskScore),
+      fullMark: 100,
+      detail: tlsRiskScore
+        ? 'Validade ou cadeia TLS exigem revisão'
+        : 'Cadeia TLS sem sinal crítico',
+    },
+  ];
+  const riskScore = hasSecurityEvidence
+    ? Math.round(
+        clamp(
+          vulnerabilityRisk * 0.3 +
+            exploitationRisk * 0.2 +
+            hygieneRisk * 0.25 +
+            reputationRisk * 0.15 +
+            tlsRiskScore * 0.1,
+        ),
+      )
+    : null;
+  const postureScore = riskScore === null ? null : 100 - riskScore;
+  const reputationTotal = reputationStats.total;
+  const reputationEntries: ReputationDatum[] = [];
+  if (reputationTotal > 0) {
+    for (const [key, label, color] of [
+      ['malicious', 'VT malicioso', '#ff5f68'],
+      ['suspicious', 'VT suspeito', '#ff9d63'],
+      ['harmless', 'VT inofensivo', '#48e9ff'],
+      ['undetected', 'VT não detectado', '#727a7d'],
+      ['timeout', 'VT sem resposta', '#f2cf66'],
+    ] as const) {
+      const rawValue = reputationStats[key];
+      if (rawValue === 0) continue;
+      reputationEntries.push({
+        id: `virustotal-${key}`,
+        name: label,
+        value: Math.round((rawValue / reputationTotal) * 100),
+        rawValue,
+        detail: `${rawValue} de ${reputationTotal} motores`,
+        color,
+      });
+    }
+  }
+  if (abuseConfidenceScore !== null) {
+    reputationEntries.push({
+      id: 'abuse-ipdb',
+      name: 'AbuseIPDB',
+      value: abuseConfidenceScore,
+      rawValue: abuseConfidenceScore,
+      detail: `${abuseConfidenceScore}% de confiança de abuso`,
+      color: '#f2cf66',
+    });
+  }
+
+  const criticalityPoints: CriticalityPoint[] = vulnerabilities.map((item) => ({
+    x: vulnerabilityMeta[item.key].axis,
+    y: item.value,
+    z: Math.min(600, 90 + item.value * 50),
+    name: `${item.name} · CVEs`,
+    detail: `${item.value} vulnerabilidade${item.value === 1 ? '' : 's'} ${item.name.toLowerCase()}`,
+    color: item.color,
+  }));
+  if (securityFailures.length) {
+    criticalityPoints.push({
+      x: 3,
+      y: securityFailures.reduce((sum, item) => sum + item.value, 0),
+      z: Math.min(600, 90 + securityFailures.length * 50),
+      name: 'Falhas de segurança',
+      detail: `${securityFailures.length} categorias de proteção exigem revisão`,
+      color: '#ff5f68',
+    });
+  }
+  if (reputationStats.malicious > 0) {
+    criticalityPoints.push({
+      x: 4,
+      y: reputationStats.malicious,
+      z: Math.min(600, 90 + reputationStats.malicious * 50),
+      name: 'Detecções maliciosas',
+      detail: `${reputationStats.malicious} motores sinalizaram comportamento malicioso`,
+      color: '#ff5f68',
+    });
+  }
 
   return {
     vulnerabilities,
@@ -307,6 +511,8 @@ function collectRiskSignals(
       (sum, item) => sum + item.value,
       0,
     ),
+    criticalVulnerabilityTotal: vulnerabilityCounts.critical,
+    hasVulnerabilityEvidence,
     kevCount,
     highEpssCount,
     securityFailures,
@@ -314,6 +520,19 @@ function collectRiskSignals(
       (sum, item) => sum + item.value,
       0,
     ),
+    hasFailureEvidence,
+    postureScore,
+    riskScore,
+    criticalityLabel: criticalityLabel(riskScore),
+    postureAxes: axes,
+    criticalityPoints,
+    reputation: {
+      entries: reputationEntries,
+      malicious: reputationStats.malicious,
+      suspicious: reputationStats.suspicious,
+      abuseConfidenceScore,
+      hasEvidence: reputationTotal > 0 || abuseConfidenceScore !== null,
+    },
   };
 }
 
@@ -321,129 +540,73 @@ export function buildAnalysisSnapshot(
   checks: CheckCatalogItem[],
   states: Record<string, CardState>,
 ): AnalysisSnapshot {
-  const counts: Record<AnalysisStatus, number> = {
-    idle: 0,
-    loading: 0,
-    success: 0,
-    error: 0,
-    skipped: 0,
-  };
-  const durations: DurationDatum[] = [];
-
-  for (const check of checks) {
-    const state = states[check.id];
-    const status = analysisStatus(state);
-    counts[status] += 1;
-
-    if (
-      state?.status === 'done' &&
-      Number.isFinite(state.result.durationMs) &&
-      state.result.durationMs >= 0
-    ) {
-      durations.push({
-        id: check.id,
-        label: shortLabel(check.label),
-        fullLabel: check.label,
-        durationMs: state.result.durationMs,
-      });
-    }
-  }
-
-  const resolved = counts.success + counts.error + counts.skipped;
-  const averageDurationMs = durations.length
-    ? durations.reduce((total, item) => total + item.durationMs, 0) /
-      durations.length
-    : null;
-  const sortedDurations = [...durations].sort(
-    (left, right) => right.durationMs - left.durationMs,
-  );
-  const statuses = (Object.keys(statusMeta) as AnalysisStatus[])
-    .map((key) => ({ ...statusMeta[key], value: counts[key] }))
-    .filter((item) => item.value > 0);
-  const coverage = checks.length
-    ? Math.round((resolved / checks.length) * 100)
-    : 0;
-  const successRate = resolved
-    ? Math.round((counts.success / resolved) * 100)
-    : 0;
-  const slowest = sortedDurations[0];
-  const attention = counts.error + counts.skipped;
-  const isComplete = checks.length > 0 && resolved === checks.length;
-  const riskSignals = collectRiskSignals(checks, states);
-
+  const signals = collectRiskSignals(checks, states);
+  const hasSecurityEvidence = signals.riskScore !== null;
   const insights: AnalysisInsight[] = [
     {
-      label: 'Cobertura',
-      value: `${resolved}/${checks.length}`,
-      detail: isComplete
-        ? 'Todos os checks chegaram a um estado final.'
-        : resolved === 0 && counts.loading === 0
-          ? 'Inicie a análise para acompanhar a cobertura.'
-          : `${checks.length - resolved} fonte${checks.length - resolved === 1 ? '' : 's'} ainda em execução.`,
-      tone: isComplete ? 'positive' : 'neutral',
-    },
-    {
-      label: 'Taxa de sucesso',
-      value: `${successRate}%`,
+      label: 'Índice de risco',
+      value: signals.riskScore === null ? '—' : `${signals.riskScore}/100`,
       detail:
-        resolved > 0
-          ? `${counts.success} resposta${counts.success === 1 ? '' : 's'} com dados retornados.`
-          : 'Inicie uma análise para calcular a taxa.',
-      tone: successRate >= 80 && resolved > 0 ? 'positive' : 'neutral',
+        signals.riskScore === null
+          ? 'Aguardando sinais de segurança.'
+          : `Criticidade ${signals.criticalityLabel.toLowerCase()} · postura ${signals.postureScore}/100.`,
+      tone: postureTone(signals.riskScore),
     },
     {
-      label: 'Pontos de atenção',
-      value: `${attention}`,
-      detail:
-        attention > 0
-          ? `${counts.error} erro${counts.error === 1 ? '' : 's'} e ${counts.skipped} integração${counts.skipped === 1 ? '' : 'ções'} pulada${counts.skipped === 1 ? '' : 's'}.`
-          : 'Nenhuma falha ou integração pulada até agora.',
-      tone: attention > 0 ? 'attention' : 'positive',
+      label: 'CVEs críticas',
+      value: signals.hasVulnerabilityEvidence
+        ? String(signals.criticalVulnerabilityTotal)
+        : '—',
+      detail: !signals.hasVulnerabilityEvidence
+        ? hasSecurityEvidence
+          ? 'Nenhuma fonte de vulnerabilidades retornou nesta rodada.'
+          : 'Aguardando sinais de segurança.'
+        : signals.vulnerabilityTotal > 0
+          ? `${signals.vulnerabilityTotal} vulnerabilidades correlacionadas no total.`
+          : 'Nenhuma vulnerabilidade correlacionada nesta rodada.',
+      tone: !signals.hasVulnerabilityEvidence
+        ? 'neutral'
+        : signals.criticalVulnerabilityTotal > 0
+          ? 'critical'
+          : 'positive',
     },
     {
-      label: 'Tempo médio',
-      value:
-        averageDurationMs === null ? '—' : formatDuration(averageDurationMs),
-      detail: slowest
-        ? `${slowest.fullLabel} foi a fonte mais lenta nesta rodada.`
-        : 'A duração aparece quando uma fonte responder.',
-      tone: 'neutral',
-    },
-    {
-      label: 'Vulnerabilidades',
-      value: String(riskSignals.vulnerabilityTotal),
-      detail:
-        riskSignals.vulnerabilityTotal > 0
-          ? `${riskSignals.kevCount} no CISA KEV e ${riskSignals.highEpssCount} com EPSS alto.`
-          : 'Nenhuma CVE correlacionada nesta rodada.',
-      tone: riskSignals.vulnerabilityTotal > 0 ? 'attention' : 'positive',
+      label: 'Exploração conhecida',
+      value: signals.hasVulnerabilityEvidence ? String(signals.kevCount) : '—',
+      detail: !signals.hasVulnerabilityEvidence
+        ? hasSecurityEvidence
+          ? 'A correlação de CVEs não retornou dados nesta rodada.'
+          : 'Aguardando sinais de segurança.'
+        : signals.highEpssCount > 0
+          ? `${signals.highEpssCount} CVE${signals.highEpssCount === 1 ? '' : 's'} com EPSS alto.`
+          : 'Nenhum sinal de exploração provável foi correlacionado.',
+      tone: !signals.hasVulnerabilityEvidence
+        ? 'neutral'
+        : signals.kevCount > 0 || signals.highEpssCount > 0
+          ? 'critical'
+          : 'positive',
     },
     {
       label: 'Falhas de segurança',
-      value: String(riskSignals.securityFailureTotal),
-      detail:
-        riskSignals.securityFailureTotal > 0
+      value: signals.hasFailureEvidence
+        ? String(signals.securityFailureTotal)
+        : '—',
+      detail: !signals.hasFailureEvidence
+        ? hasSecurityEvidence
+          ? 'Nenhuma fonte de higiene retornou dados nesta rodada.'
+          : 'Aguardando sinais de segurança.'
+        : signals.securityFailureTotal > 0
           ? 'Headers, cookies, TLS ou reputação exigem revisão.'
-          : 'Nenhuma falha de segurança observada.',
-      tone: riskSignals.securityFailureTotal > 0 ? 'attention' : 'positive',
+          : 'Nenhuma falha de proteção observada.',
+      tone: !signals.hasFailureEvidence
+        ? 'neutral'
+        : signals.securityFailureTotal > 0
+          ? 'attention'
+          : 'positive',
     },
   ];
 
-  return {
-    total: checks.length,
-    resolved,
-    loading: counts.loading,
-    success: counts.success,
-    error: counts.error,
-    skipped: counts.skipped,
-    coverage,
-    successRate,
-    averageDurationMs,
-    statuses,
-    durations: sortedDurations.slice(0, 8),
-    ...riskSignals,
-    insights,
-  };
+  return { ...signals, insights };
 }
 
 function chartTooltipStyle() {
@@ -456,6 +619,17 @@ function chartTooltipStyle() {
   };
 }
 
+function riskTooltipFormatter(
+  value: unknown,
+  _name: unknown,
+  item: { payload?: { detail?: string } },
+) {
+  return [
+    String(value ?? '—'),
+    item.payload?.detail ?? 'Sinal de segurança',
+  ] as [string, string];
+}
+
 export function AnalysisInsights({
   checks,
   states,
@@ -466,18 +640,31 @@ export function AnalysisInsights({
   target: string | null;
 }) {
   const snapshot = buildAnalysisSnapshot(checks, states);
-  const isRunning = snapshot.loading > 0;
+  const isRunning = Object.values(states).some(
+    (state) => state.status === 'loading',
+  );
+  const postureData =
+    snapshot.postureScore === null
+      ? []
+      : [
+          {
+            name: 'Postura',
+            value: snapshot.postureScore,
+            fill: postureColor(snapshot.postureScore),
+          },
+        ];
+  const reputationData = snapshot.reputation.entries;
 
   return (
     <section className="analysis-insights" aria-live="polite">
       <header className="analysis-insights__header">
         <div>
           <span className="eyebrow">Leitura de risco</span>
-          <h3>Panorama de risco</h3>
+          <h3>Panorama de segurança</h3>
           <p>
             {target
-              ? `Vulnerabilidades e falhas de segurança observadas em ${target}.`
-              : 'Os gráficos de risco serão preenchidos assim que uma análise começar.'}
+              ? `Criticidade, exposição e postura de segurança observadas em ${target}.`
+              : 'Os sinais de segurança serão preenchidos assim que uma análise começar.'}
           </p>
         </div>
         <span
@@ -486,9 +673,9 @@ export function AnalysisInsights({
           <i aria-hidden="true" />
           {isRunning
             ? 'Atualizando agora'
-            : snapshot.resolved > 0
+            : snapshot.riskScore !== null
               ? 'Leitura disponível'
-              : 'Aguardando análise'}
+              : 'Aguardando sinais'}
         </span>
       </header>
 
@@ -506,73 +693,186 @@ export function AnalysisInsights({
       </div>
 
       <div className="analysis-insights__charts">
-        <article className="analysis-chart-card analysis-chart-card--distribution">
+        <article className="analysis-chart-card analysis-chart-card--posture">
           <div className="analysis-chart-card__heading">
             <div>
-              <span className="eyebrow">Estado dos checks</span>
-              <h4>Distribuição da rodada</h4>
+              <span className="eyebrow">Índice derivado</span>
+              <h4>Postura de segurança</h4>
             </div>
-            <span>{snapshot.coverage}% coberto</span>
+            <span>{snapshot.criticalityLabel}</span>
           </div>
-          <div className="analysis-chart analysis-chart--donut">
-            {snapshot.statuses.length ? (
-              <ResponsiveContainer height={220} width="100%">
-                <PieChart>
-                  <Pie
-                    data={snapshot.statuses}
+          <div className="analysis-chart analysis-chart--radial">
+            {postureData.length ? (
+              <ResponsiveContainer height={235} width="100%">
+                <RadialBarChart
+                  barSize={16}
+                  cx="50%"
+                  cy="50%"
+                  data={postureData}
+                  endAngle={-270}
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  startAngle={90}
+                >
+                  <RadialBar
+                    background={{ fill: 'var(--surface-strong)' }}
+                    cornerRadius={12}
                     dataKey="value"
-                    innerRadius={58}
-                    nameKey="name"
-                    outerRadius={83}
-                    paddingAngle={3}
-                  >
-                    {snapshot.statuses.map((item) => (
-                      <Cell fill={item.color} key={item.key} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={chartTooltipStyle()} />
-                </PieChart>
+                  />
+                </RadialBarChart>
               </ResponsiveContainer>
             ) : (
               <div className="analysis-chart__empty">
-                Aguardando checks selecionados.
+                Nenhum sinal de segurança disponível.
               </div>
             )}
-            {snapshot.total > 0 && (
-              <div className="analysis-chart--donut__center">
-                <strong>{snapshot.resolved}</strong>
-                <span>de {snapshot.total}</span>
+            {snapshot.postureScore !== null && (
+              <div className="analysis-chart--radial__center">
+                <strong>{snapshot.postureScore}</strong>
+                <span>postura / 100</span>
               </div>
             )}
           </div>
-          <div className="analysis-chart-legend">
-            {snapshot.statuses.map((item) => (
-              <span key={item.key}>
-                <i style={{ backgroundColor: item.color }} />
-                {item.name} <b>{item.value}</b>
-              </span>
-            ))}
-          </div>
+          <p className="analysis-chart-card__note">
+            Quanto maior a postura, menor a carga de risco observada. O índice é
+            derivado de vulnerabilidades, exploração, reputação, higiene e TLS.
+          </p>
         </article>
 
-        <article className="analysis-chart-card analysis-chart-card--risk">
+        <article className="analysis-chart-card analysis-chart-card--radar">
           <div className="analysis-chart-card__heading">
             <div>
-              <span className="eyebrow">Exposição conhecida</span>
-              <h4>Vulnerabilidades</h4>
+              <span className="eyebrow">Vetor de ameaça</span>
+              <h4>Radar de exposição</h4>
             </div>
-            <span>{snapshot.vulnerabilityTotal} CVEs</span>
+            <span>0–100</span>
+          </div>
+          <div className="analysis-chart analysis-chart--radar-plot">
+            {snapshot.riskScore !== null ? (
+              <ResponsiveContainer height={235} width="100%">
+                <RadarChart data={snapshot.postureAxes} outerRadius="70%">
+                  <PolarGrid stroke="var(--border-strong)" />
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
+                  />
+                  <PolarRadiusAxis
+                    angle={30}
+                    domain={[0, 100]}
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
+                  />
+                  <Radar
+                    dataKey="score"
+                    fill="var(--danger)"
+                    fillOpacity={0.2}
+                    name="Risco"
+                    stroke="var(--danger)"
+                    strokeWidth={2}
+                  />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle()}
+                    formatter={riskTooltipFormatter}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="analysis-chart__empty">
+                Aguardando dados de postura.
+              </div>
+            )}
+          </div>
+          <p className="analysis-chart-card__note">
+            Picos maiores indicam concentração de sinais no vetor indicado.
+          </p>
+        </article>
+
+        <article className="analysis-chart-card analysis-chart-card--criticality">
+          <div className="analysis-chart-card__heading">
+            <div>
+              <span className="eyebrow">Priorização</span>
+              <h4>Mapa de criticidade</h4>
+            </div>
+            <span>{snapshot.criticalityPoints.length} sinais</span>
           </div>
           <div
-            className="analysis-chart analysis-chart--bars"
-            aria-label="Distribuição de vulnerabilidades por severidade"
+            className="analysis-chart analysis-chart--scatter"
+            aria-label="Mapa de sinais por criticidade"
           >
-            {snapshot.vulnerabilities.length ? (
-              <ResponsiveContainer height={220} width="100%">
+            {snapshot.criticalityPoints.length ? (
+              <ResponsiveContainer height={235} width="100%">
+                <ScatterChart
+                  margin={{ bottom: 8, left: 0, right: 12, top: 8 }}
+                >
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+                  <XAxis
+                    allowDecimals={false}
+                    dataKey="x"
+                    domain={[0, 6]}
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
+                    tickFormatter={(value) => criticalityLabels[value] ?? ''}
+                    tickLine={false}
+                    type="number"
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    dataKey="y"
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
+                    tickLine={false}
+                    type="number"
+                    width={28}
+                  />
+                  <ZAxis dataKey="z" range={[90, 620]} type="number" />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle()}
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={riskTooltipFormatter}
+                    labelFormatter={(_, payload) =>
+                      payload?.[0]?.payload?.name ?? 'Sinal de segurança'
+                    }
+                  />
+                  <Scatter data={snapshot.criticalityPoints} dataKey="y">
+                    {snapshot.criticalityPoints.map((point) => (
+                      <Cell
+                        fill={point.color}
+                        key={`${point.name}-${point.x}`}
+                      />
+                    ))}
+                  </Scatter>
+                </ScatterChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="analysis-chart__empty">
+                Nenhuma criticidade correlacionada.
+              </div>
+            )}
+          </div>
+          <p className="analysis-chart-card__note">
+            O eixo horizontal vai de baixa a crítica; o tamanho do ponto indica
+            a concentração do sinal.
+          </p>
+        </article>
+
+        <article className="analysis-chart-card analysis-chart-card--reputation">
+          <div className="analysis-chart-card__heading">
+            <div>
+              <span className="eyebrow">Inteligência externa</span>
+              <h4>Reputação observada</h4>
+            </div>
+            <span>
+              {snapshot.reputation.malicious + snapshot.reputation.suspicious}{' '}
+              alertas
+            </span>
+          </div>
+          <div
+            className="analysis-chart analysis-chart--reputation"
+            aria-label="Reputação externa normalizada em percentual"
+          >
+            {reputationData.length ? (
+              <ResponsiveContainer height={235} width="100%">
                 <BarChart
-                  data={snapshot.vulnerabilities}
+                  data={reputationData}
                   layout="vertical"
-                  margin={{ bottom: 0, left: 6, right: 18, top: 0 }}
+                  margin={{ bottom: 0, left: 10, right: 18, top: 0 }}
                 >
                   <CartesianGrid
                     horizontal={false}
@@ -581,51 +881,51 @@ export function AnalysisInsights({
                   />
                   <XAxis
                     allowDecimals={false}
-                    axisLine={false}
-                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
+                    domain={[0, 100]}
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
+                    tickFormatter={(value) => `${value}%`}
                     tickLine={false}
                     type="number"
                   />
                   <YAxis
                     axisLine={false}
                     dataKey="name"
-                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
                     tickLine={false}
                     type="category"
-                    width={72}
+                    width={92}
                   />
                   <Tooltip
                     contentStyle={chartTooltipStyle()}
-                    formatter={(value) => [value, 'CVEs']}
+                    formatter={(value, _name, item) => [
+                      `${value}% · ${item.payload.detail}`,
+                      'Sinal',
+                    ]}
                   />
-                  <Bar barSize={14} dataKey="value" radius={[0, 5, 5, 0]}>
-                    {snapshot.vulnerabilities.map((item) => (
-                      <Cell fill={item.color} key={item.key} />
+                  <Bar barSize={13} dataKey="value" radius={[0, 6, 6, 0]}>
+                    {reputationData.map((item) => (
+                      <Cell fill={item.color} key={item.id} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="analysis-chart__empty">
-                Nenhuma vulnerabilidade correlacionada.
+                Nenhum sinal de reputação disponível.
               </div>
             )}
           </div>
-          <div className="analysis-risk-card__metrics">
-            <span>
-              <b>{snapshot.kevCount}</b> CISA KEV
-            </span>
-            <span>
-              <b>{snapshot.highEpssCount}</b> EPSS alto
-            </span>
-          </div>
+          <p className="analysis-chart-card__note">
+            VirusTotal mostra a proporção entre motores; AbuseIPDB mostra a
+            confiança de abuso do IP consultado.
+          </p>
         </article>
 
-        <article className="analysis-chart-card analysis-chart-card--security">
+        <article className="analysis-chart-card analysis-chart-card--failures">
           <div className="analysis-chart-card__heading">
             <div>
               <span className="eyebrow">Higiene do ativo</span>
-              <h4>Falhas de segurança</h4>
+              <h4>Falhas priorizadas</h4>
             </div>
             <span>{snapshot.securityFailureTotal} sinais</span>
           </div>
@@ -634,7 +934,7 @@ export function AnalysisInsights({
             aria-label="Falhas de segurança observadas"
           >
             {snapshot.securityFailures.length ? (
-              <ResponsiveContainer height={220} width="100%">
+              <ResponsiveContainer height={235} width="100%">
                 <BarChart
                   data={snapshot.securityFailures}
                   layout="vertical"
@@ -655,7 +955,7 @@ export function AnalysisInsights({
                   <YAxis
                     axisLine={false}
                     dataKey="name"
-                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
+                    tick={{ fill: 'var(--muted)', fontSize: 8 }}
                     tickLine={false}
                     type="category"
                     width={112}
@@ -668,90 +968,22 @@ export function AnalysisInsights({
                     ]}
                   />
                   <Bar
-                    barSize={14}
-                    dataKey="value"
-                    fill="#ff5f68"
-                    radius={[0, 5, 5, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="analysis-chart__empty">
-                Nenhuma falha de segurança observada.
-              </div>
-            )}
-          </div>
-          <p className="analysis-chart-card__note">
-            Inclui headers ausentes, cookies sem proteção, TLS inválido/expirado
-            e reputação de abuso relevante.
-          </p>
-        </article>
-
-        <article className="analysis-chart-card analysis-chart-card--latency">
-          <div className="analysis-chart-card__heading">
-            <div>
-              <span className="eyebrow">Tempo de resposta</span>
-              <h4>Quais fontes demoraram mais?</h4>
-            </div>
-            <span>Top {Math.min(snapshot.durations.length, 8)}</span>
-          </div>
-          <div className="analysis-chart analysis-chart--bars">
-            {snapshot.durations.length ? (
-              <ResponsiveContainer height={220} width="100%">
-                <BarChart
-                  data={snapshot.durations}
-                  layout="vertical"
-                  margin={{ bottom: 0, left: 6, right: 18, top: 0 }}
-                >
-                  <CartesianGrid
-                    horizontal={false}
-                    stroke="var(--border)"
-                    strokeDasharray="3 3"
-                  />
-                  <XAxis
-                    axisLine={false}
-                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
-                    tickLine={false}
-                    type="number"
-                  />
-                  <YAxis
-                    axisLine={false}
-                    dataKey="label"
-                    tick={{ fill: 'var(--muted)', fontSize: 9 }}
-                    tickLine={false}
-                    type="category"
-                    width={86}
-                  />
-                  <Tooltip
-                    contentStyle={chartTooltipStyle()}
-                    formatter={(value) => [
-                      formatDuration(Number(value)),
-                      'Tempo',
-                    ]}
-                    labelFormatter={(label) => {
-                      const item = snapshot.durations.find(
-                        (duration) => duration.label === label,
-                      );
-                      return item?.fullLabel ?? label;
-                    }}
-                  />
-                  <Bar
                     barSize={13}
-                    dataKey="durationMs"
-                    fill="var(--accent)"
-                    radius={[0, 5, 5, 0]}
+                    dataKey="value"
+                    fill="var(--danger)"
+                    radius={[0, 6, 6, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="analysis-chart__empty">
-                As durações aparecem progressivamente.
+                Nenhuma falha de proteção observada.
               </div>
             )}
           </div>
           <p className="analysis-chart-card__note">
-            Duração individual informada pela fonte; não é uma estimativa de
-            risco.
+            Inclui headers ausentes, cookies sem proteção, TLS inválido e
+            reputação de abuso relevante.
           </p>
         </article>
       </div>

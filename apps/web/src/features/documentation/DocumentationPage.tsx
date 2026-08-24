@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.3';
+const documentationVersion = '1.4';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -68,7 +68,7 @@ const documentationNav: DocumentationNavGroup[] = [
       {
         id: 'docs-analysis',
         label: 'Analisar um alvo',
-        description: 'Consultas, risco e estados persistidos.',
+        description: 'Consultas, criticidade e postura de segurança.',
         keywords:
           'análise alvo domínio ip url nome username email telefone abuseipdb gráficos sucesso erro vulnerabilidades cve kev falhas segurança sessão',
       },
@@ -642,23 +642,22 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           number="04"
                           title="Leia os sinais progressivamente"
                         >
-                          O resumo mostra módulos, respostas concluídas,
-                          sucessos e itens de atenção. A grade exibe apenas os
-                          checks que retornaram com sucesso; erros e integrações
-                          puladas ficam consolidados no panorama. O gráfico de
-                          distribuição acompanha esses estados enquanto a rodada
-                          avança.
+                          A grade exibe apenas os checks que retornaram com
+                          sucesso; erros e integrações puladas ficam fora dos
+                          cards de resultado. O panorama é reservado para sinais
+                          de segurança, vulnerabilidades e criticidade.
                         </DocumentationStep>
                         <DocumentationStep
                           number="05"
                           title="Use os insights para priorizar"
                         >
-                          O painel compara a duração por fonte e destaca
-                          cobertura, taxa de sucesso, pontos de atenção e tempo
-                          médio. Os charts também agregam CVEs por severidade,
-                          CISA KEV, EPSS alto e falhas de headers, cookies, TLS
-                          ou reputação. Quando todos terminarem, Exportar JSON
-                          fica disponível.
+                          Use o índice de risco, a postura de segurança e o
+                          radar de exposição para priorizar a investigação. O
+                          mapa de criticidade cruza severidade e concentração
+                          dos sinais; reputação, CVEs, CISA KEV, EPSS alto e
+                          falhas de headers, cookies e TLS aparecem em leituras
+                          separadas. Quando todos terminarem, Exportar JSON fica
+                          disponível.
                         </DocumentationStep>
                         <DocumentationStep number="06" title="Retome a sessão">
                           A rodada ativa e o histórico recente são mantidos na
