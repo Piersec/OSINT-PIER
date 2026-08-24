@@ -222,6 +222,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Aplicar nome OSINT Pier, símbolo PierSec, paleta e tipografia do brand kit
 - [x] Criar página separada de documentação interna passo a passo, acessível fora
       da sidebar pelo link no rodapé e pela rota `/docs`
+- [x] Evoluir a documentação para uma experiência profissional com navegação própria,
+      busca local, onboarding, catálogo vivo e referências por seção
 
 ---
 
@@ -494,3 +496,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   troubleshooting, e lê o catálogo atual de checks para acompanhar novas integrações.
   A manutenção futura deve atualizar a data/versionamento do componente, o plano e a
   issue correspondente no Linear.
+- `2026-08-24` — GAB-87: a documentação foi redesenhada como uma experiência própria de
+  produto, com sidebar da documentação, busca local por tarefa/ferramenta, hero de
+  onboarding, atalhos de uso, índice contextual, status do catálogo e layout responsivo.
+  A página continua separada em `/docs`, protegida pela autenticação existente e sem item
+  na sidebar do dashboard.
