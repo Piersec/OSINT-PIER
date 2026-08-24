@@ -11,6 +11,7 @@ const PluginMetadataSchema = z.object({
   id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   label: z.string().trim().min(1),
   requiredEnv: z.array(z.string().regex(/^[A-Z][A-Z0-9_]*$/)),
+  optionalEnv: z.array(z.string().regex(/^[A-Z][A-Z0-9_]*$/)).optional(),
   supportedTargetKinds: z.array(TargetKindSchema).min(1).optional(),
   timeoutMs: z.number().int().min(100).max(120_000).optional(),
   run: z.function(),

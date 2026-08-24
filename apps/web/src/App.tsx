@@ -84,6 +84,8 @@ const toolDescriptions: Record<string, string> = {
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
+  phoneinfoga:
+    'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
   'shodan-vulnerabilities':
     'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
 };
@@ -117,6 +119,7 @@ const toolCategories: Record<string, ToolCategory> = {
   'hunter-io': 'personal',
   'ip-info': 'web',
   'osint-framework': 'web',
+  phoneinfoga: 'personal',
   'redirect-chain': 'web',
   'robots-sitemap': 'web',
   'server-location': 'web',
@@ -130,13 +133,6 @@ const toolCategories: Record<string, ToolCategory> = {
 };
 
 const plannedTools = [
-  {
-    id: 'phoneinfoga',
-    label: 'PhoneInfoga',
-    category: 'personal' as const,
-    description:
-      'Planejado: depende de CLI/provedores configurados para consultas telefônicas.',
-  },
   {
     id: 'ghunt',
     label: 'GHunt',

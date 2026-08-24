@@ -160,8 +160,8 @@ Cada integração será analisada antes de implementação, com escopo curado, a
 explícita e tratamento de rate limit/credenciais. A ausência de chave ou sessão deve
 produzir `skipped`, sem interromper os outros plugins.
 
-- [ ] PhoneInfoga — avaliar CLI/REST e scanners externos; pode exigir configuração de
-      provedores, sem assumir uma API key única
+- [x] PhoneInfoga — adapter REST server-side para o serviço oficial em Docker, com
+      gateway autenticado e scanners opcionais configurados pelo cofre
 - [ ] GHunt — avaliar execução local e sessão/cookies do Google; não armazenar cookies no
       histórico nem no frontend
 - [ ] Osintgram — avaliar execução local e autenticação autorizada do Instagram
@@ -190,6 +190,22 @@ produzir `skipped`, sem interromper os outros plugins.
   fontes brutas não são persistidas
 - Limites: consulta de domínio limitada a 10 contatos por chamada para compatibilidade com
   o plano atual; `401`, `403`, `404`, `429`, `451` e `5xx` tratados explicitamente
+
+### PhoneInfoga
+
+- Serviço: imagem oficial `sundowndev/phoneinfoga:v2`, executada separadamente com
+  `serve --no-client`; o Vercel chama somente o gateway HTTPS autenticado em
+  `PHONEINFOGA_API_URL`
+- Credencial: `PHONEINFOGA_API_TOKEN`, armazenada no cofre interno e validada pelo gateway;
+  `NUMVERIFY_API_KEY`, `GOOGLECSE_CX` e `GOOGLE_API_KEY` são opcionais e chegam ao serviço
+  somente no request server-side do scanner correspondente
+- Endpoints usados: `POST /api/v2/numbers` e `POST /api/v2/scanners/{scanner}/run`
+- Curadoria: normalização, local, Google Search, OVH, Numverify e Google CSE; links de
+  pesquisa são referências para análise autorizada, e respostas brutas não chegam ao cliente
+- Limites: timeout de 30 segundos no plugin; erros de scanners individuais não interrompem
+  os demais; nenhum número, token ou resultado detalhado é gravado no histórico
+- Operação: `infra/phoneinfoga/docker-compose.yml` mantém a porta interna fora da rede
+  pública e o gateway aceita apenas `Authorization: Bearer` com o token configurado
 
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
@@ -464,3 +480,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   fontes autorizadas sem chave e links de pesquisa manual) ou criar um adapter para um
   serviço PhoneInfoga hospedado separadamente. A integração permanece aberta até essa
   escolha, e nenhum número consultado é persistido.
+- `2026-08-24` — GAB-63 implementado: o backend agora chama o PhoneInfoga oficial por
+  `POST /api/v2/numbers` e pelos scanners base/opcionais, usando token server-side e
+  curadoria por scanner. A stack `infra/phoneinfoga` adiciona gateway Docker autenticado,
+  mantém a porta interna isolada e permite configurar Numverify/Google CSE pelo cofre da
+  aplicação. Validação: 74 testes da API, 18 do frontend, typecheck, lint, build, compose
+  config, build da imagem e smoke REST oficial com `401` sem token e `200` autenticado.

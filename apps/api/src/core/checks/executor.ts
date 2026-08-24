@@ -44,8 +44,15 @@ export async function executeCheck(options: {
   target: NormalizedTarget;
   credentialProvider: CredentialProvider;
   defaultTimeoutMs: number;
+  environment?: NodeJS.ProcessEnv;
 }): Promise<CheckResult> {
-  const { check, target, credentialProvider, defaultTimeoutMs } = options;
+  const {
+    check,
+    target,
+    credentialProvider,
+    defaultTimeoutMs,
+    environment = process.env,
+  } = options;
   const startedAt = performance.now();
   const credentials: Record<string, string> = {};
 
@@ -76,6 +83,11 @@ export async function executeCheck(options: {
     credentials[name] = value;
   }
 
+  for (const name of check.optionalEnv ?? []) {
+    const value = await credentialProvider.get(name);
+    if (value) credentials[name] = value;
+  }
+
   const controller = new AbortController();
   const timeoutMs = check.timeoutMs ?? defaultTimeoutMs;
   let timeout: NodeJS.Timeout | undefined;
@@ -93,7 +105,11 @@ export async function executeCheck(options: {
     });
 
     const rawResult = await Promise.race([
-      check.run(target, { signal: controller.signal, credentials }),
+      check.run(target, {
+        signal: controller.signal,
+        credentials,
+        environment,
+      }),
       timeoutPromise,
     ]);
 

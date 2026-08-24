@@ -309,6 +309,7 @@ export async function createApp(
           target: normalizedTarget,
           credentialProvider,
           defaultTimeoutMs: config.checkTimeoutMs,
+          environment: dependencies.environment ?? process.env,
         }),
       );
       void reply.header('x-osint-cache', execution.cacheStatus);
@@ -325,6 +326,7 @@ export async function createApp(
         const names = new Set(vault.enabled ? await vault.listNames() : []);
         for (const check of registry.all()) {
           for (const name of check.requiredEnv) names.add(name);
+          for (const name of check.optionalEnv ?? []) names.add(name);
         }
 
         return await Promise.all(

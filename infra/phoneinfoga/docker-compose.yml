@@ -1,0 +1,38 @@
+services:
+  phoneinfoga:
+    image: sundowndev/phoneinfoga:v2
+    restart: unless-stopped
+    command: ['serve', '--no-client', '-p', '5000']
+    expose:
+      - '5000'
+    environment:
+      NUMVERIFY_API_KEY: ${NUMVERIFY_API_KEY-}
+      GOOGLECSE_CX: ${GOOGLECSE_CX-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY-}
+    networks:
+      - phoneinfoga
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+  gateway:
+    build:
+      context: ./gateway
+    restart: unless-stopped
+    environment:
+      PHONEINFOGA_API_TOKEN: ${PHONEINFOGA_API_TOKEN:?Configure PHONEINFOGA_API_TOKEN}
+      PHONEINFOGA_UPSTREAM: http://phoneinfoga:5000
+      PORT: '8080'
+    depends_on:
+      - phoneinfoga
+    ports:
+      - '8080:8080'
+    networks:
+      - phoneinfoga
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  phoneinfoga:
+    driver: bridge

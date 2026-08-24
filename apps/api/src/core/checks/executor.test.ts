@@ -129,4 +129,36 @@ describe('executeCheck', () => {
     expect(JSON.stringify(result)).not.toContain(secret);
     expect(JSON.stringify(result)).toContain('[REDACTED]');
   });
+
+  it('injeta credenciais opcionais quando estão disponíveis', async () => {
+    const check: CheckPlugin = {
+      id: 'optional-check',
+      label: 'Optional check',
+      requiredEnv: [],
+      optionalEnv: ['OPTIONAL_API_KEY'],
+      async run(_target, context) {
+        return {
+          id: 'optional-check',
+          status: 'success',
+          data: { configured: Boolean(context.credentials.OPTIONAL_API_KEY) },
+          source: 'fixture',
+          durationMs: 0,
+        };
+      },
+    };
+    const provider: CredentialProvider = {
+      async get(name) {
+        return name === 'OPTIONAL_API_KEY' ? 'optional-secret' : undefined;
+      },
+    };
+
+    const result = await executeCheck({
+      check,
+      target,
+      credentialProvider: provider,
+      defaultTimeoutMs: 1000,
+    });
+
+    expect(result.data).toEqual({ configured: true });
+  });
 });
