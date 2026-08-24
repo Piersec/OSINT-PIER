@@ -115,6 +115,8 @@ Cada nova integração deve:
       persistência de alvos ou resultados
 - [x] Tratamento de erro amigável no frontend (mensagem clara quando um check falha)
 - [x] Responsividade mobile do dashboard
+- [x] Gráficos Recharts e insights progressivos no resultado da análise, derivados
+      exclusivamente dos estados e durações reais dos checks
 
 ---
 
@@ -501,3 +503,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   onboarding, atalhos de uso, índice contextual, status do catálogo e layout responsivo.
   A página continua separada em `/docs`, protegida pela autenticação existente e sem item
   na sidebar do dashboard.
+- `2026-08-24` — GAB-88: a página de Análise passou a exibir um panorama Recharts com
+  distribuição dos estados, duração por fonte e insights de cobertura, sucesso, atenção
+  e tempo médio. Os gráficos atualizam progressivamente durante a execução e a seção de
+  documentação foi atualizada para explicar a leitura desses sinais.

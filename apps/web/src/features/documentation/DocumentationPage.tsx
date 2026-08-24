@@ -609,7 +609,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                     <DocumentationSection
                       eyebrow="02 / investigação"
                       id="docs-analysis"
-                      intro="A página Análise combina as fontes selecionadas e mostra cada resposta assim que ela chega."
+                      intro="A página Análise combina as fontes selecionadas, mostra cada resposta assim que ela chega e transforma a rodada em um panorama visual."
                       number="02"
                       title="Analise um alvo"
                     >
@@ -640,8 +640,17 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           title="Leia os sinais progressivamente"
                         >
                           O resumo mostra módulos, respostas concluídas,
-                          sucessos e itens de atenção. Quando todos terminarem,
-                          Exportar JSON fica disponível.
+                          sucessos e itens de atenção. O gráfico de distribuição
+                          acompanha esses estados enquanto a rodada avança.
+                        </DocumentationStep>
+                        <DocumentationStep
+                          number="05"
+                          title="Use os insights para priorizar"
+                        >
+                          O painel compara a duração por fonte e destaca
+                          cobertura, taxa de sucesso, pontos de atenção e tempo
+                          médio. Quando todos terminarem, Exportar JSON fica
+                          disponível.
                         </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">

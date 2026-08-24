@@ -7,6 +7,7 @@ import {
   runCheck,
   saveHistory,
 } from './api/client';
+import { AnalysisInsights } from './components/analysis/AnalysisInsights';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
@@ -797,6 +798,14 @@ export function App() {
                     <small>Erros ou integrações puladas</small>
                   </article>
                 </div>
+
+                {checks.length > 0 && (
+                  <AnalysisInsights
+                    checks={checks}
+                    states={states}
+                    target={lastTarget}
+                  />
+                )}
               </section>
 
               <section className="results-section" id="results">
