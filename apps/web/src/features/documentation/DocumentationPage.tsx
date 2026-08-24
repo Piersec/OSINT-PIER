@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.4';
+const documentationVersion = '1.5';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -16,19 +16,14 @@ const targetLabels: Record<TargetKind, string> = {
 
 const plannedTools = [
   {
-    label: 'GHunt',
-    description:
-      'Planejado para pesquisas autorizadas que dependem de sessão do Google.',
-  },
-  {
     label: 'Osintgram',
     description:
-      'Planejado para execução controlada com autenticação do Instagram.',
+      'Avaliado; integração adiada por depender de sessão do Instagram e coleta ampla.',
   },
   {
     label: 'Sherlock',
     description:
-      'Planejado para busca local de usernames com timeout controlado.',
+      'Avaliado; requer runner externo autenticado para busca de usernames.',
   },
 ];
 
@@ -77,7 +72,7 @@ const documentationNav: DocumentationNavGroup[] = [
         label: 'Catálogo de ferramentas',
         description: 'Checks disponíveis e planejados.',
         keywords:
-          'ferramentas plugins checks shodan virustotal hunter phoneinfoga',
+          'ferramentas plugins checks shodan virustotal hunter phoneinfoga ghunt',
       },
       {
         id: 'docs-history',
@@ -94,7 +89,7 @@ const documentationNav: DocumentationNavGroup[] = [
         id: 'docs-credentials',
         label: 'Cofre de APIs',
         description: 'Credenciais e gateways externos.',
-        keywords: 'credenciais cofre api key phoneinfoga gateway admin',
+        keywords: 'credenciais cofre api key phoneinfoga ghunt gateway admin',
       },
       {
         id: 'docs-security',
@@ -915,6 +910,13 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         token no cofre, o backend precisa de PHONEINFOGA_API_URL
                         apontando para um gateway HTTPS hospedado separadamente.
                         Nunca coloque esse token no frontend.
+                      </DocumentationCallout>
+                      <DocumentationCallout title="GHunt usa uma sessão isolada">
+                        O plugin consulta e-mails por um gateway HTTPS e precisa de
+                        GHUNT_API_URL no backend e GHUNT_API_TOKEN no cofre. A
+                        sessão/cookies do Google são configurados somente no
+                        volume privado do runner Docker; nunca cole cookies no
+                        painel, no Vercel ou no histórico.
                       </DocumentationCallout>
                       <div className="documentation-actions">
                         <a

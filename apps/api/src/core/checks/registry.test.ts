@@ -39,7 +39,7 @@ describe('loadCheckRegistry', () => {
     );
     const registry = await loadCheckRegistry(checksDirectory);
 
-    expect(registry.all()).toHaveLength(18);
+    expect(registry.all()).toHaveLength(19);
     for (const check of registry.all()) {
       expect(check.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
       expect(check.label.length).toBeGreaterThan(0);

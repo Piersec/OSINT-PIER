@@ -172,8 +172,8 @@ produzir `skipped`, sem interromper os outros plugins.
 
 - [x] PhoneInfoga — adapter REST server-side para o serviço oficial em Docker, com
       gateway autenticado e scanners opcionais configurados pelo cofre
-- [ ] GHunt — avaliar execução local e sessão/cookies do Google; não armazenar cookies no
-      histórico nem no frontend
+- [x] GHunt — plugin de e-mail com JSON curado e runner Docker externo autenticado; sessão/
+      cookies ficam somente no volume privado do runner
 - [x] Osintgram — avaliação concluída; não integrar sem runner isolado, autenticação
       autorizada e revisão da licença/termos de uso
 - [x] Shodan — consulta curada de host/domain com `SHODAN_API_KEY`
@@ -217,6 +217,22 @@ produzir `skipped`, sem interromper os outros plugins.
   os demais; nenhum número, token ou resultado detalhado é gravado no histórico
 - Operação: `infra/phoneinfoga/docker-compose.yml` mantém a porta interna fora da rede
   pública e o gateway aceita apenas `Authorization: Bearer` com o token configurado
+
+### GHunt
+
+- Serviço: `infra/ghunt/docker-compose.yml` mantém o pacote oficial em um runner Python
+  separado; a API chama somente o gateway HTTPS autenticado em `GHUNT_API_URL`
+- Credencial: `GHUNT_API_TOKEN`, armazenada no cofre interno e validada pelo gateway; a
+  sessão/cookies do Google ficam no volume privado do runner e nunca no frontend, histórico
+  ou variáveis do Vercel
+- Endpoint usado: `POST /api/v2/email`, limitado a alvos do tipo `email`
+- Curadoria: presença, nome, Gaia ID, última atualização, foto de perfil, serviços e sinais
+  resumidos de Play Games, Maps e Calendar; JSON bruto, cookies, tokens, eventos, HTML e
+  contatos não são devolvidos
+- Limites: timeout de 90 segundos no plugin, 105 segundos no runner, corpo limitado e
+  erros de sessão/rate limit/indisponibilidade tratados como mensagens seguras
+- Licença: o pacote oficial está sob AGPL-3.0; permanece isolado em container e não teve
+  código copiado para o backend
 
 ### Sherlock
 
@@ -569,3 +585,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   não receberá senhas/cookies nem terá código copiado; o item foi encerrado como análise,
   com retomada condicionada a runner isolado, autorização e revisão de licença em
   `docs/osintgram-integration.md`.
+- `2026-08-24` — GAB-64: GHunt foi integrado como plugin server-side de e-mail e stack
+  Docker externa. O runner fixa GHunt 2.3.4/Python 3.13, mantém a sessão Google em volume
+  privado e devolve apenas um contrato curado; o gateway exige token e a API do Vercel só
+  conhece `GHUNT_API_URL`. A ativação em produção ainda exige hospedar o gateway, autenticar
+  uma conta de investigação autorizada e salvar o token no cofre.

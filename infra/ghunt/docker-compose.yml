@@ -1,0 +1,45 @@
+services:
+  runner:
+    build:
+      context: ./runner
+    restart: unless-stopped
+    environment:
+      HOME: /data
+      GHUNT_TIMEOUT_SECONDS: ${GHUNT_TIMEOUT_SECONDS:-105}
+      PORT: '8081'
+    expose:
+      - '8081'
+    volumes:
+      - ghunt-credentials:/data/.malfrats/ghunt
+    networks:
+      - ghunt
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  gateway:
+    build:
+      context: ./gateway
+    restart: unless-stopped
+    environment:
+      GHUNT_API_TOKEN: ${GHUNT_API_TOKEN:?Configure GHUNT_API_TOKEN}
+      GHUNT_UPSTREAM: http://runner:8081
+      PORT: '8080'
+    depends_on:
+      - runner
+    ports:
+      - '8080:8080'
+    networks:
+      - ghunt
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  ghunt-credentials:
+
+networks:
+  ghunt:
+    driver: bridge
