@@ -261,7 +261,12 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Exigir a troca da senha no primeiro acesso por modal sem opção de fechar
 - [x] Conectar configuração e verificação de MFA por TOTP no perfil, com desafio após
       login e enforcement de `aal2` nas rotas da API
+- [x] Solicitar a ativação opcional do MFA no login para contas sem fator verificado,
+      oferecendo `Ativar agora` e `Ativar mais tarde` apenas para a sessão atual
+- [ ] Confirmar no painel do projeto Supabase a expiração dos JWTs em 3600 segundos
+      (1 hora); essa configuração pertence ao Auth hospedado e não ao frontend
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
+
 ### Administração de integrações
 
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
@@ -436,3 +441,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   código no próximo login. O backend também rejeita tokens `aal1` quando o usuário possui
   um fator TOTP verificado, liberando as rotas apenas após `aal2`. SMS e recovery codes
   continuam fora do escopo.
+- `2026-08-24` — GAB-81: contas sem MFA TOTP verificado agora recebem um modal no login
+  com as opções `Ativar agora` (abre o perfil) e `Ativar mais tarde` (dispensa somente
+  nesta sessão). O desafio obrigatório permanece para contas com MFA. A expiração JWT do
+  projeto hospedado deve ser confirmada manualmente no Auth do Supabase em 3600 segundos;
+  a documentação do Supabase indica esse valor como padrão de 1 hora, mas a configuração
+  atual do projeto não foi exposta pelo conector disponível.

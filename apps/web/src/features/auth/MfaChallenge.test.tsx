@@ -7,7 +7,7 @@ vi.mock('../../lib/supabase', () => ({
   supabase: null,
 }));
 
-import { MfaChallengeScreen } from './MfaChallenge';
+import { MfaChallengeScreen, MfaOptionalPrompt } from './MfaChallenge';
 
 afterEach(cleanup);
 
@@ -31,5 +31,21 @@ describe('MfaChallengeScreen', () => {
     expect(
       screen.getByRole('button', { name: 'Tentar novamente' }),
     ).toBeTruthy();
+  });
+
+  it('oferece ativar agora ou deixar a configuração para depois', () => {
+    const onActivate = vi.fn();
+    const onDismiss = vi.fn();
+
+    render(<MfaOptionalPrompt onActivate={onActivate} onDismiss={onDismiss} />);
+
+    expect(
+      screen.getByRole('heading', { name: 'Ative o segundo fator' }),
+    ).toBeTruthy();
+    screen.getByRole('button', { name: 'Ativar agora' }).click();
+    screen.getByRole('button', { name: 'Ativar mais tarde' }).click();
+
+    expect(onActivate).toHaveBeenCalledOnce();
+    expect(onDismiss).toHaveBeenCalledOnce();
   });
 });

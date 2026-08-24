@@ -10,7 +10,11 @@ import {
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
-import { MfaCheckErrorScreen, MfaChallengeScreen } from './MfaChallenge';
+import {
+  MfaCheckErrorScreen,
+  MfaChallengeScreen,
+  MfaOptionalPrompt,
+} from './MfaChallenge';
 import { PasswordRotationModal } from '../profile/ProfilePage';
 import { analyzePassword } from './password-strength';
 
@@ -159,6 +163,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [mfaState, setMfaState] = useState<MfaState>('idle');
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaPromptVisible, setMfaPromptVisible] = useState(false);
+  const [mfaPromptDismissed, setMfaPromptDismissed] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -185,10 +191,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       setMfaState('idle');
       setMfaFactorId(null);
       setMfaError(null);
+      setMfaPromptVisible(false);
       return;
     }
     if (!supabase) {
       setMfaState('verified');
+      setMfaPromptVisible(!mfaPromptDismissed);
       return;
     }
 
@@ -208,13 +216,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const factorId = factorsResult.data?.totp?.[0]?.id ?? null;
+    const factorId =
+      factorsResult.data?.totp?.find((factor) => factor.status === 'verified')
+        ?.id ?? null;
     const requiresMfa =
       aalResult.data.currentLevel !== 'aal2' &&
       aalResult.data.nextLevel === 'aal2';
     setMfaFactorId(factorId);
+    setMfaPromptVisible(!factorId && !mfaPromptDismissed);
     setMfaState(requiresMfa && factorId ? 'required' : 'verified');
-  }, [passwordRotationRequired, user]);
+  }, [mfaPromptDismissed, passwordRotationRequired, user]);
 
   useEffect(() => {
     void assessMfa();
@@ -240,8 +251,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        setMfaPromptDismissed(false);
+        setMfaPromptVisible(false);
+      }
       setUser(session?.user ?? null);
       setLoading(false);
       setError(null);
@@ -336,6 +351,19 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <PasswordRotationModal
           onUserUpdated={updateAuthenticatedUser}
           user={user}
+        />
+      )}
+      {mfaPromptVisible && !passwordRotationRequired && (
+        <MfaOptionalPrompt
+          onActivate={() => {
+            setMfaPromptDismissed(true);
+            setMfaPromptVisible(false);
+            window.location.hash = '#profile';
+          }}
+          onDismiss={() => {
+            setMfaPromptDismissed(true);
+            setMfaPromptVisible(false);
+          }}
         />
       )}
     </AuthContext.Provider>

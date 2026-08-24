@@ -2639,6 +2639,48 @@ input::placeholder {
   line-height: 1.65;
 }
 
+.security-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 10, 11, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.security-modal {
+  width: min(100%, 560px);
+  padding: 32px;
+  border: 1px solid rgba(72, 233, 255, 0.28);
+  border-radius: 26px;
+  background: var(--surface);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.48);
+}
+
+.security-modal h2 {
+  max-width: 430px;
+  margin: 8px 0 14px;
+  font-size: clamp(28px, 5vw, 42px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.security-modal > p {
+  max-width: 470px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.security-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
 .settings-page {
   padding-bottom: 30px;
 }
@@ -3155,7 +3197,8 @@ input::placeholder {
   }
 
   .profile-card,
-  .password-modal {
+  .password-modal,
+  .security-modal {
     padding: 21px;
     border-radius: 21px;
   }

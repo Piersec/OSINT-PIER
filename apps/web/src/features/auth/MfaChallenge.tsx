@@ -173,3 +173,46 @@ export function MfaCheckErrorScreen({
     </main>
   );
 }
+
+export function MfaOptionalPrompt({
+  onActivate,
+  onDismiss,
+}: {
+  onActivate: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="security-modal-backdrop">
+      <section
+        aria-labelledby="mfa-optional-title"
+        aria-modal="true"
+        className="security-modal"
+        role="dialog"
+      >
+        <div className="password-modal__signal" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <span className="eyebrow">Proteção recomendada</span>
+        <h2 id="mfa-optional-title">Ative o segundo fator</h2>
+        <p>
+          Sua conta ainda não tem um autenticador configurado. O MFA adiciona
+          uma camada extra de proteção mesmo que sua senha seja descoberta.
+        </p>
+        <div className="security-modal__actions">
+          <button className="button" onClick={onActivate} type="button">
+            Ativar agora
+          </button>
+          <button
+            className="button button--ghost"
+            onClick={onDismiss}
+            type="button"
+          >
+            Ativar mais tarde
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
