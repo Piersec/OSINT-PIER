@@ -174,7 +174,8 @@ produzir `skipped`, sem interromper os outros plugins.
       gateway autenticado e scanners opcionais configurados pelo cofre
 - [ ] GHunt — avaliar execução local e sessão/cookies do Google; não armazenar cookies no
       histórico nem no frontend
-- [ ] Osintgram — avaliar execução local e autenticação autorizada do Instagram
+- [x] Osintgram — avaliação concluída; não integrar sem runner isolado, autenticação
+      autorizada e revisão da licença/termos de uso
 - [x] Shodan — consulta curada de host/domain com `SHODAN_API_KEY`
 - [x] Hunter.io — Domain Search e Email Verifier com `HUNTER_API_KEY`, créditos e rate
       limit explícitos
@@ -229,6 +230,16 @@ produzir `skipped`, sem interromper os outros plugins.
 - Escopo público futuro: username, presença e URL por serviço. Respostas brutas, cookies,
   proxies, stdout e credenciais nunca devem sair do runner
 - Dependências e follow-up estão descritos na GAB-93, vinculada à GAB-69
+
+### Osintgram
+
+- Avaliação registrada em [`docs/osintgram-integration.md`](docs/osintgram-integration.md)
+- A ferramenta exige uma conta/senha em `credentials.ini` ou um token HikerAPI, depende
+  de `instagram-private-api` e possui shell interativo com saída em arquivos
+- O escopo oficial inclui seguidores, contatos, stories e mídia; isso não entra no
+  dashboard sem curadoria e autorização específica
+- Decisão: não executar na Vercel, não guardar senha/cookies e não copiar o código GPL-3.0
+  para o backend. Uma retomada depende de runner externo e revisão de licenciamento
 
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
@@ -552,3 +563,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   adiada para um runner Python/Docker externo, autenticado e com limites operacionais;
   nenhum processo Sherlock foi acoplado ao Vercel. A decisão e o contrato curado estão
   em `docs/sherlock-integration.md`.
+- `2026-08-24` — GAB-65: Osintgram foi avaliado pela documentação oficial. A ferramenta
+  exige credencial de Instagram ou token HikerAPI, usa `instagram-private-api`, possui
+  comandos de coleta ampla e está sob GPL-3.0. A integração não será executada na Vercel,
+  não receberá senhas/cookies nem terá código copiado; o item foi encerrado como análise,
+  com retomada condicionada a runner isolado, autorização e revisão de licença em
+  `docs/osintgram-integration.md`.
