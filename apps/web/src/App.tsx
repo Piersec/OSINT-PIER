@@ -12,6 +12,10 @@ import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 import { getSuccessfulChecks } from './features/analysis/visible-results';
+import {
+  readAnalysisSession,
+  writeAnalysisSession,
+} from './features/analysis/analysis-session';
 import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import {
   buildAnalysisExport,
@@ -277,6 +281,7 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
+  const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
@@ -304,6 +309,37 @@ export function App() {
       // A browser privacy mode can disable local storage; the in-memory choice remains active.
     }
   }, [theme]);
+
+  useEffect(() => {
+    const session = readAnalysisSession();
+    if (session) {
+      setTarget(session.target ?? '');
+      setLastTarget(session.target);
+      setLastTargetKind(session.targetKind);
+      setSelectedCheckIds(session.selectedCheckIds);
+      setStates(session.states);
+      setHistory(session.history);
+    }
+    setAnalysisSessionReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!analysisSessionReady) return;
+    writeAnalysisSession({
+      target: lastTarget,
+      targetKind: lastTargetKind,
+      selectedCheckIds,
+      states,
+      history,
+    });
+  }, [
+    analysisSessionReady,
+    history,
+    lastTarget,
+    lastTargetKind,
+    selectedCheckIds,
+    states,
+  ]);
 
   const activeChecks = useMemo(
     () => (checksQuery.data ?? []).filter((check) => check.enabled),
@@ -339,7 +375,9 @@ export function App() {
   }, [history, historyQuery.data]);
 
   const analysisSummary = useMemo(() => {
-    const currentStates = Object.values(states);
+    const currentStates = checks
+      .map((check) => states[check.id])
+      .filter((state): state is CardState => Boolean(state));
     return {
       resolved: currentStates.filter(
         (state) => state.status === 'done' || state.status === 'request-error',

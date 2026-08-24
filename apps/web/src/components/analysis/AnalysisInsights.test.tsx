@@ -87,4 +87,100 @@ describe('AnalysisInsights', () => {
       value: '0/0',
     });
   });
+
+  it('transforma vulnerabilidades e falhas técnicas em sinais de risco', () => {
+    const riskChecks: CheckCatalogItem[] = [
+      {
+        id: 'shodan-vulnerabilities',
+        label: 'Vulnerabilidades (CVE)',
+        configured: true,
+        enabled: true,
+        requiredCredentials: ['SHODAN_API_KEY'],
+        supportedTargetKinds: ['domain', 'ip', 'url'],
+      },
+      {
+        id: 'http-headers',
+        label: 'HTTP Headers',
+        configured: true,
+        enabled: true,
+        requiredCredentials: [],
+        supportedTargetKinds: ['domain', 'url'],
+      },
+      {
+        id: 'ssl-certificate',
+        label: 'SSL/TLS Certificate',
+        configured: true,
+        enabled: true,
+        requiredCredentials: [],
+        supportedTargetKinds: ['domain', 'ip', 'url'],
+      },
+    ];
+    const riskStates: Record<string, CardState> = {
+      'shodan-vulnerabilities': {
+        status: 'done',
+        result: {
+          id: 'shodan-vulnerabilities',
+          status: 'success',
+          data: {
+            total: 3,
+            severityCounts: { critical: 1, high: 1, low: 1 },
+            kevCount: 1,
+            highEpssCount: 2,
+          },
+          source: 'test',
+          durationMs: 50,
+        },
+      },
+      'http-headers': {
+        status: 'done',
+        result: {
+          id: 'http-headers',
+          status: 'success',
+          data: {
+            security: {
+              'content-security-policy': { present: false },
+              'x-frame-options': { present: true },
+            },
+          },
+          source: 'test',
+          durationMs: 50,
+        },
+      },
+      'ssl-certificate': {
+        status: 'done',
+        result: {
+          id: 'ssl-certificate',
+          status: 'success',
+          data: { authorized: false, hostnameMatches: true, daysRemaining: 4 },
+          source: 'test',
+          durationMs: 50,
+        },
+      },
+    };
+
+    const snapshot = buildAnalysisSnapshot(riskChecks, riskStates);
+
+    expect(snapshot.vulnerabilityTotal).toBe(3);
+    expect(snapshot.kevCount).toBe(1);
+    expect(snapshot.highEpssCount).toBe(2);
+    expect(snapshot.vulnerabilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: 'critical', value: 1 }),
+        expect.objectContaining({ key: 'high', value: 1 }),
+      ]),
+    );
+    expect(snapshot.securityFailureTotal).toBe(2);
+    expect(snapshot.securityFailures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'header-content-security-policy' }),
+        expect.objectContaining({ id: 'tls-authorization' }),
+      ]),
+    );
+    expect(snapshot.insights).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Vulnerabilidades', value: '3' }),
+        expect.objectContaining({ label: 'Falhas de segurança', value: '2' }),
+      ]),
+    );
+  });
 });

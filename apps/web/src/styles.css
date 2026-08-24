@@ -5823,7 +5823,7 @@ html[data-theme='white'] .documentation-brand img {
 
 .analysis-insights__charts {
   display: grid;
-  grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
   margin-top: 9px;
 }
@@ -5929,6 +5929,27 @@ html[data-theme='white'] .documentation-brand img {
   color: var(--muted);
   font-size: 9px;
   line-height: 1.45;
+}
+
+.analysis-risk-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: -2px;
+}
+
+.analysis-risk-card__metrics span {
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.analysis-risk-card__metrics b {
+  margin-right: 3px;
+  color: var(--text);
+  font-weight: 700;
 }
 
 .analysis-insights .recharts-wrapper,

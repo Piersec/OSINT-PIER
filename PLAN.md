@@ -117,6 +117,8 @@ Cada nova integração deve:
 - [x] Responsividade mobile do dashboard
 - [x] Gráficos Recharts e insights progressivos no resultado da análise, derivados
       exclusivamente dos estados e durações reais dos checks
+- [x] Panorama de risco com vulnerabilidades/CVEs, CISA KEV, EPSS alto e falhas de
+      headers, cookies, TLS e reputação, persistido na sessão do navegador
 - [x] Card curado do AbuseIPDB com confiança visual, contexto de rede e links externos;
       ocultar da grade os checks sem resposta bem-sucedida, mantendo atenção no panorama
 
@@ -514,3 +516,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   fornecido, com enriquecimento aproximado de cidade/ASN quando necessário, e links de
   referência. A grade de resultados agora mostra somente checks com sucesso; erros e
   integrações puladas continuam no resumo/insights sem criar cards de ruído.
+- `2026-08-24` — GAB-90: o panorama Recharts passou a agregar vulnerabilidades por
+  severidade, CISA KEV, EPSS alto e falhas observadas em headers, cookies, TLS e
+  reputação. A rodada ativa agora é restaurada pela sessão do navegador, sem persistir
+  credenciais; requisições interrompidas retornam ao estado Aguardando.

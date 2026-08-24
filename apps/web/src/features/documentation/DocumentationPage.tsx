@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.1';
+const documentationVersion = '1.2';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -68,9 +68,9 @@ const documentationNav: DocumentationNavGroup[] = [
       {
         id: 'docs-analysis',
         label: 'Analisar um alvo',
-        description: 'Consultas em paralelo e estados.',
+        description: 'Consultas, risco e estados persistidos.',
         keywords:
-          'análise alvo domínio ip url nome username email telefone abuseipdb gráficos sucesso erro',
+          'análise alvo domínio ip url nome username email telefone abuseipdb gráficos sucesso erro vulnerabilidades cve kev falhas segurança sessão',
       },
       {
         id: 'docs-tools',
@@ -653,8 +653,17 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         >
                           O painel compara a duração por fonte e destaca
                           cobertura, taxa de sucesso, pontos de atenção e tempo
-                          médio. Quando todos terminarem, Exportar JSON fica
-                          disponível.
+                          médio. Os charts também agregam CVEs por severidade,
+                          CISA KEV, EPSS alto e falhas de headers, cookies, TLS
+                          ou reputação. Quando todos terminarem, Exportar JSON
+                          fica disponível.
+                        </DocumentationStep>
+                        <DocumentationStep number="06" title="Retome a sessão">
+                          A rodada ativa e o histórico recente são mantidos na
+                          sessão do navegador. Você pode visitar outra página,
+                          sair e voltar para a aba ou recarregar a aplicação sem
+                          perder os resultados curados; uma requisição que ainda
+                          estava carregando volta para Aguardando.
                         </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">
