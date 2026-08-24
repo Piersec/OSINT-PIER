@@ -1184,6 +1184,9 @@ export function App() {
 
         <footer className="site-footer">
           <span>OSINT Pier · PierSec intelligence</span>
+          <a className="site-footer__docs" href="/docs">
+            Documentação do produto
+          </a>
           <span>Uso interno · segredos nunca expostos pelo cliente</span>
         </footer>
       </div>

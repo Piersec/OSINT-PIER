@@ -220,6 +220,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Permitir recolher e expandir a caixa de filtros da página de Análise
 - [x] Transformar o histórico em página de auditoria com ação “Usar novamente”
 - [x] Aplicar nome OSINT Pier, símbolo PierSec, paleta e tipografia do brand kit
+- [x] Criar página separada de documentação interna passo a passo, acessível fora
+      da sidebar pelo link no rodapé e pela rota `/docs`
 
 ---
 
@@ -486,3 +488,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   mantém a porta interna isolada e permite configurar Numverify/Google CSE pelo cofre da
   aplicação. Validação: 74 testes da API, 18 do frontend, typecheck, lint, build, compose
   config, build da imagem e smoke REST oficial com `401` sem token e `200` autenticado.
+- `2026-08-24` — GAB-86: criada a página separada de documentação interna do produto,
+  sem item na sidebar. O manual está disponível pelo link no rodapé e pela rota `/docs`,
+  cobre login, análise, ferramentas, histórico, cofre, perfil, MFA, tema e
+  troubleshooting, e lê o catálogo atual de checks para acompanhar novas integrações.
+  A manutenção futura deve atualizar a data/versionamento do componente, o plano e a
+  issue correspondente no Linear.
