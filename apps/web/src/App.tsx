@@ -12,6 +12,7 @@ import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 import { getSuccessfulChecks } from './features/analysis/visible-results';
+import { getCompatibleChecks } from './features/analysis/compatible-checks';
 import {
   readAnalysisSession,
   writeAnalysisSession,
@@ -345,7 +346,11 @@ export function App() {
     () => (checksQuery.data ?? []).filter((check) => check.enabled),
     [checksQuery.data],
   );
-  const compatibleChecks = activeChecks;
+  const analysisTargetKind = target.trim() ? inferTargetKind(target) : null;
+  const compatibleChecks = useMemo(
+    () => getCompatibleChecks(activeChecks, analysisTargetKind),
+    [activeChecks, analysisTargetKind],
+  );
   const checks = useMemo(
     () =>
       selectedCheckIds === null
@@ -393,7 +398,7 @@ export function App() {
       loading: currentStates.filter((state) => state.status === 'loading')
         .length,
     };
-  }, [states]);
+  }, [checks, states]);
 
   const successfulChecks = useMemo(
     () => getSuccessfulChecks(checks, states),

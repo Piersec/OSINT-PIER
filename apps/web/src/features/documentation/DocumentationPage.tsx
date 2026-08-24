@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.2';
+const documentationVersion = '1.3';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -625,8 +625,10 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           title="Revise filtros e ferramentas"
                         >
                           Abra Filtros e ferramentas para conferir os checks
-                          selecionados. Use Selecionar todas ou Limpar seleção
-                          para ajustar o conjunto.
+                          compatíveis com o tipo de alvo. Use Selecionar todas
+                          ou Limpar seleção para ajustar o conjunto; checks que
+                          não aceitam esse tipo não são executados nem geram
+                          cards redundantes de erro.
                         </DocumentationStep>
                         <DocumentationStep
                           number="03"

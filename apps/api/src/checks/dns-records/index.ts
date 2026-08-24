@@ -27,6 +27,7 @@ const check: CheckPlugin = {
   id,
   label: 'DNS Records',
   requiredEnv: [],
+  supportedTargetKinds: ['domain', 'url'],
   async run(target) {
     if (isIP(target.hostname)) {
       return failure(

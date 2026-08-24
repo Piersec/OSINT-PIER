@@ -40,6 +40,7 @@ const check: CheckPlugin = {
   id,
   label: 'WHOIS / RDAP',
   requiredEnv: [],
+  supportedTargetKinds: ['domain', 'url'],
   async run(target, context) {
     if (isIP(target.hostname)) {
       return failure(

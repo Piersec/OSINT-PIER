@@ -40,6 +40,11 @@ afterEach(() => {
 });
 
 describe('plugins da Fase 1', () => {
+  it('declara os tipos de alvo aceitos por DNS e WHOIS/RDAP', () => {
+    expect(dnsRecords.supportedTargetKinds).toEqual(['domain', 'url']);
+    expect(whoisRdap.supportedTargetKinds).toEqual(['domain', 'url']);
+  });
+
   it('IP Info normaliza um IPv4 informado diretamente', async () => {
     const result = await run(ipInfo, ipTarget);
     expect(result.status).toBe('success');

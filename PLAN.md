@@ -121,6 +121,8 @@ Cada nova integração deve:
       headers, cookies, TLS e reputação, persistido na sessão do navegador
 - [x] Card curado do AbuseIPDB com confiança visual, contexto de rede e links externos;
       ocultar da grade os checks sem resposta bem-sucedida, mantendo atenção no panorama
+- [x] Filtrar checks pelo tipo de alvo inferido antes da execução, evitando chamadas
+      incompatíveis e cards redundantes de erro na análise principal
 
 ---
 
@@ -520,3 +522,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   severidade, CISA KEV, EPSS alto e falhas observadas em headers, cookies, TLS e
   reputação. A rodada ativa agora é restaurada pela sessão do navegador, sem persistir
   credenciais; requisições interrompidas retornam ao estado Aguardando.
+- `2026-08-24` — GAB-91: a análise passou a filtrar o catálogo pelo tipo de alvo
+  inferido, DNS e WHOIS/RDAP deixaram de aceitar IP como alvo compatível, e a grade
+  principal mantém somente respostas bem-sucedidas. Falhas e checks pulados seguem
+  agregados no panorama, enquanto a página individual de ferramentas preserva seus
+  detalhes de diagnóstico.
