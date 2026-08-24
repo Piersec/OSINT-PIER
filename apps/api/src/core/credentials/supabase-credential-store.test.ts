@@ -60,6 +60,33 @@ describe('SupabaseCredentialStore', () => {
     expect(saved).not.toHaveProperty('value');
     await expect(store.get('TEST_API_KEY')).resolves.toBe('secret-value');
     await expect(store.remove('TEST_API_KEY')).resolves.toBe(true);
+
+    const postHeaders = fetchImpl.mock.calls.find(
+      ([, init]) => init?.method === 'POST',
+    )?.[1]?.headers as Record<string, string>;
+    expect(postHeaders.apikey).toBe('server-only-key');
+    expect(postHeaders.Authorization).toBe('Bearer server-only-key');
+  });
+
+  it('não envia chave secreta moderna como Bearer JWT', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(
+      async () => new Response(null, { status: 201 }),
+    );
+    const store = new SupabaseCredentialStore({
+      url: 'https://project.supabase.co',
+      serviceRoleKey: 'sb_secret_backend-key',
+      encodedKey,
+      fetchImpl,
+    });
+
+    await store.set('TEST_API_KEY', 'secret-value');
+
+    const headers = fetchImpl.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(headers.apikey).toBe('sb_secret_backend-key');
+    expect(headers.Authorization).toBeUndefined();
   });
 
   it('não habilita o cofre com chave mestra inválida', () => {

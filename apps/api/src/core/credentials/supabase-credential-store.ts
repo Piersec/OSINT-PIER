@@ -157,10 +157,16 @@ export class SupabaseCredentialStore implements CredentialStore {
 
   #headers(): HeadersInit {
     this.#assertConfigured();
-    return {
+    const headers: Record<string, string> = {
       apikey: this.#serviceRoleKey!,
-      Authorization: `Bearer ${this.#serviceRoleKey!}`,
     };
+    // Modern Supabase secret keys (`sb_secret_...`) are opaque API keys and
+    // must not be sent as a JWT in Authorization. The legacy service_role key
+    // is a JWT and still needs the Bearer header for service_role access.
+    if (!this.#serviceRoleKey!.startsWith('sb_secret_')) {
+      headers.Authorization = `Bearer ${this.#serviceRoleKey!}`;
+    }
+    return headers;
   }
 
   #toEnvelope(row: z.infer<typeof SupabaseCredentialRowSchema>): VaultEnvelope {

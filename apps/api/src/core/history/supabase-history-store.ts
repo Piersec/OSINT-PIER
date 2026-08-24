@@ -88,10 +88,16 @@ export class SupabaseHistoryStore {
   }
 
   private headers(): HeadersInit {
-    return {
+    const headers: Record<string, string> = {
       apikey: this.#serviceRoleKey!,
-      Authorization: `Bearer ${this.#serviceRoleKey!}`,
     };
+    // Modern Supabase secret keys (`sb_secret_...`) are opaque API keys and
+    // must not be sent as a JWT in Authorization. Keep the legacy service_role
+    // Bearer header for existing deployments that still use JWT keys.
+    if (!this.#serviceRoleKey!.startsWith('sb_secret_')) {
+      headers.Authorization = `Bearer ${this.#serviceRoleKey!}`;
+    }
+    return headers;
   }
 
   private toEntry(

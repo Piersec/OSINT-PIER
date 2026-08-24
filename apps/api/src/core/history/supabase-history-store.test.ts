@@ -59,6 +59,27 @@ describe('SupabaseHistoryStore', () => {
     ).toBe('Bearer server-only-key');
   });
 
+  it('não envia chave secreta moderna como Bearer JWT', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response('[]', { status: 200 }));
+    const store = new SupabaseHistoryStore({
+      url: 'https://project.supabase.co',
+      serviceRoleKey: 'sb_secret_backend-key',
+      defaultLimit: 50,
+      fetchImpl,
+    });
+
+    await expect(store.list()).resolves.toEqual([]);
+
+    const headers = fetchImpl.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(headers.apikey).toBe('sb_secret_backend-key');
+    expect(headers.Authorization).toBeUndefined();
+  });
+
   it('persiste somente o resumo agregado e retorna a entrada criada', async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()

@@ -453,3 +453,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   forte gerada localmente com Web Crypto, preenche confirmação automaticamente e permite
   visualizar ou editar a combinação antes do envio. Nenhuma senha sugerida é persistida ou
   registrada.
+- `2026-08-24` — GAB-84: o cofre persistente e o histórico passaram a distinguir a chave
+  secreta moderna `sb_secret_...` da `service_role` legada. A chave moderna permanece
+  somente no header `apikey`, enquanto a legada mantém o Bearer JWT; isso permite cadastrar
+  e usar as chaves dos plugins pela página Credenciais sem armazená-las em texto puro.
