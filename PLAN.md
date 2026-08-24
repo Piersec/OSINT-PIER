@@ -180,8 +180,8 @@ produzir `skipped`, sem interromper os outros plugins.
       limit explícitos
 - [x] OSINT Framework — transformar o catálogo em referências filtráveis, sem scraping
       automático por padrão
-- [ ] Sherlock — avaliar CLI de username com saída JSON e timeout configurável; normalmente
-      não exige API key
+- [x] Sherlock — avaliação concluída; a CLI Python não entra diretamente no Vercel e a
+      execução depende de um runner externo autenticado, com resultado curado de presença/URL
 
 ### Shodan
 
@@ -216,6 +216,19 @@ produzir `skipped`, sem interromper os outros plugins.
   os demais; nenhum número, token ou resultado detalhado é gravado no histórico
 - Operação: `infra/phoneinfoga/docker-compose.yml` mantém a porta interna fora da rede
   pública e o gateway aceita apenas `Authorization: Bearer` com o token configurado
+
+### Sherlock
+
+- Avaliação registrada em [`docs/sherlock-integration.md`](docs/sherlock-integration.md)
+- A ferramenta oficial é uma CLI Python, faz consultas externas por serviço e grava
+  relatórios em arquivos; o `--json` documentado carrega dados de sites, não é um exportador
+  de resultados JSON para o dashboard
+- Decisão: não executar a CLI no runtime serverless da Vercel. O próximo passo é um runner
+  Python/Docker separado, HTTPS privado e token interno, seguindo `supportedTargetKinds:
+  ['username']`
+- Escopo público futuro: username, presença e URL por serviço. Respostas brutas, cookies,
+  proxies, stdout e credenciais nunca devem sair do runner
+- Dependências e follow-up estão descritos na GAB-93, vinculada à GAB-69
 
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
@@ -533,3 +546,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   de cobertura, sucesso, atenção, duração e distribuição dos checks. A seção agora
   concentra índice de risco, CVEs críticas, exploração conhecida, postura, radar de
   exposição, mapa de criticidade, reputação externa e falhas de segurança priorizadas.
+- `2026-08-24` — GAB-69: Sherlock foi avaliado pela documentação e pelo código oficiais.
+  A ferramenta é uma CLI Python MIT, sem exportador JSON de resultados pronto para o
+  dashboard, e depende de muitas consultas externas. A integração foi deliberadamente
+  adiada para um runner Python/Docker externo, autenticado e com limites operacionais;
+  nenhum processo Sherlock foi acoplado ao Vercel. A decisão e o contrato curado estão
+  em `docs/sherlock-integration.md`.
