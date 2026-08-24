@@ -64,8 +64,8 @@ expandida conforme o usuário for enviando novos repositórios/links:
 
 - [x] **VirusTotal** — reputação do domínio/IP, detecções de malware/phishing
 - [x] **AbuseIPDB** — histórico de abuso do IP
-- [x] **Vulnerabilidades (CVE)** — correlação de serviços do Shodan com NVD, FIRST EPSS e CISA KEV
-- [ ] _(placeholder — próxima ferramenta a ser definida pelo usuário)_
+- [x] **Vulnerabilidades (CVE)** — achados do Nuclei com NVD, FIRST EPSS e CISA KEV
+- [x] **Nuclei** — scanner CLI local com templates curados, JSONL e enriquecimento CVE
 
 Cada nova integração deve:
 
@@ -93,14 +93,28 @@ Cada nova integração deve:
 
 ### Vulnerabilidades (CVE)
 
-- O plugin mantém o card do Shodan intacto e faz uma consulta complementar independente,
-  usando a mesma credencial `SHODAN_API_KEY` para identificar IP, portas, produtos e
-  versões observados.
-- NVD fornece CVSS e descrição; FIRST EPSS fornece probabilidade/percentil diário; CISA
-  KEV sinaliza vulnerabilidades conhecidamente exploradas. O resultado final é curado,
-  limitado a 100 CVEs e não persiste banners ou segredos.
+- O card do Shodan permanece independente. O card consolidado usa o scanner Nuclei para
+  encontrar vulnerabilidades diretamente no alvo e não depende de `SHODAN_API_KEY`.
+- NVD fornece CVSS e descrição quando o achado contém CVE; FIRST EPSS fornece
+  probabilidade/percentil diário; CISA KEV sinaliza vulnerabilidades conhecidamente
+  exploradas. O resultado final é curado, limitado a 100 achados e não persiste
+  requests, responses, templates ou segredos.
 - A prioridade visual combina CVSS, EPSS (limiar de 10%) e presença no KEV; isso é uma
   regra de triagem, não substitui validação técnica do ativo.
+
+### Nuclei
+
+- Execução: binário local `nuclei`, ou caminho informado por `NUCLEI_PATH`; não exige
+  chave de API. `NUCLEI_TEMPLATE_DIR` pode apontar para um diretório de templates
+  controlado pela organização.
+- Saída: JSONL curado, sem request/response bruto ou template codificado. O plugin
+  bloqueia rede privada, interações OAST, templates de fuzzing, headless, brute force,
+  default-login e DOS, além de limitar concorrência e volume.
+- Correlação: achados com CVE são enriquecidos por NVD, FIRST EPSS e CISA KEV; achados
+  sem CVE continuam no gráfico usando a severidade declarada pelo template.
+- Deploy: Vercel não fornece o executável do Nuclei por padrão. Nesse ambiente o check
+  retorna `skipped` com instrução segura; execução em produção requer um worker interno
+  autorizado ou outra forma explícita de disponibilizar o binário.
 
 ---
 
@@ -419,3 +433,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   segura para configurar Supabase e a chave mestra, sem incluir o segredo enviado. Os
   conflitos Git persistidos em configuração, testes, documentação e plano também foram
   resolvidos preservando autenticação Supabase e o cofre sem `ADMIN_TOKEN`.
+- `2026-08-24` — Nuclei adicionado como scanner de vulnerabilidades no lugar do consolidado
+  baseado em Shodan. O plugin executa o CLI local sem shell, bloqueia rede privada e
+  templates intrusivos, interpreta JSONL curado e alimenta o gráfico com NVD, EPSS e KEV;
+  Shodan continua disponível como check independente. A Vercel marca o plugin como
+  `skipped` até que um worker interno disponibilize o binário.

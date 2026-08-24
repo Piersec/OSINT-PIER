@@ -69,6 +69,8 @@ const toolDescriptions: Record<string, string> = {
   'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
   'server-location': 'Estima a localização e a rede do IP público resolvido.',
   'server-status': 'Verifica disponibilidade e tempo de resposta do servidor.',
+  nuclei:
+    'Executa templates curados do Nuclei para encontrar vulnerabilidades e enriquecer CVEs com NVD, EPSS e CISA KEV.',
   shodan: 'Consulta portas, serviços e exposição observada pelo Shodan.',
   'ssl-certificate':
     'Inspeciona validade, emissor e subject do certificado TLS.',
@@ -77,8 +79,6 @@ const toolDescriptions: Record<string, string> = {
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
-  'shodan-vulnerabilities':
-    'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
 };
 
 type ToolCategory = 'web' | 'threat' | 'personal';
@@ -114,8 +114,8 @@ const toolCategories: Record<string, ToolCategory> = {
   'robots-sitemap': 'web',
   'server-location': 'web',
   'server-status': 'web',
+  nuclei: 'threat',
   shodan: 'threat',
-  'shodan-vulnerabilities': 'threat',
   'ssl-certificate': 'web',
   'tech-stack': 'web',
   'virus-total': 'threat',
@@ -154,8 +154,8 @@ const plannedTools = [
 const logoSlugs: Record<string, string | undefined> = {
   'abuse-ipdb': 'abuseipdb',
   'hunter-io': 'hunter',
+  nuclei: 'nuclei',
   shodan: 'shodan',
-  'shodan-vulnerabilities': 'nvd',
   'virus-total': 'virustotal',
 };
 
@@ -833,22 +833,16 @@ export function App() {
                       </p>
                     </div>
                   )}
-                {checks.some(
-                  (check) => check.id === 'shodan-vulnerabilities',
-                ) && (
+                {checks.some((check) => check.id === 'nuclei') && (
                   <VulnerabilitySummary
-                    check={checks.find(
-                      (check) => check.id === 'shodan-vulnerabilities',
-                    )!}
-                    onRetry={() => retryCheck('shodan-vulnerabilities')}
-                    state={
-                      states['shodan-vulnerabilities'] ?? { status: 'idle' }
-                    }
+                    check={checks.find((check) => check.id === 'nuclei')!}
+                    onRetry={() => retryCheck('nuclei')}
+                    state={states.nuclei ?? { status: 'idle' }}
                   />
                 )}
                 <div className="results-grid">
                   {checks
-                    .filter((check) => check.id !== 'shodan-vulnerabilities')
+                    .filter((check) => check.id !== 'nuclei')
                     .map((check) => (
                       <ResultCard
                         key={check.id}
@@ -992,11 +986,19 @@ export function App() {
                                   </button>
                                   {state.status !== 'idle' && (
                                     <div className="tool-card__result">
-                                      <ResultCard
-                                        check={check}
-                                        onRetry={() => retryTool(check.id)}
-                                        state={state}
-                                      />
+                                      {check.id === 'nuclei' ? (
+                                        <VulnerabilitySummary
+                                          check={check}
+                                          onRetry={() => retryTool(check.id)}
+                                          state={state}
+                                        />
+                                      ) : (
+                                        <ResultCard
+                                          check={check}
+                                          onRetry={() => retryTool(check.id)}
+                                          state={state}
+                                        />
+                                      )}
                                     </div>
                                   )}
                                 </article>
