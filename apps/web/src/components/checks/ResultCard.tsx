@@ -1,4 +1,5 @@
 import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
+import { AbuseIpdbResult } from './AbuseIpdbResult';
 
 export type CardState =
   | { status: 'idle' }
@@ -115,6 +116,12 @@ const hiddenFields: Record<string, Set<string>> = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isDetailedAbuseIpdbResult(data: unknown): boolean {
+  return (
+    isRecord(data) && ('abuseConfidenceScore' in data || 'reports' in data)
+  );
 }
 
 function labelForKey(key: string): string {
@@ -379,9 +386,14 @@ export function ResultCard({
               )}
             </div>
           )}
-          {state.result.data !== undefined && (
-            <ResultData checkId={check.id} data={state.result.data} />
-          )}
+          {state.result.data !== undefined &&
+            (check.id === 'abuse-ipdb' &&
+            state.result.status === 'success' &&
+            isDetailedAbuseIpdbResult(state.result.data) ? (
+              <AbuseIpdbResult data={state.result.data} />
+            ) : (
+              <ResultData checkId={check.id} data={state.result.data} />
+            ))}
           <footer className="result-card__footer">
             <span>Fonte: {state.result.source}</span>
             <span>{Math.round(state.result.durationMs)} ms</span>

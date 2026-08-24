@@ -1791,6 +1791,40 @@ input::placeholder {
   display: none;
 }
 
+.results-filter-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 194, 92, 0.2);
+  border-radius: 14px;
+  color: #f5d99a;
+  background: rgba(255, 194, 92, 0.055);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.results-filter-notice > span {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid rgba(255, 194, 92, 0.55);
+  border-radius: 50%;
+  color: #ffc25c;
+  font-weight: 800;
+}
+
+.results-filter-notice p {
+  margin: 0;
+}
+
+.results-filter-empty {
+  margin-bottom: 12px;
+}
+
 .result-action-link {
   padding: 8px 2px;
   color: var(--accent);
@@ -1841,6 +1875,180 @@ input::placeholder {
   display: grid;
   gap: 0;
   margin: 22px 0 0;
+}
+
+.abuse-ipdb-result {
+  margin-top: 18px;
+}
+
+.abuse-ipdb-result__headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.abuse-ipdb-result__headline strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.abuse-ipdb-result__headline span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.abuse-ipdb-result__headline--clear {
+  border-color: rgba(72, 233, 255, 0.2);
+}
+
+.abuse-ipdb-result__headline--clear strong {
+  color: var(--accent);
+}
+
+.abuse-ipdb-result__headline--reported {
+  border-color: rgba(255, 95, 104, 0.24);
+}
+
+.abuse-ipdb-result__headline--reported strong {
+  color: #ff9ca2;
+}
+
+.abuse-ipdb-result__score {
+  margin-top: 14px;
+}
+
+.abuse-ipdb-result__score p {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.abuse-ipdb-result__score strong {
+  color: var(--text);
+}
+
+.abuse-ipdb-result__progress {
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.abuse-ipdb-result__progress span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2ecb72, #ffc25c 70%, #ff5f68);
+  transition: width 300ms ease;
+}
+
+.abuse-ipdb-result__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 16px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.abuse-ipdb-result__detail {
+  min-width: 0;
+  padding: 10px 11px;
+  background: var(--surface);
+}
+
+.abuse-ipdb-result__detail dt {
+  margin-bottom: 4px;
+  color: #858a8b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.abuse-ipdb-result__detail dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.abuse-ipdb-result__detail a,
+.abuse-ipdb-result__links a {
+  color: var(--accent);
+}
+
+.abuse-ipdb-result__detail a:hover,
+.abuse-ipdb-result__links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.abuse-ipdb-result__source-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.abuse-ipdb-result__hostnames {
+  margin-top: 13px;
+}
+
+.abuse-ipdb-result__hostnames > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #858a8b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.abuse-ipdb-result__hostnames > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.abuse-ipdb-result__hostnames code {
+  padding: 5px 7px;
+  border: 1px solid rgba(72, 233, 255, 0.14);
+  border-radius: 7px;
+  color: #c9faff;
+  background: rgba(6, 154, 188, 0.09);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.abuse-ipdb-result__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.abuse-ipdb-result__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid rgba(72, 233, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(72, 233, 255, 0.045);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .result-data {
@@ -5776,5 +5984,18 @@ html[data-theme='white'] .analysis-insights {
 
   .analysis-chart-card {
     padding: 15px;
+  }
+
+  .abuse-ipdb-result__headline {
+    flex-direction: column;
+  }
+
+  .abuse-ipdb-result__details {
+    grid-template-columns: 1fr;
+  }
+
+  .abuse-ipdb-result__links a {
+    flex: 1 1 100%;
+    justify-content: space-between;
   }
 }

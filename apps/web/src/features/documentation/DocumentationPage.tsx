@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.0';
+const documentationVersion = '1.1';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -69,7 +69,8 @@ const documentationNav: DocumentationNavGroup[] = [
         id: 'docs-analysis',
         label: 'Analisar um alvo',
         description: 'Consultas em paralelo e estados.',
-        keywords: 'análise alvo domínio ip url nome username email telefone',
+        keywords:
+          'análise alvo domínio ip url nome username email telefone abuseipdb gráficos sucesso erro',
       },
       {
         id: 'docs-tools',
@@ -640,8 +641,11 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           title="Leia os sinais progressivamente"
                         >
                           O resumo mostra módulos, respostas concluídas,
-                          sucessos e itens de atenção. O gráfico de distribuição
-                          acompanha esses estados enquanto a rodada avança.
+                          sucessos e itens de atenção. A grade exibe apenas os
+                          checks que retornaram com sucesso; erros e integrações
+                          puladas ficam consolidados no panorama. O gráfico de
+                          distribuição acompanha esses estados enquanto a rodada
+                          avança.
                         </DocumentationStep>
                         <DocumentationStep
                           number="05"
@@ -670,6 +674,15 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           <p>Houve erro, limite ou integração pulada.</p>
                         </div>
                       </div>
+                      <DocumentationCallout title="Exemplo: AbuseIPDB">
+                        Quando o AbuseIPDB responder, o card mostra a confiança
+                        de abuso em uma barra, total de denúncias, ISP, tipo de
+                        uso, ASN, domínio, país, cidade, última denúncia e links
+                        para relatório e WHOIS. A cidade e o ASN podem ser
+                        enriquecidos por uma geolocalização aproximada; campos
+                        que as fontes não fornecerem aparecem como “Não
+                        informado”.
+                      </DocumentationCallout>
                       <DocumentationCallout
                         title="Use somente alvos autorizados"
                         tone="warning"

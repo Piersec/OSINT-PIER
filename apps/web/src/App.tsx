@@ -11,6 +11,7 @@ import { AnalysisInsights } from './components/analysis/AnalysisInsights';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
+import { getSuccessfulChecks } from './features/analysis/visible-results';
 import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import {
   buildAnalysisExport,
@@ -355,6 +356,11 @@ export function App() {
         .length,
     };
   }, [states]);
+
+  const successfulChecks = useMemo(
+    () => getSuccessfulChecks(checks, states),
+    [checks, states],
+  );
 
   const canExport = Boolean(
     lastTarget &&
@@ -816,7 +822,8 @@ export function App() {
                   </div>
                   <div className="section-heading__actions">
                     <span className="section-count">
-                      {checks.length} módulos
+                      {successfulChecks.length} com dados · {checks.length}{' '}
+                      módulos
                     </span>
                     <button
                       className="button button--secondary export-button"
@@ -859,19 +866,49 @@ export function App() {
                   )}
                 {checks.some(
                   (check) => check.id === 'shodan-vulnerabilities',
-                ) && (
-                  <VulnerabilitySummary
-                    check={checks.find(
-                      (check) => check.id === 'shodan-vulnerabilities',
-                    )!}
-                    onRetry={() => retryCheck('shodan-vulnerabilities')}
-                    state={
-                      states['shodan-vulnerabilities'] ?? { status: 'idle' }
-                    }
-                  />
+                ) &&
+                  states['shodan-vulnerabilities']?.status === 'done' &&
+                  states['shodan-vulnerabilities'].result.status ===
+                    'success' && (
+                    <VulnerabilitySummary
+                      check={checks.find(
+                        (check) => check.id === 'shodan-vulnerabilities',
+                      )!}
+                      onRetry={() => retryCheck('shodan-vulnerabilities')}
+                      state={
+                        states['shodan-vulnerabilities'] ?? { status: 'idle' }
+                      }
+                    />
+                  )}
+                {lastTarget && analysisSummary.attention > 0 && (
+                  <div className="results-filter-notice" role="status">
+                    <span aria-hidden="true">i</span>
+                    <p>
+                      {analysisSummary.attention}{' '}
+                      {analysisSummary.attention === 1
+                        ? 'fonte não retornou dados e foi ocultada.'
+                        : 'fontes não retornaram dados e foram ocultadas.'}{' '}
+                      O panorama acima mantém esse detalhe para você revisar.
+                    </p>
+                  </div>
                 )}
+                {lastTarget &&
+                  analysisSummary.loading === 0 &&
+                  analysisSummary.resolved === checks.length &&
+                  checks.length > 0 &&
+                  successfulChecks.length === 0 && (
+                    <div className="empty-state results-filter-empty">
+                      <span>00</span>
+                      <h3>Nenhuma fonte retornou dados</h3>
+                      <p>
+                        As respostas desta rodada foram ocultadas porque não
+                        concluíram com sucesso. Revise o panorama de atenção e
+                        tente novamente.
+                      </p>
+                    </div>
+                  )}
                 <div className="results-grid">
-                  {checks
+                  {successfulChecks
                     .filter((check) => check.id !== 'shodan-vulnerabilities')
                     .map((check) => (
                       <ResultCard

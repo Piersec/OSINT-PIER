@@ -117,6 +117,8 @@ Cada nova integração deve:
 - [x] Responsividade mobile do dashboard
 - [x] Gráficos Recharts e insights progressivos no resultado da análise, derivados
       exclusivamente dos estados e durações reais dos checks
+- [x] Card curado do AbuseIPDB com confiança visual, contexto de rede e links externos;
+      ocultar da grade os checks sem resposta bem-sucedida, mantendo atenção no panorama
 
 ---
 
@@ -507,3 +509,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   distribuição dos estados, duração por fonte e insights de cobertura, sucesso, atenção
   e tempo médio. Os gráficos atualizam progressivamente durante a execução e a seção de
   documentação foi atualizada para explicar a leitura desses sinais.
+- `2026-08-24` — GAB-89: o AbuseIPDB passou a solicitar `verbose` para exibir país e
+  renderizar um card curado com confiança, denúncias, rede, contexto geográfico quando
+  fornecido, com enriquecimento aproximado de cidade/ASN quando necessário, e links de
+  referência. A grade de resultados agora mostra somente checks com sucesso; erros e
+  integrações puladas continuam no resumo/insights sem criar cards de ruído.

@@ -89,4 +89,29 @@ describe('ResultCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
+
+  it('mantém a classificação de endereço privado no renderer genérico', () => {
+    render(
+      <ResultCard
+        check={{ ...check, id: 'abuse-ipdb', label: 'AbuseIPDB' }}
+        state={{
+          status: 'done',
+          result: {
+            id: 'abuse-ipdb',
+            status: 'success',
+            data: {
+              resolvedAddresses: ['192.168.1.10'],
+              scope: 'private-or-reserved',
+            },
+            source: 'Local address classification',
+            durationMs: 1,
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Escopo')).toBeTruthy();
+    expect(screen.getByText('private-or-reserved')).toBeTruthy();
+    expect(screen.queryByText(/denúncias recentes/)).toBeNull();
+  });
 });
