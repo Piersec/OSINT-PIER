@@ -457,3 +457,10 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   secreta moderna `sb_secret_...` da `service_role` legada. A chave moderna permanece
   somente no header `apikey`, enquanto a legada mantém o Bearer JWT; isso permite cadastrar
   e usar as chaves dos plugins pela página Credenciais sem armazená-las em texto puro.
+- `2026-08-24` — GAB-63: PhoneInfoga foi analisado pela documentação oficial. A ferramenta
+  é um binário/serviço REST stateless em Go, com scanners opcionais e licença GPL-3.0; por
+  isso, não será executada como processo dentro do Vercel nem terá código copiado para o
+  backend. A decisão pendente é implementar um plugin nativo limitado (normalização local,
+  fontes autorizadas sem chave e links de pesquisa manual) ou criar um adapter para um
+  serviço PhoneInfoga hospedado separadamente. A integração permanece aberta até essa
+  escolha, e nenhum número consultado é persistido.
