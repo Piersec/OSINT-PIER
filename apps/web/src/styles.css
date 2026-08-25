@@ -816,6 +816,15 @@ input {
   transition: 160ms ease;
 }
 
+.check-picker__item > label {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+  align-items: center;
+  cursor: pointer;
+}
+
 .check-picker__item input {
   position: absolute;
   width: 1px;
@@ -2109,6 +2118,7 @@ input::placeholder {
   height: 72px;
   flex: 0 0 auto;
   border: 1px solid var(--border-strong);
+  border-radius: 50%;
   font-size: 17px;
 }
 
@@ -2139,6 +2149,30 @@ input::placeholder {
 
 .profile-form input {
   width: 100%;
+}
+
+.profile-form input[type='file'] {
+  padding: 9px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.profile-form input[type='file']::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  color: #111;
+  background: var(--accent);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profile-form__hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .profile-form__actions {
@@ -2354,6 +2388,7 @@ input::placeholder {
 
 .plugin-item__content {
   min-width: 0;
+  cursor: pointer;
 }
 
 .plugin-item strong,

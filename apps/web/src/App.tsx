@@ -1,4 +1,11 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { User } from '@supabase/supabase-js';
 import {
@@ -190,6 +197,59 @@ function getAvatarUrl(user: User): string | undefined {
     : undefined;
 }
 
+const avatarCanvasSize = 256;
+const maxAvatarFileSize = 10 * 1024 * 1024;
+
+async function prepareAvatarFile(file: File): Promise<string> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Escolha um arquivo de imagem.');
+  }
+  if (file.size > maxAvatarFileSize) {
+    throw new Error('A foto precisa ter no máximo 10 MB.');
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const loadedImage = new Image();
+      loadedImage.onload = () => resolve(loadedImage);
+      loadedImage.onerror = () =>
+        reject(new Error('Não foi possível ler a foto escolhida.'));
+      loadedImage.src = objectUrl;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = avatarCanvasSize;
+    canvas.height = avatarCanvasSize;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Seu navegador não suporta este upload.');
+
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const scale = Math.max(
+      avatarCanvasSize / sourceWidth,
+      avatarCanvasSize / sourceHeight,
+    );
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(
+      image,
+      (avatarCanvasSize - drawWidth) / 2,
+      (avatarCanvasSize - drawHeight) / 2,
+      drawWidth,
+      drawHeight,
+    );
+
+    const webp = canvas.toDataURL('image/webp', 0.85);
+    return webp.startsWith('data:image/webp')
+      ? webp
+      : canvas.toDataURL('image/jpeg', 0.85);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 function getUserInitials(email?: string | null): string {
   const value = email?.split('@')[0]?.trim() ?? '';
   const words = value.split(/[._-]+/).filter(Boolean);
@@ -311,7 +371,7 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
-  const [avatarDraft, setAvatarDraft] = useState('');
+  const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
@@ -319,9 +379,11 @@ export function App() {
   );
 
   const avatarUrl = getAvatarUrl(user);
+  const displayedAvatarUrl =
+    avatarDraft === null ? avatarUrl : avatarDraft || undefined;
 
   useEffect(() => {
-    setAvatarDraft(avatarUrl ?? '');
+    setAvatarDraft(null);
   }, [avatarUrl]);
 
   useEffect(() => {
@@ -543,12 +605,14 @@ export function App() {
 
   async function saveAvatar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const nextAvatar = avatarDraft === null ? (avatarUrl ?? '') : avatarDraft;
     setAvatarBusy(true);
     setAvatarMessage(null);
     try {
-      await updateAvatar(avatarDraft);
+      await updateAvatar(nextAvatar);
+      setAvatarDraft(null);
       setAvatarMessage(
-        avatarDraft.trim()
+        nextAvatar.trim()
           ? 'Foto do perfil atualizada.'
           : 'Foto removida; as iniciais serão exibidas.',
       );
@@ -559,6 +623,30 @@ export function App() {
           : 'Não foi possível atualizar a foto do perfil.',
       );
     } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function handleAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    setAvatarBusy(true);
+    setAvatarMessage(null);
+    try {
+      setAvatarDraft(await prepareAvatarFile(file));
+      setAvatarMessage(
+        'Arquivo selecionado. Clique em Salvar foto para aplicar.',
+      );
+    } catch (error) {
+      setAvatarMessage(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível preparar a foto escolhida.',
+      );
+    } finally {
+      input.value = '';
       setAvatarBusy(false);
     }
   }
@@ -764,21 +852,24 @@ export function App() {
                                   selectedCheckIds === null ||
                                   selectedCheckIds.includes(check.id);
                                 return (
-                                  <label
+                                  <div
                                     className={`check-picker__item ${checked ? 'check-picker__item--active' : ''}`}
                                     key={check.id}
                                   >
                                     <input
+                                      id={`analysis-check-${check.id}`}
                                       aria-label={`${checked ? 'Desativar' : 'Ativar'} ${check.label}`}
                                       checked={checked}
                                       onChange={(event) => {
+                                        const nextChecked =
+                                          event.currentTarget.checked;
                                         setSelectedCheckIds((current) => {
                                           const ids =
                                             current ??
                                             compatibleChecks.map(
                                               (item) => item.id,
                                             );
-                                          return event.target.checked
+                                          return nextChecked
                                             ? [...new Set([...ids, check.id])]
                                             : ids.filter(
                                                 (id) => id !== check.id,
@@ -787,9 +878,13 @@ export function App() {
                                       }}
                                       type="checkbox"
                                     />
-                                    <span>{check.label}</span>
-                                    <i aria-hidden="true" />
-                                  </label>
+                                    <label
+                                      htmlFor={`analysis-check-${check.id}`}
+                                    >
+                                      <span>{check.label}</span>
+                                      <i aria-hidden="true" />
+                                    </label>
+                                  </div>
                                 );
                               })}
                               {compatibleChecks.length === 0 && (
@@ -1233,7 +1328,7 @@ export function App() {
               <div className="settings-card settings-card--profile">
                 <div className="profile-card__identity">
                   <UserAvatar
-                    avatarUrl={avatarDraft.trim() || avatarUrl}
+                    avatarUrl={displayedAvatarUrl}
                     email={user.email}
                     className="user-avatar--large"
                   />
@@ -1247,28 +1342,39 @@ export function App() {
                   </div>
                 </div>
                 <form className="profile-form" onSubmit={saveAvatar}>
-                  <label htmlFor="profile-avatar-url">
-                    URL da foto do perfil
+                  <label htmlFor="profile-avatar-file">
+                    Arquivo da foto do perfil
                     <input
-                      id="profile-avatar-url"
-                      onChange={(event) => setAvatarDraft(event.target.value)}
-                      placeholder="https://exemplo.com/minha-foto.jpg"
-                      type="url"
-                      value={avatarDraft}
+                      accept="image/*"
+                      id="profile-avatar-file"
+                      onChange={handleAvatarFileChange}
+                      type="file"
                     />
                   </label>
+                  <p className="profile-form__hint">
+                    Escolha uma imagem na sua máquina. Ela será ajustada para o
+                    formato do avatar.
+                  </p>
                   <div className="profile-form__actions">
                     <button
                       className="button"
-                      disabled={avatarBusy}
+                      disabled={avatarBusy || avatarDraft === null}
                       type="submit"
                     >
                       {avatarBusy ? 'Salvando…' : 'Salvar foto'}
                     </button>
                     <button
                       className="button button--ghost"
-                      disabled={avatarBusy || !avatarDraft}
-                      onClick={() => setAvatarDraft('')}
+                      disabled={
+                        avatarBusy ||
+                        (avatarDraft === null ? !avatarUrl : !avatarDraft)
+                      }
+                      onClick={() => {
+                        setAvatarDraft('');
+                        setAvatarMessage(
+                          'A foto será removida ao salvar as alterações.',
+                        );
+                      }}
                       type="button"
                     >
                       Remover
@@ -1285,7 +1391,7 @@ export function App() {
                 <div>
                   <span className="eyebrow">Tema de cor</span>
                   <h3>Escolha uma paleta</h3>
-                  <p>Dark é o tema padrão; White oferece uma leitura clara.</p>
+                  <p>Dark é o tema padrão; Litght oferece uma leitura clara.</p>
                 </div>
                 <div
                   aria-label="Tema de cor"
@@ -1303,7 +1409,7 @@ export function App() {
                     >
                       <span className="theme-option__swatch" />
                       <span>
-                        <strong>{option === 'dark' ? 'Dark' : 'White'}</strong>
+                        <strong>{option === 'dark' ? 'Dark' : 'Litght'}</strong>
                         <small>
                           {theme === option ? 'Selecionado' : 'Aplicar tema'}
                         </small>

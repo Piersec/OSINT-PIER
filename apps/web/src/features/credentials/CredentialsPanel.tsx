@@ -87,8 +87,10 @@ export function CredentialsPanel() {
     }
   }
 
-  async function handleToggleCheck(check: CheckCatalogItem) {
-    const nextEnabled = !check.enabled;
+  async function handleToggleCheck(
+    check: CheckCatalogItem,
+    nextEnabled: boolean,
+  ) {
     setPendingCheckIds((current) => new Set(current).add(check.id));
     setCheckSettings(
       (current) =>
@@ -269,42 +271,51 @@ export function CredentialsPanel() {
               chamada externa automática.
             </p>
             <div className="plugin-list">
-              {checkSettings?.map((check) => (
-                <label className="plugin-item" key={check.id}>
-                  <span className="plugin-item__content">
-                    <strong>{check.label}</strong>
-                    <small>
-                      {check.requiredCredentials.length > 0
-                        ? check.requiredCredentials.join(', ')
-                        : 'Sem credencial externa'}
-                    </small>
-                    <span className="integration-meta">
-                      <span
-                        className={`integration-status integration-status--${getCheckStatus(check).tone}`}
-                      >
-                        {getCheckStatus(check).label}
-                      </span>
-                      {check.requiredCredentials.length > 0 && (
-                        <span>
-                          {check.requiredCredentials
-                            .map(
-                              (credential) =>
-                                `${credential}: ${getCredentialSource(credential)}`,
-                            )
-                            .join(' · ')}
+              {checkSettings?.map((check) => {
+                const inputId = `plugin-toggle-${check.id}`;
+                return (
+                  <div className="plugin-item" key={check.id}>
+                    <label className="plugin-item__content" htmlFor={inputId}>
+                      <strong>{check.label}</strong>
+                      <small>
+                        {check.requiredCredentials.length > 0
+                          ? check.requiredCredentials.join(', ')
+                          : 'Sem credencial externa'}
+                      </small>
+                      <span className="integration-meta">
+                        <span
+                          className={`integration-status integration-status--${getCheckStatus(check).tone}`}
+                        >
+                          {getCheckStatus(check).label}
                         </span>
-                      )}
-                    </span>
-                  </span>
-                  <input
-                    aria-label={`${check.enabled ? 'Desabilitar' : 'Habilitar'} ${check.label}`}
-                    checked={check.enabled}
-                    disabled={busy || pendingCheckIds.has(check.id)}
-                    onChange={() => void handleToggleCheck(check)}
-                    type="checkbox"
-                  />
-                </label>
-              ))}
+                        {check.requiredCredentials.length > 0 && (
+                          <span>
+                            {check.requiredCredentials
+                              .map(
+                                (credential) =>
+                                  `${credential}: ${getCredentialSource(credential)}`,
+                              )
+                              .join(' · ')}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      id={inputId}
+                      aria-label={`${check.enabled ? 'Desabilitar' : 'Habilitar'} ${check.label}`}
+                      checked={check.enabled}
+                      disabled={busy || pendingCheckIds.has(check.id)}
+                      onChange={(event) =>
+                        void handleToggleCheck(
+                          check,
+                          event.currentTarget.checked,
+                        )
+                      }
+                      type="checkbox"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
