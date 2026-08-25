@@ -16,6 +16,7 @@ import {
   saveHistory,
 } from './api/client';
 import { AnalysisInsights } from './components/analysis/AnalysisInsights';
+import { AnalysisScene } from './components/analysis/AnalysisScene';
 import {
   SignalTopologyCanvas,
   type SignalTopologyItem,
@@ -429,7 +430,7 @@ export function App() {
   const [toolStates, setToolStates] = useState<Record<string, CardState>>({});
   const [toolTarget, setToolTarget] = useState('');
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('white');
   const themeInitialized = useRef(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
@@ -867,22 +868,36 @@ export function App() {
         <main ref={animationScopeRef} data-page={page}>
           {page === 'analysis' && (
             <>
-              <section className="overview" id="analysis" data-reveal>
-                <div className="analysis-card">
+              <section
+                className={`overview ${lastTarget ? 'overview--report' : 'overview--landing'}`}
+                id="analysis"
+                data-reveal
+              >
+                <div
+                  className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
+                >
                   <div className="analysis-card__topline">
                     <span>01 / TARGET INTAKE</span>
-                    <span>PARALLEL EXECUTION</span>
+                    <span>3D SIGNAL MAP</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
                       <span className="eyebrow">Nova investigação</span>
-                      <h2>Consulte um alvo ou identidade</h2>
+                      <h2>O que você quer investigar?</h2>
                     </div>
                   </div>
                   <p>
-                    Os checks são executados em paralelo e os resultados
-                    aparecem assim que cada fonte responde.
+                    Digite um domínio, IP, URL ou identidade. O mapa de sinais
+                    acompanha a coleta e o relatório aparece assim que as fontes
+                    respondem.
                   </p>
+
+                  {(!lastTarget || analysisSummary.loading > 0) && (
+                    <AnalysisScene
+                      phase={analysisSummary.loading > 0 ? 'running' : 'idle'}
+                      target={lastTarget ?? target.trim()}
+                    />
+                  )}
 
                   <form className="analysis-form" onSubmit={analyze}>
                     <label htmlFor="target">Alvo da análise</label>
@@ -897,14 +912,15 @@ export function App() {
                       />
                       <button
                         className="button"
-                        disabled={checks.length === 0}
+                        disabled={checks.length === 0 || analysisSummary.loading > 0}
                         type="submit"
                       >
-                        Analisar agora
+                        {analysisSummary.loading > 0 ? 'Mapeando…' : 'Analisar agora'}
                       </button>
                     </div>
 
-                    <div className="analysis-filters">
+                    {(lastTarget || target.trim()) && (
+                      <div className="analysis-filters">
                       <button
                         className="filter-toggle"
                         type="button"
@@ -1003,20 +1019,24 @@ export function App() {
                           </fieldset>
                         </div>
                       )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="form-meta">
+                    {(lastTarget || target.trim()) && (
+                      <div className="form-meta">
                       <span>{checks.length} plugins selecionados</span>
                       <span>
                         {lastTarget
                           ? `${analysisSummary.resolved}/${checks.length} concluídos para ${lastTarget}`
                           : 'Aguardando um alvo'}
                       </span>
-                    </div>
+                      </div>
+                    )}
                   </form>
                 </div>
 
-                <aside className="analysis-context">
+                {lastTarget && (
+                  <aside className="analysis-context">
                   <MotionSurface className="analysis-context__motion">
                     <span className="eyebrow">Estado atual</span>
                     <strong>
@@ -1043,9 +1063,11 @@ export function App() {
                       <span>PierSec intelligence</span>
                     </div>
                   </MotionSurface>
-                </aside>
+                  </aside>
+                )}
 
-                <div className="metrics-grid" aria-label="Resumo da análise">
+                {lastTarget && (
+                  <div className="metrics-grid" aria-label="Resumo da análise">
                   <MetricCard
                     label="Plugins"
                     value={checks.length}
@@ -1068,9 +1090,10 @@ export function App() {
                     detail="Erros ou integrações puladas"
                     tone="attention"
                   />
-                </div>
+                  </div>
+                )}
 
-                {checks.length > 0 && (
+                {lastTarget && checks.length > 0 && (
                   <AnalysisInsights
                     checks={checks}
                     states={states}
@@ -1079,7 +1102,8 @@ export function App() {
                 )}
               </section>
 
-              <section className="results-section" id="results" data-reveal>
+              {lastTarget && (
+                <section className="results-section" id="results" data-reveal>
                 <div className="section-heading">
                   <div>
                     <span className="eyebrow">Execução em paralelo</span>
@@ -1197,7 +1221,8 @@ export function App() {
                       />
                     ))}
                 </div>
-              </section>
+                </section>
+              )}
             </>
           )}
 

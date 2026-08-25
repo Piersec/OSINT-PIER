@@ -622,6 +622,15 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         </DocumentationStep>
                         <DocumentationStep
                           number="02"
+                          title="Acompanhe o mapa de sinais"
+                        >
+                          Ao iniciar a consulta, a entrada mostra uma cena 3D
+                          leve com o alvo e o estado da coleta. Ela acompanha a
+                          execução paralela sem substituir os dados do
+                          relatório.
+                        </DocumentationStep>
+                        <DocumentationStep
+                          number="03"
                           title="Revise filtros e ferramentas"
                         >
                           Abra Filtros e ferramentas para conferir os checks
@@ -631,7 +640,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           cards redundantes de erro.
                         </DocumentationStep>
                         <DocumentationStep
-                          number="03"
+                          number="04"
                           title="Inicie a consulta"
                         >
                           Clique em Analisar agora. Cada plugin roda
@@ -639,7 +648,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           fonte lenta não esconda as demais.
                         </DocumentationStep>
                         <DocumentationStep
-                          number="04"
+                          number="05"
                           title="Leia os sinais progressivamente"
                         >
                           A grade exibe apenas os checks que retornaram com
@@ -648,7 +657,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           de segurança, vulnerabilidades e criticidade.
                         </DocumentationStep>
                         <DocumentationStep
-                          number="05"
+                          number="06"
                           title="Use os insights para priorizar"
                         >
                           Use o índice de risco, a postura de segurança e o
@@ -659,7 +668,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           separadas. Quando todos terminarem, Exportar JSON fica
                           disponível.
                         </DocumentationStep>
-                        <DocumentationStep number="06" title="Retome a sessão">
+                        <DocumentationStep number="07" title="Retome a sessão">
                           A rodada ativa e o histórico recente são mantidos na
                           sessão do navegador. Você pode visitar outra página,
                           sair e voltar para a aba ou recarregar a aplicação sem
