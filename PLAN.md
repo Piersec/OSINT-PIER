@@ -123,8 +123,8 @@ Cada nova integração deve:
 - [x] Cache de resultados por um período curto (evitar bater a API externa repetidamente
       para o mesmo alvo)
 - [x] Rate limiting no backend para evitar abuso da própria plataforma
-- [x] Exportar resultado da análise em JSON versionado, gerado localmente no navegador
-      após todos os checks chegarem a um estado terminal
+- [x] Exportar resultado da análise em JSON versionado e relatório PDF via impressão do
+      navegador, gerados localmente após todos os checks chegarem a um estado terminal
 - [x] Histórico de análises recentes da sessão, mantido em memória no frontend e sem
       persistência de alvos ou resultados
 - [x] Tratamento de erro amigável no frontend (mensagem clara quando um check falha)
@@ -218,6 +218,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Permitir recolher e expandir a caixa de filtros da página de Análise
 - [x] Transformar o histórico em página de auditoria com ação “Usar novamente”
 - [x] Aplicar nome OSINT Pier, símbolo PierSec, paleta e tipografia do brand kit
+- [x] Permitir configurar a foto do perfil via Supabase Auth metadata e reutilizá-la no
+      cabeçalho, exibindo o e-mail apenas no hover do avatar
 
 ---
 
@@ -239,8 +241,9 @@ produzir `skipped`, sem interromper os outros plugins.
 - Rate limiting da Fase 3: armazenamento local do `@fastify/rate-limit`, 60 execuções por
   minuto/IP apenas em `POST /api/checks/:id`; health, catálogo e admin ficam fora
 - Exportação da Fase 3: JSON com `schemaVersion: 1`, alvo, horário, resumo e respostas
-  curadas; download client-side sem persistência ou endpoint adicional. PDF fica fora do
-  escopo atual para preservar simplicidade
+  curadas; download client-side sem persistência ou endpoint adicional. O PDF usa uma
+  janela de impressão dedicada, permitindo “Salvar como PDF” sem enviar resultados ao
+  backend nem adicionar uma dependência de geração binária
 - Histórico: a sessão mantém os 6 últimos alvos como fallback imediato; quando Supabase
   está configurado, o backend persiste somente alvo, tipo, timestamp e contadores
   agregados. Nenhum resultado detalhado ou segredo é persistido.
@@ -438,3 +441,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   templates intrusivos, interpreta JSONL curado e alimenta o gráfico com NVD, EPSS e KEV;
   Shodan continua disponível como check independente. A Vercel marca o plugin como
   `skipped` até que um worker interno disponibilize o binário.
+- `2026-08-25` — GAB-95: o cabeçalho passou a usar o avatar configurado no metadata do
+  usuário, com e-mail disponível no hover, e o indicador “Rede interna” foi removido.
+  O toggle administrativo de plugins recebeu atualização otimista com rollback seguro.
+  A análise agora oferece JSON e um relatório PDF em janela de impressão, sem nova
+  dependência ou envio de resultados ao backend.

@@ -21,6 +21,9 @@ export function CredentialsPanel() {
   const [value, setValue] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingCheckIds, setPendingCheckIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   async function refresh() {
     setBusy(true);
@@ -85,10 +88,18 @@ export function CredentialsPanel() {
   }
 
   async function handleToggleCheck(check: CheckCatalogItem) {
+    const nextEnabled = !check.enabled;
+    setPendingCheckIds((current) => new Set(current).add(check.id));
+    setCheckSettings(
+      (current) =>
+        current?.map((item) =>
+          item.id === check.id ? { ...item, enabled: nextEnabled } : item,
+        ) ?? null,
+    );
     setBusy(true);
     setMessage(null);
     try {
-      const updated = await setCheckEnabled(check.id, !check.enabled);
+      const updated = await setCheckEnabled(check.id, nextEnabled);
       setCheckSettings(
         (current) =>
           current?.map((item) =>
@@ -104,12 +115,23 @@ export function CredentialsPanel() {
           : `${updated.label} desabilitado para novas análises.`,
       );
     } catch (error) {
+      setCheckSettings(
+        (current) =>
+          current?.map((item) =>
+            item.id === check.id ? { ...item, enabled: check.enabled } : item,
+          ) ?? null,
+      );
       setMessage(
         error instanceof Error
           ? error.message
           : 'Não foi possível atualizar o plugin.',
       );
     } finally {
+      setPendingCheckIds((current) => {
+        const next = new Set(current);
+        next.delete(check.id);
+        return next;
+      });
       setBusy(false);
     }
   }
@@ -277,7 +299,7 @@ export function CredentialsPanel() {
                   <input
                     aria-label={`${check.enabled ? 'Desabilitar' : 'Habilitar'} ${check.label}`}
                     checked={check.enabled}
-                    disabled={busy}
+                    disabled={busy || pendingCheckIds.has(check.id)}
                     onChange={() => void handleToggleCheck(check)}
                     type="checkbox"
                   />

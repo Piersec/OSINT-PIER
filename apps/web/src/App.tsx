@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { User } from '@supabase/supabase-js';
 import {
   ApiRequestError,
   listChecks,
@@ -14,6 +15,7 @@ import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import {
   buildAnalysisExport,
   downloadAnalysisExport,
+  printAnalysisExport,
 } from './features/export/analysis-export';
 import {
   createAnalysisHistoryEntry,
@@ -180,6 +182,48 @@ function ToolLogo({ checkId, label }: { checkId: string; label: string }) {
   );
 }
 
+function getAvatarUrl(user: User): string | undefined {
+  const metadata = user.user_metadata ?? {};
+  const candidate = metadata.avatar_url ?? metadata.picture;
+  return typeof candidate === 'string' && candidate.trim()
+    ? candidate.trim()
+    : undefined;
+}
+
+function getUserInitials(email?: string | null): string {
+  const value = email?.split('@')[0]?.trim() ?? '';
+  const words = value.split(/[._-]+/).filter(Boolean);
+  const initials =
+    words.length > 1
+      ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}`
+      : value.slice(0, 2);
+  return (initials || 'U').toUpperCase().padEnd(2, '•');
+}
+
+function UserAvatar({
+  avatarUrl,
+  email,
+  className = '',
+}: {
+  avatarUrl?: string;
+  email?: string | null;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => setFailed(false), [avatarUrl]);
+
+  return (
+    <span className={`user-avatar ${className}`.trim()} aria-hidden="true">
+      {avatarUrl && !failed ? (
+        <img alt="" onError={() => setFailed(true)} src={avatarUrl} />
+      ) : (
+        <span>{getUserInitials(email)}</span>
+      )}
+    </span>
+  );
+}
+
 function readPage(hash: string): Page {
   const value = hash.replace(/^#/, '') as Page;
   return ['analysis', 'results', 'history', 'credentials', 'settings'].includes(
@@ -243,7 +287,7 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateAvatar } = useAuth();
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -267,9 +311,18 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
+  const [avatarDraft, setAvatarDraft] = useState('');
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
+
+  const avatarUrl = getAvatarUrl(user);
+
+  useEffect(() => {
+    setAvatarDraft(avatarUrl ?? '');
+  }, [avatarUrl]);
 
   useEffect(() => {
     const handleHashChange = () => setPage(readPage(window.location.hash));
@@ -481,6 +534,35 @@ export function App() {
     );
   }
 
+  function exportPdf() {
+    if (!lastTarget || !canExport) return;
+    printAnalysisExport(
+      buildAnalysisExport({ target: lastTarget, checks, states }),
+    );
+  }
+
+  async function saveAvatar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAvatarBusy(true);
+    setAvatarMessage(null);
+    try {
+      await updateAvatar(avatarDraft);
+      setAvatarMessage(
+        avatarDraft.trim()
+          ? 'Foto do perfil atualizada.'
+          : 'Foto removida; as iniciais serão exibidas.',
+      );
+    } catch (error) {
+      setAvatarMessage(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível atualizar a foto do perfil.',
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
   function reuseHistoryEntry(entry: AnalysisHistoryEntry) {
     setTarget(entry.target);
     setSelectedCheckIds(null);
@@ -574,12 +656,14 @@ export function App() {
             <span className="wordmark">
               OSINT <b>Pier</b>
             </span>
-            <span className="internal-badge">
-              <i /> Rede interna
-            </span>
-            <span className="auth-user" title={user.email ?? undefined}>
-              {user.email ?? 'Usuário autenticado'}
-            </span>
+            <button
+              aria-label={`Conta ${user.email ?? 'usuário autenticado'}`}
+              className="auth-avatar-button"
+              title={user.email ?? 'Usuário autenticado'}
+              type="button"
+            >
+              <UserAvatar avatarUrl={avatarUrl} email={user.email} />
+            </button>
             <button
               className="auth-logout"
               onClick={() => void signOut()}
@@ -809,6 +893,22 @@ export function App() {
                         <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
                       </svg>
                       Exportar JSON
+                    </button>
+                    <button
+                      className="button button--secondary export-button"
+                      disabled={!canExport}
+                      onClick={exportPdf}
+                      title={
+                        canExport
+                          ? 'Abrir um relatório pronto para salvar como PDF'
+                          : 'Conclua uma análise para habilitar a exportação'
+                      }
+                      type="button"
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M6 3h9l3 3v15H6zM15 3v4h4M9 12h6M9 16h6" />
+                      </svg>
+                      Exportar PDF
                     </button>
                   </div>
                 </div>
@@ -1130,6 +1230,57 @@ export function App() {
                 Escolha como o OSINT Pier deve aparecer. A opção é aplicada
                 imediatamente e não altera os resultados das análises.
               </p>
+              <div className="settings-card settings-card--profile">
+                <div className="profile-card__identity">
+                  <UserAvatar
+                    avatarUrl={avatarDraft.trim() || avatarUrl}
+                    email={user.email}
+                    className="user-avatar--large"
+                  />
+                  <div>
+                    <span className="eyebrow">Perfil</span>
+                    <h3>Foto da conta</h3>
+                    <p>
+                      A mesma imagem aparece no cabeçalho. O e-mail fica
+                      disponível ao passar o mouse sobre o avatar.
+                    </p>
+                  </div>
+                </div>
+                <form className="profile-form" onSubmit={saveAvatar}>
+                  <label htmlFor="profile-avatar-url">
+                    URL da foto do perfil
+                    <input
+                      id="profile-avatar-url"
+                      onChange={(event) => setAvatarDraft(event.target.value)}
+                      placeholder="https://exemplo.com/minha-foto.jpg"
+                      type="url"
+                      value={avatarDraft}
+                    />
+                  </label>
+                  <div className="profile-form__actions">
+                    <button
+                      className="button"
+                      disabled={avatarBusy}
+                      type="submit"
+                    >
+                      {avatarBusy ? 'Salvando…' : 'Salvar foto'}
+                    </button>
+                    <button
+                      className="button button--ghost"
+                      disabled={avatarBusy || !avatarDraft}
+                      onClick={() => setAvatarDraft('')}
+                      type="button"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                  {avatarMessage && (
+                    <p className="inline-notice" role="status">
+                      {avatarMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
               <div className="settings-card">
                 <div>
                   <span className="eyebrow">Tema de cor</span>

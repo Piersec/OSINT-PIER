@@ -13,6 +13,7 @@ import { supabase } from '../../lib/supabase';
 interface AuthContextValue {
   user: User;
   signOut: () => Promise<void>;
+  updateAvatar: (avatarUrl: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -201,6 +202,28 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         user,
         signOut: async () => {
           await supabase?.auth.signOut();
+        },
+        updateAvatar: async (avatarUrl: string) => {
+          if (!supabase) throw new Error('Autenticação indisponível.');
+
+          const normalized = avatarUrl.trim();
+          if (normalized) {
+            let parsed: URL;
+            try {
+              parsed = new URL(normalized);
+            } catch {
+              throw new Error('Informe uma URL válida para a foto.');
+            }
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+              throw new Error('A foto precisa usar uma URL HTTP ou HTTPS.');
+            }
+          }
+
+          const { data, error: updateError } = await supabase.auth.updateUser({
+            data: { avatar_url: normalized || null },
+          });
+          if (updateError) throw new Error('Não foi possível salvar a foto.');
+          if (data.user) setUser(data.user);
         },
       }}
     >
