@@ -1,0 +1,44 @@
+services:
+  runner:
+    build:
+      context: ./runner
+    restart: unless-stopped
+    environment:
+      HOME: /tmp
+      PORT: '8081'
+      COMMAND_TOOLS_ENABLE_GOBUSTER: ${COMMAND_TOOLS_ENABLE_GOBUSTER:-false}
+    expose:
+      - '8081'
+    networks:
+      - command-tools
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  gateway:
+    build:
+      context: ./gateway
+    restart: unless-stopped
+    environment:
+      COMMAND_TOOLS_API_TOKEN: ${COMMAND_TOOLS_API_TOKEN:?Configure COMMAND_TOOLS_API_TOKEN}
+      COMMAND_TOOLS_UPSTREAM: http://runner:8081
+      PORT: '8080'
+    depends_on:
+      - runner
+    ports:
+      - '${COMMAND_TOOLS_GATEWAY_PORT:-8080}:8080'
+    networks:
+      - command-tools
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  command-tools:
+    driver: bridge

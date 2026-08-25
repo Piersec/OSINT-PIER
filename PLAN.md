@@ -129,6 +129,16 @@ Cada nova integração deve:
       persistência de alvos ou resultados
 - [x] Tratamento de erro amigável no frontend (mensagem clara quando um check falha)
 - [x] Responsividade mobile do dashboard
+- [x] Gráficos Recharts e insights progressivos no resultado da análise, derivados
+      exclusivamente dos sinais reais de segurança, exposição e criticidade
+- [x] Panorama de risco com vulnerabilidades/CVEs, CISA KEV, EPSS alto e falhas de
+      headers, cookies, TLS e reputação, persistido na sessão do navegador
+- [x] Card curado do AbuseIPDB com confiança visual, contexto de rede e links externos;
+      ocultar da grade os checks sem resposta bem-sucedida, mantendo atenção no panorama
+- [x] Filtrar checks pelo tipo de alvo inferido antes da execução, evitando chamadas
+      incompatíveis e cards redundantes de erro na análise principal
+- [x] Panorama de segurança com índice de risco, postura radial, radar de exposição,
+      mapa de criticidade, reputação externa e falhas priorizadas
 
 ---
 
@@ -174,18 +184,21 @@ Cada integração será analisada antes de implementação, com escopo curado, a
 explícita e tratamento de rate limit/credenciais. A ausência de chave ou sessão deve
 produzir `skipped`, sem interromper os outros plugins.
 
-- [ ] PhoneInfoga — avaliar CLI/REST e scanners externos; pode exigir configuração de
-      provedores, sem assumir uma API key única
-- [ ] GHunt — avaliar execução local e sessão/cookies do Google; não armazenar cookies no
-      histórico nem no frontend
-- [ ] Osintgram — avaliar execução local e autenticação autorizada do Instagram
+- [x] PhoneInfoga — adapter REST server-side para o serviço oficial em Docker, com
+      gateway autenticado e scanners opcionais configurados pelo cofre
+- [x] GHunt — plugin de e-mail com JSON curado e runner Docker externo autenticado; sessão/
+      cookies ficam somente no volume privado do runner
+- [x] Osintgram — avaliação concluída; não integrar sem runner isolado, autenticação
+      autorizada e revisão da licença/termos de uso
 - [x] Shodan — consulta curada de host/domain com `SHODAN_API_KEY`
 - [x] Hunter.io — Domain Search e Email Verifier com `HUNTER_API_KEY`, créditos e rate
       limit explícitos
 - [x] OSINT Framework — transformar o catálogo em referências filtráveis, sem scraping
       automático por padrão
-- [ ] Sherlock — avaliar CLI de username com saída JSON e timeout configurável; normalmente
-      não exige API key
+- [x] Sherlock — avaliação concluída; a CLI Python não entra diretamente no Vercel e a
+      execução depende de um runner externo autenticado, com resultado curado de presença/URL
+- [x] Command tools — Nmap, Katana, Gobuster e Subfinder integrados por runner Docker
+      externo autenticado, com perfis allowlisted, limites operacionais e saída curada
 
 ### Shodan
 
@@ -205,6 +218,74 @@ produzir `skipped`, sem interromper os outros plugins.
 - Limites: consulta de domínio limitada a 10 contatos por chamada para compatibilidade com
   o plano atual; `401`, `403`, `404`, `429`, `451` e `5xx` tratados explicitamente
 
+### PhoneInfoga
+
+- Serviço: imagem oficial `sundowndev/phoneinfoga:v2`, executada separadamente com
+  `serve --no-client`; o Vercel chama somente o gateway HTTPS autenticado em
+  `PHONEINFOGA_API_URL`
+- Credencial: `PHONEINFOGA_API_TOKEN`, armazenada no cofre interno e validada pelo gateway;
+  `NUMVERIFY_API_KEY`, `GOOGLECSE_CX` e `GOOGLE_API_KEY` são opcionais e chegam ao serviço
+  somente no request server-side do scanner correspondente
+- Endpoints usados: `POST /api/v2/numbers` e `POST /api/v2/scanners/{scanner}/run`
+- Curadoria: normalização, local, Google Search, OVH, Numverify e Google CSE; links de
+  pesquisa são referências para análise autorizada, e respostas brutas não chegam ao cliente
+- Limites: timeout de 30 segundos no plugin; erros de scanners individuais não interrompem
+  os demais; nenhum número, token ou resultado detalhado é gravado no histórico
+- Operação: `infra/phoneinfoga/docker-compose.yml` mantém a porta interna fora da rede
+  pública e o gateway aceita apenas `Authorization: Bearer` com o token configurado
+
+### GHunt
+
+- Serviço: `infra/ghunt/docker-compose.yml` mantém o pacote oficial em um runner Python
+  separado; a API chama somente o gateway HTTPS autenticado em `GHUNT_API_URL`
+- Credencial: `GHUNT_API_TOKEN`, armazenada no cofre interno e validada pelo gateway; a
+  sessão/cookies do Google ficam no volume privado do runner e nunca no frontend, histórico
+  ou variáveis do Vercel
+- Endpoint usado: `POST /api/v2/email`, limitado a alvos do tipo `email`
+- Curadoria: presença, nome, Gaia ID, última atualização, foto de perfil, serviços e sinais
+  resumidos de Play Games, Maps e Calendar; JSON bruto, cookies, tokens, eventos, HTML e
+  contatos não são devolvidos
+- Limites: timeout de 90 segundos no plugin, 105 segundos no runner, corpo limitado e
+  erros de sessão/rate limit/indisponibilidade tratados como mensagens seguras
+- Licença: o pacote oficial está sob AGPL-3.0; permanece isolado em container e não teve
+  código copiado para o backend
+
+### Sherlock
+
+- Avaliação registrada em [`docs/sherlock-integration.md`](docs/sherlock-integration.md)
+- A ferramenta oficial é uma CLI Python, faz consultas externas por serviço e grava
+  relatórios em arquivos; o `--json` documentado carrega dados de sites, não é um exportador
+  de resultados JSON para o dashboard
+- Decisão: não executar a CLI no runtime serverless da Vercel. O próximo passo é um runner
+  Python/Docker separado, HTTPS privado e token interno, seguindo `supportedTargetKinds:
+  ['username']`
+- Escopo público futuro: username, presença e URL por serviço. Respostas brutas, cookies,
+  proxies, stdout e credenciais nunca devem sair do runner
+- Dependências e follow-up estão descritos na GAB-93, vinculada à GAB-69
+
+### Osintgram
+
+- Avaliação registrada em [`docs/osintgram-integration.md`](docs/osintgram-integration.md)
+- A ferramenta exige uma conta/senha em `credentials.ini` ou um token HikerAPI, depende
+  de `instagram-private-api` e possui shell interativo com saída em arquivos
+- O escopo oficial inclui seguidores, contatos, stories e mídia; isso não entra no
+  dashboard sem curadoria e autorização específica
+- Decisão: não executar na Vercel, não guardar senha/cookies e não copiar o código GPL-3.0
+  para o backend. Uma retomada depende de runner externo e revisão de licenciamento
+
+### Command tools
+
+- Implementação registrada em [`docs/command-tools-integration.md`](docs/command-tools-integration.md)
+- Serviço: `infra/command-tools/docker-compose.yml`, com gateway HTTPS separado do runner
+- Credencial: `COMMAND_TOOLS_API_TOKEN`, armazenada no cofre; URL operacional em
+  `COMMAND_TOOLS_API_URL`
+- Endpoint: `POST /api/v1/scan`, aceitando somente `tool`, `target` e `profile: safe`
+- Nmap usa TCP connect/top 100 e detecção leve; Katana usa crawl curto; Subfinder é
+  passivo; Gobuster usa wordlist interna pequena e fica desabilitado por padrão
+- O runner limita concorrência, timeout, tamanho de saída e bloqueia alvos locais/privados;
+  stdout, stderr, banners e argumentos não são devolvidos ao cliente
+- Próximos candidatos avaliados separadamente: `httpx`, `dnsx`, `tlsx` e `naabu`
+
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
 - [x] Separar a barra lateral em páginas de Análise, Ferramentas, Histórico e Credenciais
@@ -218,8 +299,15 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Permitir recolher e expandir a caixa de filtros da página de Análise
 - [x] Transformar o histórico em página de auditoria com ação “Usar novamente”
 - [x] Aplicar nome OSINT Pier, símbolo PierSec, paleta e tipografia do brand kit
+<<<<<<< HEAD
 - [x] Permitir configurar a foto do perfil via Supabase Auth metadata e reutilizá-la no
       cabeçalho, exibindo o e-mail apenas no hover do avatar
+=======
+- [x] Criar página separada de documentação interna passo a passo, acessível fora
+      da sidebar pelo link no rodapé e pela rota `/docs`
+- [x] Evoluir a documentação para uma experiência profissional com navegação própria,
+      busca local, onboarding, catálogo vivo e referências por seção
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 
 ---
 
@@ -265,18 +353,34 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar commit final, enviar ao repositório Piersec/OSINT-PIER e concluir deploy de
       preview protegido no projeto Vercel conectado
 
-## Fase 10 — Acesso interno, cofre e segurança do deploy
+## Fase 10 — Acesso interno, administração de integrações, cofre e segurança do deploy
+
+### Autenticação interna
 
 - [x] Exibir somente um formulário de login por e-mail e senha, sem cadastro externo
 - [x] Persistir a sessão no navegador e oferecer saída da conta autenticada
 - [x] Enviar o access token nas requisições do frontend
 - [x] Validar a sessão no backend antes de liberar checks, histórico e administração
+- [x] Disponibilizar perfil autenticado com avatar privado, troca de senha e medidor de
+      força para rejeitar a senha inicial fraca
+- [x] Exigir a troca da senha no primeiro acesso por modal sem opção de fechar
+- [x] Oferecer sugestão local de senha forte no modal obrigatório, com preenchimento
+      editável e opção de visualizar antes de salvar
+- [x] Conectar configuração e verificação de MFA por TOTP no perfil, com desafio após
+      login e enforcement de `aal2` nas rotas da API
+- [x] Solicitar a ativação opcional do MFA no login para contas sem fator verificado,
+      oferecendo `Ativar agora` e `Ativar mais tarde` apenas para a sessão atual
+- [ ] Confirmar no painel do projeto Supabase a expiração dos JWTs em 3600 segundos
+      (1 hora); essa configuração pertence ao Auth hospedado e não ao frontend
 - [ ] Desativar manualmente o cadastro público no provedor Email do Supabase
+
+### Administração de integrações
+
 - [x] Separar visualmente o cofre criptografado do painel de status e gerenciamento das
       integrações, sem revelar valores armazenados
 - [x] Exibir, por plugin, habilitação, presença da credencial e origem (cofre ou ambiente)
-- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a fase sem usuários,
-      mantendo a autorização isolada para substituição futura por RBAC
+- [x] Permitir abrir o cofre interno sem `ADMIN_TOKEN` durante a transição para Supabase
+      Auth, mantendo a autorização isolada para substituição futura por RBAC
 - [x] Persistir o cofre de integrações cifrado no Supabase com RLS, mantendo a chave
       mestra e o token administrativo fora do banco
 - [x] Tornar o adaptador serverless tolerante a variáveis opcionais vazias e registrar
@@ -391,20 +495,18 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   agora parte da raiz do monorepo e inclui explicitamente o backend compilado e os
   plugins. O cliente também ignora um `NEXT_PUBLIC_API_URL` local configurado por engano
   em uma página hospedada e retorna ao endpoint same-origin `/api`.
-- `2026-08-21` — Fase 10 iniciada: login fechado por e-mail e senha com Supabase Auth,
-  sem cadastro no frontend. A sessão é persistida no navegador, o access token segue
-  para a API e o backend valida a sessão antes das operações da plataforma. A criação
-  de usuários e o bloqueio do cadastro público continuam sendo configurações manuais
-  no painel do Supabase.
-- `2026-08-21` — Pipeline de colaboração criado em `COLLABORATION.md`: leitura
-  obrigatória, posse de escopo no Linear, regras de branches/worktrees, arquivos de alto
-  conflito, handoff, validações e commits atômicos para evitar alterações concorrentes.
 - `2026-08-21` — Fase 10 iniciada: o painel de credenciais passou a separar o cofre do
   status das integrações, mostrando habilitação, presença da chave e origem sem expor
-  segredos. O Supabase foi verificado novamente: existe apenas `public.analysis_history`,
-  com RLS ativo e advisor de segurança sem lints. A proteção do Vercel permanece ativa
-  por coerência com o serviço interno; a documentação do Vercel confirma bypass
-  autenticado para as rotas de API sem desativar a proteção.
+  segredos. O cofre passou a persistir valores cifrados em `public.integration_credentials`
+  com RLS e acesso exclusivo para `service_role`.
+- `2026-08-21` — O login fechado por e-mail e senha com Supabase Auth foi adicionado sem
+  cadastro no frontend. A sessão é persistida no navegador, o access token segue para a
+  API e o backend valida a sessão antes das operações da plataforma. A criação de
+  usuários e o bloqueio do cadastro público continuam sendo configurações manuais no
+  painel do Supabase.
+- `2026-08-21` — A proteção do Vercel permanece ativa por coerência com o serviço interno;
+  testes autenticados podem usar bypass sem tornar `/api` e o painel administrativo
+  públicos.
 - `2026-08-21` — Corrigido o caminho padrão dos dados locais quando o Next é iniciado
   pelo workspace `apps/web`: o cofre criptografado e as flags de checks agora continuam
   apontando para o `.data` da raiz do monorepo, evitando que o painel mostre chaves como
@@ -425,17 +527,15 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-08-21` — O cofre de integrações deixou de depender do filesystem efêmero da
   Vercel: credenciais são cifradas com AES-256-GCM no backend e persistidas em
   `public.integration_credentials` no Supabase, com RLS e acesso somente para
-  `service_role`. Na implementação original, a interface exigia `ADMIN_TOKEN` e nunca
-  recebia os valores armazenados.
-- `2026-08-21` — Por decisão explícita do proprietário, o `ADMIN_TOKEN` foi removido
-  temporariamente do fluxo do painel enquanto ainda não existem contas de usuário.
-  As rotas administrativas continuam separadas e deverão receber autenticação/RBAC
-  antes de qualquer exposição pública.
+  `service_role`. O gate adicional de `ADMIN_TOKEN` foi removido durante a transição
+  para Supabase Auth; as rotas administrativas continuam protegidas por sessão
+  autenticada e aguardam uma camada de RBAC mais granular.
 - `2026-08-21` — GAB-76: corrigido o erro genérico ao salvar credenciais quando o cofre
   persistente está ausente ou indisponível. A API agora responde `503` com orientação
   segura para configurar Supabase e a chave mestra, sem incluir o segredo enviado. Os
   conflitos Git persistidos em configuração, testes, documentação e plano também foram
   resolvidos preservando autenticação Supabase e o cofre sem `ADMIN_TOKEN`.
+<<<<<<< HEAD
 - `2026-08-24` — Nuclei adicionado como scanner de vulnerabilidades no lugar do consolidado
   baseado em Shodan. O plugin executa o CLI local sem shell, bloqueia rede privada e
   templates intrusivos, interpreta JSONL curado e alimenta o gráfico com NVD, EPSS e KEV;
@@ -446,3 +546,100 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   O toggle administrativo de plugins recebeu atualização otimista com rollback seguro.
   A análise agora oferece JSON e um relatório PDF em janela de impressão, sem nova
   dependência ou envio de resultados ao backend.
+=======
+- `2026-08-21` — Pipeline de colaboração atualizada em `COLLABORATION.md`: toda tarefa
+  sincroniza a base com `pull`, usa branch exclusiva e faz `push`; após validação, a
+  entrega é integrada e publicada na `master` autorizada pelo proprietário.
+- `2026-08-21` — GAB-79: perfil autenticado implementado com upload de avatar em bucket
+  privado do Supabase, troca de senha com análise local de força e modal obrigatório para
+  contas sem `password_changed_at` (incluindo o acesso inicial `admin123`). O cartão de MFA
+  ficou preparado como próxima etapa; a migration `create_profile_avatars` foi aplicada no
+  projeto Supabase conectado e as policies restringem cada arquivo ao próprio usuário.
+- `2026-08-22` — GAB-80: MFA TOTP conectado ao perfil e ao login. O usuário pode iniciar
+  enrollment com QR Code/segredo, confirmar o autenticador, remover fatores e informar o
+  código no próximo login. O backend também rejeita tokens `aal1` quando o usuário possui
+  um fator TOTP verificado, liberando as rotas apenas após `aal2`. SMS e recovery codes
+  continuam fora do escopo.
+- `2026-08-24` — GAB-81: contas sem MFA TOTP verificado agora recebem um modal no login
+  com as opções `Ativar agora` (abre o perfil) e `Ativar mais tarde` (dispensa somente
+  nesta sessão). O desafio obrigatório permanece para contas com MFA. A expiração JWT do
+  projeto hospedado deve ser confirmada manualmente no Auth do Supabase em 3600 segundos;
+  a documentação do Supabase indica esse valor como padrão de 1 hora, mas a configuração
+  atual do projeto não foi exposta pelo conector disponível.
+- `2026-08-24` — GAB-82: o modal obrigatório de troca de senha agora oferece uma sugestão
+  forte gerada localmente com Web Crypto, preenche confirmação automaticamente e permite
+  visualizar ou editar a combinação antes do envio. Nenhuma senha sugerida é persistida ou
+  registrada.
+- `2026-08-24` — GAB-84: o cofre persistente e o histórico passaram a distinguir a chave
+  secreta moderna `sb_secret_...` da `service_role` legada. A chave moderna permanece
+  somente no header `apikey`, enquanto a legada mantém o Bearer JWT; isso permite cadastrar
+  e usar as chaves dos plugins pela página Credenciais sem armazená-las em texto puro.
+- `2026-08-24` — GAB-63: PhoneInfoga foi analisado pela documentação oficial. A ferramenta
+  é um binário/serviço REST stateless em Go, com scanners opcionais e licença GPL-3.0; por
+  isso, não será executada como processo dentro do Vercel nem terá código copiado para o
+  backend. A decisão pendente é implementar um plugin nativo limitado (normalização local,
+  fontes autorizadas sem chave e links de pesquisa manual) ou criar um adapter para um
+  serviço PhoneInfoga hospedado separadamente. A integração permanece aberta até essa
+  escolha, e nenhum número consultado é persistido.
+- `2026-08-24` — GAB-63 implementado: o backend agora chama o PhoneInfoga oficial por
+  `POST /api/v2/numbers` e pelos scanners base/opcionais, usando token server-side e
+  curadoria por scanner. A stack `infra/phoneinfoga` adiciona gateway Docker autenticado,
+  mantém a porta interna isolada e permite configurar Numverify/Google CSE pelo cofre da
+  aplicação. Validação: 74 testes da API, 18 do frontend, typecheck, lint, build, compose
+  config, build da imagem e smoke REST oficial com `401` sem token e `200` autenticado.
+- `2026-08-24` — GAB-86: criada a página separada de documentação interna do produto,
+  sem item na sidebar. O manual está disponível pelo link no rodapé e pela rota `/docs`,
+  cobre login, análise, ferramentas, histórico, cofre, perfil, MFA, tema e
+  troubleshooting, e lê o catálogo atual de checks para acompanhar novas integrações.
+  A manutenção futura deve atualizar a data/versionamento do componente, o plano e a
+  issue correspondente no Linear.
+- `2026-08-24` — GAB-87: a documentação foi redesenhada como uma experiência própria de
+  produto, com sidebar da documentação, busca local por tarefa/ferramenta, hero de
+  onboarding, atalhos de uso, índice contextual, status do catálogo e layout responsivo.
+  A página continua separada em `/docs`, protegida pela autenticação existente e sem item
+  na sidebar do dashboard.
+- `2026-08-24` — GAB-88: a página de Análise passou a exibir um panorama Recharts com
+  distribuição dos estados, duração por fonte e insights de cobertura, sucesso, atenção
+  e tempo médio. Os gráficos atualizam progressivamente durante a execução e a seção de
+  documentação foi atualizada para explicar a leitura desses sinais.
+- `2026-08-24` — GAB-89: o AbuseIPDB passou a solicitar `verbose` para exibir país e
+  renderizar um card curado com confiança, denúncias, rede, contexto geográfico quando
+  fornecido, com enriquecimento aproximado de cidade/ASN quando necessário, e links de
+  referência. A grade de resultados agora mostra somente checks com sucesso; erros e
+  integrações puladas continuam no resumo/insights sem criar cards de ruído.
+- `2026-08-24` — GAB-90: o panorama Recharts passou a agregar vulnerabilidades por
+  severidade, CISA KEV, EPSS alto e falhas observadas em headers, cookies, TLS e
+  reputação. A rodada ativa agora é restaurada pela sessão do navegador, sem persistir
+  credenciais; requisições interrompidas retornam ao estado Aguardando.
+- `2026-08-24` — GAB-91: a análise passou a filtrar o catálogo pelo tipo de alvo
+  inferido, DNS e WHOIS/RDAP deixaram de aceitar IP como alvo compatível, e a grade
+  principal mantém somente respostas bem-sucedidas. Falhas e checks pulados seguem
+  agregados no panorama, enquanto a página individual de ferramentas preserva seus
+  detalhes de diagnóstico.
+- `2026-08-24` — GAB-92: o Panorama de segurança deixou de exibir métricas operacionais
+  de cobertura, sucesso, atenção, duração e distribuição dos checks. A seção agora
+  concentra índice de risco, CVEs críticas, exploração conhecida, postura, radar de
+  exposição, mapa de criticidade, reputação externa e falhas de segurança priorizadas.
+- `2026-08-24` — GAB-69: Sherlock foi avaliado pela documentação e pelo código oficiais.
+  A ferramenta é uma CLI Python MIT, sem exportador JSON de resultados pronto para o
+  dashboard, e depende de muitas consultas externas. A integração foi deliberadamente
+  adiada para um runner Python/Docker externo, autenticado e com limites operacionais;
+  nenhum processo Sherlock foi acoplado ao Vercel. A decisão e o contrato curado estão
+  em `docs/sherlock-integration.md`.
+- `2026-08-24` — GAB-65: Osintgram foi avaliado pela documentação oficial. A ferramenta
+  exige credencial de Instagram ou token HikerAPI, usa `instagram-private-api`, possui
+  comandos de coleta ampla e está sob GPL-3.0. A integração não será executada na Vercel,
+  não receberá senhas/cookies nem terá código copiado; o item foi encerrado como análise,
+  com retomada condicionada a runner isolado, autorização e revisão de licença em
+  `docs/osintgram-integration.md`.
+- `2026-08-24` — GAB-64: GHunt foi integrado como plugin server-side de e-mail e stack
+  Docker externa. O runner fixa GHunt 2.3.4/Python 3.13, mantém a sessão Google em volume
+  privado e devolve apenas um contrato curado; o gateway exige token e a API do Vercel só
+  conhece `GHUNT_API_URL`. A ativação em produção ainda exige hospedar o gateway, autenticar
+  uma conta de investigação autorizada e salvar o token no cofre.
+- `2026-08-25` — GAB-94: Nmap, Katana, Gobuster e Subfinder foram adicionados como checks
+  independentes por meio de `infra/command-tools`, um gateway autenticado e um runner
+  Docker sem shell arbitrário. Os perfis são limitados, o Gobuster começa desabilitado,
+  e o dashboard recebe somente hosts, portas, URLs, subdomínios e caminhos curados. A
+  ativação em produção ainda exige hospedar o gateway HTTPS e salvar o token no cofre.
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15

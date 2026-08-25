@@ -54,6 +54,8 @@ function authorizeAdmin(
   // Temporary internal mode requested by the owner. Keep the authorization
   // seam isolated so a future Supabase Auth/RBAC layer can replace this
   // function without changing credential endpoints or storage.
+  void _config;
+  void _vault;
   void reply;
   return true;
 }
@@ -94,6 +96,12 @@ async function authorizeUser(
 
   const status = await auth.validateAccessToken(accessToken);
   if (status === 'authorized') return true;
+  if (status === 'mfa_required') {
+    void reply.code(403).send({
+      error: 'Confirme o código do seu autenticador para acessar a plataforma.',
+    });
+    return false;
+  }
   if (status === 'unavailable') {
     void reply
       .code(503)
@@ -301,6 +309,7 @@ export async function createApp(
           target: normalizedTarget,
           credentialProvider,
           defaultTimeoutMs: config.checkTimeoutMs,
+          environment: dependencies.environment ?? process.env,
         }),
       );
       void reply.header('x-osint-cache', execution.cacheStatus);
@@ -317,6 +326,7 @@ export async function createApp(
         const names = new Set(vault.enabled ? await vault.listNames() : []);
         for (const check of registry.all()) {
           for (const name of check.requiredEnv) names.add(name);
+          for (const name of check.optionalEnv ?? []) names.add(name);
         }
 
         return await Promise.all(
@@ -399,7 +409,8 @@ export async function createApp(
       try {
         await vault.set(name, value);
       } catch (error) {
-        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        if (!(error instanceof CredentialStoreDisabledError))
+          app.log.error(error);
         return credentialStoreFailure(reply);
       }
       cache.clear();
@@ -419,7 +430,8 @@ export async function createApp(
       try {
         await vault.remove(name);
       } catch (error) {
-        if (!(error instanceof CredentialStoreDisabledError)) app.log.error(error);
+        if (!(error instanceof CredentialStoreDisabledError))
+          app.log.error(error);
         return credentialStoreFailure(reply);
       }
       cache.clear();

@@ -15,9 +15,16 @@ import {
   runCheck,
   saveHistory,
 } from './api/client';
+import { AnalysisInsights } from './components/analysis/AnalysisInsights';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
+import { getSuccessfulChecks } from './features/analysis/visible-results';
+import { getCompatibleChecks } from './features/analysis/compatible-checks';
+import {
+  readAnalysisSession,
+  writeAnalysisSession,
+} from './features/analysis/analysis-session';
 import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import {
   buildAnalysisExport,
@@ -29,8 +36,10 @@ import {
   type AnalysisHistoryEntry,
 } from './features/history/analysis-history';
 import { useAuth } from './features/auth/AuthGate';
+import { ProfilePage } from './features/profile/ProfilePage';
 
-type Page = 'analysis' | 'results' | 'history' | 'credentials' | 'settings';
+type Page =
+  'analysis' | 'results' | 'history' | 'credentials' | 'profile' | 'settings';
 type Theme = 'dark' | 'white';
 
 const pageMeta: Record<
@@ -59,6 +68,11 @@ const pageMeta: Record<
     description:
       'Gerencie chaves de APIs e a disponibilidade dos plugins internos.',
   },
+  profile: {
+    eyebrow: 'OSINT Pier / identidade',
+    title: 'Seu perfil',
+    description: 'Atualize sua foto e mantenha a segurança da conta em dia.',
+  },
   settings: {
     eyebrow: 'OSINT Pier / preferências',
     title: 'Configurações',
@@ -70,10 +84,18 @@ const toolDescriptions: Record<string, string> = {
   'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',
   cookies: 'Inspeciona cookies HTTP e sinaliza flags de segurança.',
   'dns-records': 'Resolve registros A, AAAA, MX, NS, TXT e CNAME.',
+  ghunt:
+    'Consulta sinais públicos de um e-mail Google por um runner isolado e autorizado.',
   'http-headers': 'Lê headers HTTP e verifica políticas de segurança.',
   'hunter-io':
     'Busca e-mails profissionais de um domínio ou verifica um e-mail.',
   'ip-info': 'Descobre os endereços IP associados ao domínio consultado.',
+  gobuster:
+    'Enumera caminhos web com uma wordlist interna curta e perfil controlado.',
+  katana:
+    'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
+  nmap:
+    'Identifica portas TCP abertas e versões de serviço nos top ports.',
   'redirect-chain': 'Segue a cadeia de redirecionamentos HTTP do alvo.',
   'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
   'server-location': 'Estima a localização e a rede do IP público resolvido.',
@@ -83,11 +105,20 @@ const toolDescriptions: Record<string, string> = {
   shodan: 'Consulta portas, serviços e exposição observada pelo Shodan.',
   'ssl-certificate':
     'Inspeciona validade, emissor e subject do certificado TLS.',
+  subfinder:
+    'Descobre subdomínios de forma passiva usando fontes configuradas no runner.',
   'tech-stack': 'Detecta tecnologias e frameworks expostos pela página.',
   'virus-total': 'Consulta reputação e detecções agregadas do VirusTotal.',
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
+<<<<<<< HEAD
+=======
+  phoneinfoga:
+    'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
+  'shodan-vulnerabilities':
+    'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 };
 
 type ToolCategory = 'web' | 'threat' | 'personal';
@@ -115,10 +146,15 @@ const toolCategories: Record<string, ToolCategory> = {
   'abuse-ipdb': 'threat',
   cookies: 'web',
   'dns-records': 'web',
+  ghunt: 'personal',
+  gobuster: 'web',
   'http-headers': 'web',
   'hunter-io': 'personal',
   'ip-info': 'web',
+  katana: 'web',
+  nmap: 'web',
   'osint-framework': 'web',
+  phoneinfoga: 'personal',
   'redirect-chain': 'web',
   'robots-sitemap': 'web',
   'server-location': 'web',
@@ -126,25 +162,13 @@ const toolCategories: Record<string, ToolCategory> = {
   nuclei: 'threat',
   shodan: 'threat',
   'ssl-certificate': 'web',
+  subfinder: 'web',
   'tech-stack': 'web',
   'virus-total': 'threat',
   'whois-rdap': 'web',
 };
 
 const plannedTools = [
-  {
-    id: 'phoneinfoga',
-    label: 'PhoneInfoga',
-    category: 'personal' as const,
-    description:
-      'Planejado: depende de CLI/provedores configurados para consultas telefônicas.',
-  },
-  {
-    id: 'ghunt',
-    label: 'GHunt',
-    category: 'personal' as const,
-    description: 'Planejado: depende de sessão/cookies autorizados do Google.',
-  },
   {
     id: 'osintgram',
     label: 'Osintgram',
@@ -286,9 +310,14 @@ function UserAvatar({
 
 function readPage(hash: string): Page {
   const value = hash.replace(/^#/, '') as Page;
-  return ['analysis', 'results', 'history', 'credentials', 'settings'].includes(
-    value,
-  )
+  return [
+    'analysis',
+    'results',
+    'history',
+    'credentials',
+    'profile',
+    'settings',
+  ].includes(value)
     ? value
     : 'analysis';
 }
@@ -347,7 +376,11 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
+<<<<<<< HEAD
   const { user, signOut, updateAvatar } = useAuth();
+=======
+  const { user, signOut, updateUser } = useAuth();
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -371,9 +404,13 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
+<<<<<<< HEAD
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
+=======
+  const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
@@ -410,11 +447,46 @@ export function App() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const session = readAnalysisSession();
+    if (session) {
+      setTarget(session.target ?? '');
+      setLastTarget(session.target);
+      setLastTargetKind(session.targetKind);
+      setSelectedCheckIds(session.selectedCheckIds);
+      setStates(session.states);
+      setHistory(session.history);
+    }
+    setAnalysisSessionReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!analysisSessionReady) return;
+    writeAnalysisSession({
+      target: lastTarget,
+      targetKind: lastTargetKind,
+      selectedCheckIds,
+      states,
+      history,
+    });
+  }, [
+    analysisSessionReady,
+    history,
+    lastTarget,
+    lastTargetKind,
+    selectedCheckIds,
+    states,
+  ]);
+
   const activeChecks = useMemo(
     () => (checksQuery.data ?? []).filter((check) => check.enabled),
     [checksQuery.data],
   );
-  const compatibleChecks = activeChecks;
+  const analysisTargetKind = target.trim() ? inferTargetKind(target) : null;
+  const compatibleChecks = useMemo(
+    () => getCompatibleChecks(activeChecks, analysisTargetKind),
+    [activeChecks, analysisTargetKind],
+  );
   const checks = useMemo(
     () =>
       selectedCheckIds === null
@@ -444,7 +516,9 @@ export function App() {
   }, [history, historyQuery.data]);
 
   const analysisSummary = useMemo(() => {
-    const currentStates = Object.values(states);
+    const currentStates = checks
+      .map((check) => states[check.id])
+      .filter((state): state is CardState => Boolean(state));
     return {
       resolved: currentStates.filter(
         (state) => state.status === 'done' || state.status === 'request-error',
@@ -460,7 +534,12 @@ export function App() {
       loading: currentStates.filter((state) => state.status === 'loading')
         .length,
     };
-  }, [states]);
+  }, [checks, states]);
+
+  const successfulChecks = useMemo(
+    () => getSuccessfulChecks(checks, states),
+    [checks, states],
+  );
 
   const canExport = Boolean(
     lastTarget &&
@@ -678,6 +757,7 @@ export function App() {
               ['results', 'Ferramentas', 'results'],
               ['history', 'Histórico', 'history'],
               ['credentials', 'Credenciais', 'credentials'],
+              ['profile', 'Perfil', 'profile'],
               ['settings', 'Configurações', 'settings'],
             ] as const
           ).map(([itemPage, label, icon]) => (
@@ -720,6 +800,12 @@ export function App() {
                   <>
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.5v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1Z" />
+                  </>
+                )}
+                {icon === 'profile' && (
+                  <>
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5 21a7 7 0 0 1 14 0" />
                   </>
                 )}
               </svg>
@@ -961,6 +1047,14 @@ export function App() {
                     <small>Erros ou integrações puladas</small>
                   </article>
                 </div>
+
+                {checks.length > 0 && (
+                  <AnalysisInsights
+                    checks={checks}
+                    states={states}
+                    target={lastTarget}
+                  />
+                )}
               </section>
 
               <section className="results-section" id="results">
@@ -971,7 +1065,8 @@ export function App() {
                   </div>
                   <div className="section-heading__actions">
                     <span className="section-count">
-                      {checks.length} módulos
+                      {successfulChecks.length} com dados · {checks.length}{' '}
+                      módulos
                     </span>
                     <button
                       className="button button--secondary export-button"
@@ -1028,16 +1123,66 @@ export function App() {
                       </p>
                     </div>
                   )}
+<<<<<<< HEAD
                 {checks.some((check) => check.id === 'nuclei') && (
                   <VulnerabilitySummary
                     check={checks.find((check) => check.id === 'nuclei')!}
                     onRetry={() => retryCheck('nuclei')}
                     state={states.nuclei ?? { status: 'idle' }}
                   />
+=======
+                {checks.some(
+                  (check) => check.id === 'shodan-vulnerabilities',
+                ) &&
+                  states['shodan-vulnerabilities']?.status === 'done' &&
+                  states['shodan-vulnerabilities'].result.status ===
+                    'success' && (
+                    <VulnerabilitySummary
+                      check={checks.find(
+                        (check) => check.id === 'shodan-vulnerabilities',
+                      )!}
+                      onRetry={() => retryCheck('shodan-vulnerabilities')}
+                      state={
+                        states['shodan-vulnerabilities'] ?? { status: 'idle' }
+                      }
+                    />
+                  )}
+                {lastTarget && analysisSummary.attention > 0 && (
+                  <div className="results-filter-notice" role="status">
+                    <span aria-hidden="true">i</span>
+                    <p>
+                      {analysisSummary.attention}{' '}
+                      {analysisSummary.attention === 1
+                        ? 'fonte não retornou dados e foi ocultada.'
+                        : 'fontes não retornaram dados e foram ocultadas.'}{' '}
+                      O panorama acima mantém esse detalhe para você revisar.
+                    </p>
+                  </div>
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
                 )}
+                {lastTarget &&
+                  analysisSummary.loading === 0 &&
+                  analysisSummary.resolved === checks.length &&
+                  checks.length > 0 &&
+                  successfulChecks.length === 0 && (
+                    <div className="empty-state results-filter-empty">
+                      <span>00</span>
+                      <h3>Nenhuma fonte retornou dados</h3>
+                      <p>
+                        As respostas desta rodada foram ocultadas porque não
+                        concluíram com sucesso. Revise o panorama de atenção e
+                        tente novamente.
+                      </p>
+                    </div>
+                  )}
                 <div className="results-grid">
+<<<<<<< HEAD
                   {checks
                     .filter((check) => check.id !== 'nuclei')
+=======
+                  {successfulChecks
+                    .filter((check) => check.id !== 'shodan-vulnerabilities')
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
                     .map((check) => (
                       <ResultCard
                         key={check.id}
@@ -1312,6 +1457,10 @@ export function App() {
             </>
           )}
 
+          {page === 'profile' && (
+            <ProfilePage onUserUpdated={updateUser} user={user} />
+          )}
+
           {page === 'settings' && (
             <section className="settings-page">
               <div className="page-lead settings-lead">
@@ -1424,6 +1573,9 @@ export function App() {
 
         <footer className="site-footer">
           <span>OSINT Pier · PierSec intelligence</span>
+          <a className="site-footer__docs" href="/docs">
+            Documentação do produto
+          </a>
           <span>Uso interno · segredos nunca expostos pelo cliente</span>
         </footer>
       </div>

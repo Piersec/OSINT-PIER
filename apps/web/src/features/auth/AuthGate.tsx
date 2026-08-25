@@ -3,20 +3,33 @@
 import {
   createContext,
   type FormEvent,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import {
+  MfaCheckErrorScreen,
+  MfaChallengeScreen,
+  MfaOptionalPrompt,
+} from './MfaChallenge';
+import { PasswordRotationModal } from '../profile/ProfilePage';
+import { analyzePassword } from './password-strength';
 
 interface AuthContextValue {
   user: User;
   signOut: () => Promise<void>;
+<<<<<<< HEAD
   updateAvatar: (avatarData: string) => Promise<void>;
+=======
+  updateUser: (user: User) => void;
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+type MfaState = 'idle' | 'checking' | 'required' | 'verified' | 'error';
 
 function authErrorMessage(message: string): string {
   const normalized = message.toLowerCase();
@@ -43,7 +56,13 @@ function applyStoredTheme() {
   }
 }
 
-function LoginForm() {
+function LoginForm({
+  notice,
+  onWeakPassword,
+}: {
+  notice?: string | null;
+  onWeakPassword: () => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +80,11 @@ function LoginForm() {
     });
     setSubmitting(false);
 
-    if (signInError) setError(authErrorMessage(signInError.message));
+    if (signInError) {
+      setError(authErrorMessage(signInError.message));
+      return;
+    }
+    if (analyzePassword(password).strength !== 'strong') onWeakPassword();
   }
 
   return (
@@ -101,6 +124,12 @@ function LoginForm() {
             value={password}
           />
 
+          {notice && (
+            <p className="auth-notice" role="status">
+              {notice}
+            </p>
+          )}
+
           {error && (
             <p className="auth-error" role="alert">
               {error}
@@ -109,7 +138,7 @@ function LoginForm() {
 
           <button
             className="button auth-submit"
-            disabled={submitting}
+            disabled={submitting || !supabase}
             type="submit"
           >
             {submitting ? 'Validando acesso…' : 'Entrar'}
@@ -134,6 +163,77 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [mfaState, setMfaState] = useState<MfaState>('idle');
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaPromptVisible, setMfaPromptVisible] = useState(false);
+  const [mfaPromptDismissed, setMfaPromptDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setMustChangePassword(false);
+      return;
+    }
+    const changedAt = user.user_metadata?.password_changed_at;
+    setMustChangePassword(
+      !(typeof changedAt === 'string' && changedAt.length > 0),
+    );
+  }, [user]);
+
+  const passwordRotationRequired = Boolean(
+    user &&
+    (mustChangePassword ||
+      !(
+        typeof user.user_metadata?.password_changed_at === 'string' &&
+        user.user_metadata.password_changed_at.length > 0
+      )),
+  );
+
+  const assessMfa = useCallback(async () => {
+    if (!user || passwordRotationRequired) {
+      setMfaState('idle');
+      setMfaFactorId(null);
+      setMfaError(null);
+      setMfaPromptVisible(false);
+      return;
+    }
+    if (!supabase) {
+      setMfaState('verified');
+      setMfaPromptVisible(!mfaPromptDismissed);
+      return;
+    }
+
+    setMfaState('checking');
+    setMfaError(null);
+    const [aalResult, factorsResult] = await Promise.all([
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      supabase.auth.mfa.listFactors(),
+    ]);
+
+    if (aalResult.error || factorsResult.error || !aalResult.data) {
+      setMfaState('error');
+      setMfaFactorId(null);
+      setMfaError(
+        'Não foi possível confirmar o estado do seu autenticador. A sessão foi mantida bloqueada por segurança.',
+      );
+      return;
+    }
+
+    const factorId =
+      factorsResult.data?.totp?.find((factor) => factor.status === 'verified')
+        ?.id ?? null;
+    const requiresMfa =
+      aalResult.data.currentLevel !== 'aal2' &&
+      aalResult.data.nextLevel === 'aal2';
+    setMfaFactorId(factorId);
+    setMfaPromptVisible(!factorId && !mfaPromptDismissed);
+    setMfaState(requiresMfa && factorId ? 'required' : 'verified');
+  }, [mfaPromptDismissed, passwordRotationRequired, user]);
+
+  useEffect(() => {
+    void assessMfa();
+  }, [assessMfa]);
 
   useEffect(() => {
     applyStoredTheme();
@@ -155,8 +255,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        setMfaPromptDismissed(false);
+        setMfaPromptVisible(false);
+      }
       setUser(session?.user ?? null);
       setLoading(false);
       setError(null);
@@ -178,28 +282,71 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (error && !user) {
+  if (!user)
+    return (
+      <LoginForm
+        notice={error}
+        onWeakPassword={() => setMustChangePassword(true)}
+      />
+    );
+
+  function updateAuthenticatedUser(nextUser: User) {
+    setUser(nextUser);
+    const changedAt = nextUser.user_metadata?.password_changed_at;
+    setMustChangePassword(
+      !(typeof changedAt === 'string' && changedAt.length > 0),
+    );
+  }
+
+  async function signOut() {
+    await supabase?.auth.signOut();
+  }
+
+  if (
+    !passwordRotationRequired &&
+    (mfaState === 'idle' || mfaState === 'checking')
+  ) {
     return (
       <main className="auth-shell">
-        <section className="auth-card auth-card--message" role="alert">
-          <div className="auth-brand">
-            <img src="/piersec-logo.svg" alt="" />
-            <span>OSINT Pier</span>
-          </div>
-          <span className="eyebrow">Configuração necessária</span>
-          <h1>Login indisponível</h1>
-          <p className="auth-copy">{error}</p>
-        </section>
+        <div className="auth-loading" role="status">
+          Validando autenticação adicional…
+        </div>
       </main>
     );
   }
 
-  if (!user) return <LoginForm />;
+  if (!passwordRotationRequired && mfaState === 'required') {
+    return (
+      <MfaChallengeScreen
+        factorId={mfaFactorId}
+        onRetry={() => void assessMfa()}
+        onSignOut={signOut}
+        onVerified={() => {
+          setMfaState('verified');
+          setMfaError(null);
+        }}
+      />
+    );
+  }
+
+  if (!passwordRotationRequired && mfaState === 'error') {
+    return (
+      <MfaCheckErrorScreen
+        message={
+          mfaError ??
+          'Não foi possível validar a autenticação multifator desta sessão.'
+        }
+        onRetry={() => void assessMfa()}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   return (
     <AuthContext.Provider
       value={{
         user,
+<<<<<<< HEAD
         signOut: async () => {
           await supabase?.auth.signOut();
         },
@@ -231,9 +378,32 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           if (updateError) throw new Error('Não foi possível salvar a foto.');
           if (data.user) setUser(data.user);
         },
+=======
+        signOut,
+        updateUser: updateAuthenticatedUser,
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
       }}
     >
       {children}
+      {mustChangePassword && (
+        <PasswordRotationModal
+          onUserUpdated={updateAuthenticatedUser}
+          user={user}
+        />
+      )}
+      {mfaPromptVisible && !passwordRotationRequired && (
+        <MfaOptionalPrompt
+          onActivate={() => {
+            setMfaPromptDismissed(true);
+            setMfaPromptVisible(false);
+            window.location.hash = '#profile';
+          }}
+          onDismiss={() => {
+            setMfaPromptDismissed(true);
+            setMfaPromptVisible(false);
+          }}
+        />
+      )}
     </AuthContext.Provider>
   );
 }

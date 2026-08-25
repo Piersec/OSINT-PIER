@@ -5,12 +5,14 @@ import type { NormalizedTarget } from '../target/normalize-target.js';
 export interface CheckContext {
   signal: AbortSignal;
   credentials: Readonly<Record<string, string>>;
+  environment?: Readonly<Record<string, string | undefined>>;
 }
 
 export interface CheckPlugin {
   id: string;
   label: string;
   requiredEnv: readonly string[];
+  optionalEnv?: readonly string[];
   supportedTargetKinds?: readonly TargetKind[];
   timeoutMs?: number;
   run(target: NormalizedTarget, context: CheckContext): Promise<CheckResult>;

@@ -1,4 +1,39 @@
-export type SupabaseAuthStatus = 'authorized' | 'unauthorized' | 'unavailable';
+export type SupabaseAuthStatus =
+  'authorized' | 'mfa_required' | 'unauthorized' | 'unavailable';
+
+interface SupabaseUserResponse {
+  factors?: Array<{
+    factor_type?: unknown;
+    status?: unknown;
+  }>;
+}
+
+interface AccessTokenClaims {
+  aal?: unknown;
+}
+
+function readAccessTokenClaims(accessToken: string): AccessTokenClaims | null {
+  try {
+    const payload = accessToken.split('.')[1];
+    if (!payload) return null;
+    return JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8'),
+    ) as AccessTokenClaims;
+  } catch {
+    return null;
+  }
+}
+
+function hasVerifiedFactor(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const factors = (value as SupabaseUserResponse).factors;
+  return (
+    Array.isArray(factors) &&
+    factors.some(
+      (factor) => factor.status === 'verified' && factor.factor_type === 'totp',
+    )
+  );
+}
 
 export class SupabaseAuth {
   readonly #url?: string;
@@ -29,7 +64,14 @@ export class SupabaseAuth {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (response.ok) return 'authorized';
+      if (response.ok) {
+        const user = await response.json().catch(() => undefined);
+        const claims = readAccessTokenClaims(accessToken);
+        if (hasVerifiedFactor(user) && claims?.aal !== 'aal2') {
+          return 'mfa_required';
+        }
+        return 'authorized';
+      }
       if (response.status === 401 || response.status === 403)
         return 'unauthorized';
       return 'unavailable';

@@ -1,4 +1,5 @@
 import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
+import { AbuseIpdbResult } from './AbuseIpdbResult';
 
 export type CardState =
   | { status: 'idle' }
@@ -52,8 +53,13 @@ const keyLabels: Record<string, string> = {
   finalStatus: 'Status final',
   finalUrl: 'URL final',
   flags: 'Sinalizadores',
+  found: 'Encontrado',
   fingerprint256: 'Fingerprint SHA-256',
   firstName: 'Nome',
+  gaiaId: 'Gaia ID',
+  hasMapsReviews: 'Avaliações no Maps',
+  hasPlayGamesProfile: 'Perfil no Play Games',
+  hasPublicCalendar: 'Calendário público',
   hostnames: 'Hostnames',
   hostnameMatches: 'Hostname compatível',
   httpOnly: 'HttpOnly',
@@ -63,6 +69,7 @@ const keyLabels: Record<string, string> = {
   isp: 'ISP',
   lastReportedAt: 'Última denúncia',
   lastUpdate: 'Última atualização',
+  lastUpdated: 'Última atualização do perfil',
   location: 'Localização',
   network: 'Rede',
   nameservers: 'Nameservers',
@@ -72,6 +79,9 @@ const keyLabels: Record<string, string> = {
   pattern: 'Padrão de e-mail',
   ports: 'Portas abertas',
   position: 'Cargo',
+  profile: 'Perfil',
+  profilePhotoCustom: 'Foto personalizada',
+  profilePhotoUrl: 'Foto de perfil',
   protocol: 'Protocolo',
   quota: 'Cota da API',
   redirectCount: 'Redirecionamentos',
@@ -89,6 +99,11 @@ const keyLabels: Record<string, string> = {
   scope: 'Escopo',
   seniority: 'Senioridade',
   smtpCheck: 'Verificação SMTP',
+  service: 'Serviço',
+  product: 'Produto',
+  version: 'Versão',
+  method: 'Método',
+  length: 'Tamanho',
   status: 'Status',
   statusText: 'Mensagem HTTP',
   subject: 'Subject',
@@ -98,11 +113,19 @@ const keyLabels: Record<string, string> = {
   technologies: 'Tecnologias',
   timezone: 'Fuso horário',
   total: 'Total',
+  totalOpenPorts: 'Portas abertas',
   transport: 'Transporte',
   type: 'Tipo',
+  tool: 'Ferramenta',
+  truncated: 'Resultado limitado',
   usageType: 'Tipo de uso',
   value: 'Valor',
   vulnerabilities: 'Vulnerabilidades',
+  urls: 'URLs encontradas',
+  subdomains: 'Subdomínios encontrados',
+  paths: 'Caminhos encontrados',
+  path: 'Caminho',
+  statusCode: 'Código HTTP',
   webmail: 'Webmail',
   windowDays: 'Janela de análise',
   whitelisted: 'Lista permitida',
@@ -115,6 +138,12 @@ const hiddenFields: Record<string, Set<string>> = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isDetailedAbuseIpdbResult(data: unknown): boolean {
+  return (
+    isRecord(data) && ('abuseConfidenceScore' in data || 'reports' in data)
+  );
 }
 
 function labelForKey(key: string): string {
@@ -379,9 +408,14 @@ export function ResultCard({
               )}
             </div>
           )}
-          {state.result.data !== undefined && (
-            <ResultData checkId={check.id} data={state.result.data} />
-          )}
+          {state.result.data !== undefined &&
+            (check.id === 'abuse-ipdb' &&
+            state.result.status === 'success' &&
+            isDetailedAbuseIpdbResult(state.result.data) ? (
+              <AbuseIpdbResult data={state.result.data} />
+            ) : (
+              <ResultData checkId={check.id} data={state.result.data} />
+            ))}
           <footer className="result-card__footer">
             <span>Fonte: {state.result.source}</span>
             <span>{Math.round(state.result.durationMs)} ms</span>

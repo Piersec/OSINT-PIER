@@ -59,6 +59,9 @@ Regras importantes:
 - `id` deve ser único e usar kebab-case; `label` é o nome exibido no dashboard.
 - `requiredEnv` lista apenas os identificadores canônicos das credenciais. O valor real
   chega em `context.credentials` pelo cofre interno ou pelo ambiente.
+- `optionalEnv` lista credenciais que habilitam scanners ou recursos adicionais sem
+  impedir a execução do núcleo do plugin. Quando configuradas, elas também chegam em
+  `context.credentials`; quando ausentes, o plugin deve retornar o recurso como `skipped`.
 - `supportedTargetKinds` lista os tipos de consulta aceitos pelo plugin. Para checks web
   legados, o loader assume `domain`, `ip` e `url`; declare a lista explicitamente para
   plugins de nome, username, e-mail ou telefone.
@@ -76,11 +79,21 @@ Regras importantes:
 const check: CheckPlugin = {
   id: 'external-reputation',
   label: 'External reputation',
-  requiredEnv: ['EXTERNAL_API_KEY'],
+  requiredEnv: [],
+  optionalEnv: ['EXTERNAL_API_KEY'],
   async run(target, context) {
     const apiKey = context.credentials.EXTERNAL_API_KEY;
-    // O executor só chama este ponto quando apiKey está configurada.
+    // O executor injeta a chave apenas quando ela está configurada.
     // Use o signal e não devolva apiKey no resultado.
+    if (!apiKey) {
+      return {
+        id: check.id,
+        status: 'skipped',
+        error: 'EXTERNAL_API_KEY não configurada.',
+        source: 'configuration',
+        durationMs: 0,
+      };
+    }
     return success(check.id, 'External API', {
       target: target.value,
       configured: Boolean(apiKey),
@@ -96,6 +109,10 @@ Depois de criar o módulo:
 3. confirme que o renderer genérico apresenta os campos curados;
 4. atualize a seção correspondente em `PLAN.md` e documente limites da API;
 5. abra o painel administrativo e habilite o plugin, se ele tiver sido desabilitado.
+
+Para um serviço externo, mantenha a URL não sensível no ambiente do backend e o token
+de acesso em `requiredEnv`. O plugin deve enviar o token somente no request server-side;
+o frontend nunca recebe a URL privada, o token ou as credenciais opcionais.
 
 O catálogo público expõe `enabled` e `configured`. Plugins desabilitados não aparecem no
 dashboard e a API responde `409` se alguém tentar executá-los diretamente.

@@ -1,5 +1,6 @@
 import type { CheckPlugin } from '../../core/checks/contract.js';
 import { failure, success } from '../../core/checks/results.js';
+import { ANALYSIS_USER_AGENT } from '../../core/network/http.js';
 import { isPublicAddress, resolveAddresses } from '../../core/network/ip.js';
 
 const id = 'abuse-ipdb';
@@ -13,6 +14,9 @@ interface AbuseIpDbData {
   isWhitelisted?: boolean | null;
   abuseConfidenceScore?: number;
   countryCode?: string | null;
+  countryName?: string | null;
+  city?: string | null;
+  asn?: number | string | null;
   usageType?: string | null;
   isp?: string | null;
   domain?: string | null;
@@ -25,6 +29,27 @@ interface AbuseIpDbData {
 
 interface AbuseIpDbResponse {
   data?: AbuseIpDbData;
+}
+
+interface IpWhoLocationResponse {
+  success?: boolean;
+  country?: string;
+  country_code?: string;
+  city?: string;
+  connection?: {
+    asn?: number;
+    isp?: string;
+    domain?: string;
+  };
+}
+
+interface LocationEnrichment {
+  countryCode?: string | null;
+  countryName?: string | null;
+  city?: string | null;
+  asn?: number | null;
+  isp?: string | null;
+  domain?: string | null;
 }
 
 function numberHeader(response: Response, name: string): number | null {
@@ -49,6 +74,34 @@ function apiFailure(status: number) {
   if (status === 429) return 'O limite diário do AbuseIPDB foi atingido.';
   if (status >= 500) return 'O AbuseIPDB está temporariamente indisponível.';
   return `O AbuseIPDB respondeu com HTTP ${status}.`;
+}
+
+async function lookupLocation(
+  ip: string,
+  signal: AbortSignal,
+): Promise<LocationEnrichment | null> {
+  try {
+    const response = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, {
+      signal,
+      headers: {
+        accept: 'application/json',
+        'user-agent': ANALYSIS_USER_AGENT,
+      },
+    });
+    if (!response.ok) return null;
+    const payload = (await response.json()) as IpWhoLocationResponse;
+    if (payload.success === false) return null;
+    return {
+      countryCode: payload.country_code ?? null,
+      countryName: payload.country ?? null,
+      city: payload.city ?? null,
+      asn: payload.connection?.asn ?? null,
+      isp: payload.connection?.isp ?? null,
+      domain: payload.connection?.domain ?? null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 const check: CheckPlugin = {
@@ -88,6 +141,7 @@ const check: CheckPlugin = {
       const query = new URLSearchParams({
         ipAddress: selectedIp,
         maxAgeInDays: String(maxAgeInDays),
+        verbose: '',
       });
       const response = await fetch(
         `https://api.abuseipdb.com/api/v2/check?${query.toString()}`,
@@ -107,6 +161,10 @@ const check: CheckPlugin = {
         );
       }
       const data = payload.data;
+      const location =
+        data.city == null || data.asn == null
+          ? await lookupLocation(selectedIp, context.signal)
+          : null;
 
       return success(id, source, {
         selectedIp: data.ipAddress ?? selectedIp,
@@ -125,11 +183,15 @@ const check: CheckPlugin = {
         },
         network: {
           ipVersion: data.ipVersion ?? null,
-          countryCode: data.countryCode ?? null,
+          countryCode: data.countryCode ?? location?.countryCode ?? null,
+          countryName: data.countryName ?? location?.countryName ?? null,
+          city: data.city ?? location?.city ?? null,
+          asn: data.asn ?? location?.asn ?? null,
           usageType: data.usageType ?? null,
-          isp: data.isp ?? null,
-          domain: data.domain ?? null,
+          isp: data.isp ?? location?.isp ?? null,
+          domain: data.domain ?? location?.domain ?? null,
           hostnames: data.hostnames ?? [],
+          locationSource: location ? 'ipwho.is (aproximado)' : null,
         },
         quota: {
           limit: numberHeader(response, 'x-ratelimit-limit'),
@@ -137,6 +199,7 @@ const check: CheckPlugin = {
           resetAt: resetAt(response),
         },
         reportUrl: `https://www.abuseipdb.com/check/${encodeURIComponent(selectedIp)}`,
+        whoisUrl: `https://www.whois.com/whois/${encodeURIComponent(selectedIp)}`,
       });
     } catch {
       return failure(id, source, 'Não foi possível consultar o AbuseIPDB.');

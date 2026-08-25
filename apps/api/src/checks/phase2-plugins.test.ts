@@ -78,7 +78,7 @@ describe('plugins da Fase 2', () => {
     expect(result.error).toContain('cota');
   });
 
-  it('AbuseIPDB consulta um IP em 90 dias sem solicitar comentários brutos', async () => {
+  it('AbuseIPDB consulta um IP em 90 dias com geolocalização curada', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       Response.json(
         {
@@ -89,8 +89,12 @@ describe('plugins da Fase 2', () => {
             isWhitelisted: true,
             abuseConfidenceScore: 4,
             countryCode: 'US',
+            countryName: 'United States of America',
+            city: 'Mountain View',
+            asn: 15169,
             usageType: 'Data Center/Web Hosting/Transit',
             isp: 'Example ISP',
+            domain: 'example.com',
             isTor: false,
             totalReports: 2,
             numDistinctUsers: 2,
@@ -116,13 +120,20 @@ describe('plugins da Fase 2', () => {
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('ipAddress=8.8.8.8');
     expect(url).toContain('maxAgeInDays=90');
-    expect(url).not.toContain('verbose');
+    expect(url).toContain('verbose=');
     expect(options.headers).toMatchObject({ Key: 'abuse-secret' });
     expect(result.data).toMatchObject({
       abuseConfidenceScore: 4,
       reports: { total: 2 },
+      network: {
+        countryName: 'United States of America',
+        city: 'Mountain View',
+        asn: 15169,
+        domain: 'example.com',
+      },
       quota: { limit: 1000, remaining: 999 },
     });
+    expect(JSON.stringify(result.data)).not.toContain('abuse-secret');
   });
 
   it('AbuseIPDB não envia endereços privados ao serviço externo', async () => {
@@ -153,5 +164,50 @@ describe('plugins da Fase 2', () => {
     });
     expect(result.status).toBe('error');
     expect(result.error).toContain('inválida');
+  });
+
+  it('AbuseIPDB enriquece cidade e ASN sem falhar quando a geolocalização não responde', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          data: {
+            ipAddress: '8.8.8.8',
+            countryCode: 'US',
+            countryName: 'United States of America',
+            abuseConfidenceScore: 0,
+            totalReports: 0,
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          success: true,
+          country: 'United States',
+          country_code: 'US',
+          city: 'Mountain View',
+          connection: {
+            asn: 15169,
+            isp: 'Google LLC',
+            domain: 'google.com',
+          },
+        }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await abuseIpDb.run(ipTarget, {
+      signal: new AbortController().signal,
+      credentials: { ABUSEIPDB_API_KEY: 'abuse-secret' },
+    });
+
+    expect(result.data).toMatchObject({
+      network: {
+        city: 'Mountain View',
+        asn: 15169,
+        isp: 'Google LLC',
+        domain: 'google.com',
+        locationSource: 'ipwho.is (aproximado)',
+      },
+    });
   });
 });
