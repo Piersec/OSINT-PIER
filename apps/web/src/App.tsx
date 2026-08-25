@@ -8,7 +8,16 @@ import {
   saveHistory,
 } from './api/client';
 import { AnalysisInsights } from './components/analysis/AnalysisInsights';
+import {
+  SignalTopologyCanvas,
+  type SignalTopologyItem,
+} from './components/analysis/SignalTopologyCanvas';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
+import { MetricCard } from './components/primitives/MetricCard';
+import { MotionSurface } from './components/motion/MotionSurface';
+import { AccountMenu } from './components/shell/AccountMenu';
+import { AppShell } from './components/shell/AppShell';
+import { PageHeader } from './components/shell/PageHeader';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 import { getSuccessfulChecks } from './features/analysis/visible-results';
@@ -28,6 +37,7 @@ import {
 } from './features/history/analysis-history';
 import { useAuth } from './features/auth/AuthGate';
 import { ProfilePage } from './features/profile/ProfilePage';
+import { useGsapReveal } from './hooks/useGsapReveal';
 
 type Page =
   'analysis' | 'results' | 'history' | 'credentials' | 'profile' | 'settings';
@@ -83,10 +93,8 @@ const toolDescriptions: Record<string, string> = {
   'ip-info': 'Descobre os endereços IP associados ao domínio consultado.',
   gobuster:
     'Enumera caminhos web com uma wordlist interna curta e perfil controlado.',
-  katana:
-    'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
-  nmap:
-    'Identifica portas TCP abertas e versões de serviço nos top ports.',
+  katana: 'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
+  nmap: 'Identifica portas TCP abertas e versões de serviço nos top ports.',
   'redirect-chain': 'Segue a cadeia de redirecionamentos HTTP do alvo.',
   'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
   'server-location': 'Estima a localização e a rede do IP público resolvido.',
@@ -291,6 +299,7 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
+  const animationScopeRef = useRef<HTMLElement>(null);
   const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
@@ -413,6 +422,26 @@ export function App() {
     () => getSuccessfulChecks(checks, states),
     [checks, states],
   );
+
+  const topologyItems = useMemo<SignalTopologyItem[]>(
+    () =>
+      checks.map((check) => {
+        const state = states[check.id];
+        if (state?.status === 'loading') {
+          return { id: check.id, label: check.label, status: 'loading' };
+        }
+        if (state?.status === 'done' && state.result.status === 'success') {
+          return { id: check.id, label: check.label, status: 'success' };
+        }
+        if (state?.status === 'request-error' || state?.status === 'done') {
+          return { id: check.id, label: check.label, status: 'attention' };
+        }
+        return { id: check.id, label: check.label, status: 'idle' };
+      }),
+    [checks, states],
+  );
+
+  useGsapReveal(animationScopeRef, page);
 
   const canExport = Boolean(
     lastTarget &&
@@ -557,7 +586,7 @@ export function App() {
   const meta = pageMeta[page];
 
   return (
-    <div className="app-shell">
+    <AppShell>
       <aside className="sidebar" aria-label="Navegação principal">
         <a
           className="sidebar__brand"
@@ -638,36 +667,30 @@ export function App() {
       </aside>
 
       <div className="workspace">
-        <header className="topbar" id="top">
-          <div className="topbar__identity">
-            <span className="eyebrow">{meta.eyebrow}</span>
-            <h1>{meta.title}</h1>
-            <p>{meta.description}</p>
-          </div>
-          <div className="topbar__actions">
-            <span className="wordmark">
-              OSINT <b>Pier</b>
-            </span>
-            <span className="internal-badge">
-              <i /> Rede interna
-            </span>
-            <span className="auth-user" title={user.email ?? undefined}>
-              {user.email ?? 'Usuário autenticado'}
-            </span>
-            <button
-              className="auth-logout"
-              onClick={() => void signOut()}
-              type="button"
-            >
-              Sair
-            </button>
-          </div>
-        </header>
+        <PageHeader
+          eyebrow={meta.eyebrow}
+          title={meta.title}
+          description={meta.description}
+          actions={
+            <>
+              <span className="wordmark">
+                OSINT <b>Pier</b>
+              </span>
+              <span className="internal-badge">
+                <i /> Rede interna
+              </span>
+              <AccountMenu
+                email={user.email}
+                onSignOut={() => void signOut()}
+              />
+            </>
+          }
+        />
 
-        <main>
+        <main ref={animationScopeRef} data-page={page}>
           {page === 'analysis' && (
             <>
-              <section className="overview" id="analysis">
+              <section className="overview" id="analysis" data-reveal>
                 <div className="analysis-card">
                   <div className="analysis-card__heading">
                     <div>
@@ -806,55 +829,57 @@ export function App() {
                 </div>
 
                 <aside className="analysis-context">
-                  <span className="eyebrow">Estado atual</span>
-                  <strong>
-                    {analysisSummary.loading > 0
-                      ? 'Análise em andamento'
-                      : lastTarget
-                        ? 'Última análise concluída'
-                        : 'Sistema pronto'}
-                  </strong>
-                  <p>
-                    {lastTarget
-                      ? lastTarget
-                      : 'As integrações disponíveis serão acionadas sob demanda.'}
-                  </p>
-                  <div className="signal-line" aria-hidden="true">
-                    <span />
-                  </div>
-                  <div className="analysis-context__brand">
-                    <img src="/piersec-logo.svg" alt="" />
-                    <span>PierSec intelligence</span>
-                  </div>
+                  <MotionSurface className="analysis-context__motion">
+                    <span className="eyebrow">Estado atual</span>
+                    <strong>
+                      {analysisSummary.loading > 0
+                        ? 'Análise em andamento'
+                        : lastTarget
+                          ? 'Última análise concluída'
+                          : 'Sistema pronto'}
+                    </strong>
+                    <p>
+                      {lastTarget
+                        ? lastTarget
+                        : 'As integrações disponíveis serão acionadas sob demanda.'}
+                    </p>
+                    <SignalTopologyCanvas
+                      items={topologyItems}
+                      target={lastTarget}
+                    />
+                    <div className="signal-line" aria-hidden="true">
+                      <span />
+                    </div>
+                    <div className="analysis-context__brand">
+                      <img src="/piersec-logo.svg" alt="" />
+                      <span>PierSec intelligence</span>
+                    </div>
+                  </MotionSurface>
                 </aside>
 
                 <div className="metrics-grid" aria-label="Resumo da análise">
-                  <article className="metric-card">
-                    <span>Plugins</span>
-                    <strong>{checks.length.toString().padStart(2, '0')}</strong>
-                    <small>Fontes disponíveis</small>
-                  </article>
-                  <article className="metric-card">
-                    <span>Concluídos</span>
-                    <strong>
-                      {analysisSummary.resolved.toString().padStart(2, '0')}
-                    </strong>
-                    <small>Respostas recebidas</small>
-                  </article>
-                  <article className="metric-card metric-card--positive">
-                    <span>Sucesso</span>
-                    <strong>
-                      {analysisSummary.success.toString().padStart(2, '0')}
-                    </strong>
-                    <small>Sinais processados</small>
-                  </article>
-                  <article className="metric-card metric-card--attention">
-                    <span>Atenção</span>
-                    <strong>
-                      {analysisSummary.attention.toString().padStart(2, '0')}
-                    </strong>
-                    <small>Erros ou integrações puladas</small>
-                  </article>
+                  <MetricCard
+                    label="Plugins"
+                    value={checks.length}
+                    detail="Fontes disponíveis"
+                  />
+                  <MetricCard
+                    label="Concluídos"
+                    value={analysisSummary.resolved}
+                    detail="Respostas recebidas"
+                  />
+                  <MetricCard
+                    label="Sucesso"
+                    value={analysisSummary.success}
+                    detail="Sinais processados"
+                    tone="positive"
+                  />
+                  <MetricCard
+                    label="Atenção"
+                    value={analysisSummary.attention}
+                    detail="Erros ou integrações puladas"
+                    tone="attention"
+                  />
                 </div>
 
                 {checks.length > 0 && (
@@ -866,7 +891,7 @@ export function App() {
                 )}
               </section>
 
-              <section className="results-section" id="results">
+              <section className="results-section" id="results" data-reveal>
                 <div className="section-heading">
                   <div>
                     <span className="eyebrow">Execução em paralelo</span>
@@ -976,7 +1001,7 @@ export function App() {
           )}
 
           {page === 'results' && (
-            <section className="toolbox-section">
+            <section className="toolbox-section" data-reveal>
               <div className="page-lead">
                 <div>
                   <span className="eyebrow">Execução individual</span>
@@ -1156,7 +1181,11 @@ export function App() {
           )}
 
           {page === 'history' && (
-            <section className="history-section history-page" id="history">
+            <section
+              className="history-section history-page"
+              id="history"
+              data-reveal
+            >
               <div className="page-lead">
                 <div>
                   <span className="eyebrow">Auditoria interna</span>
@@ -1233,7 +1262,7 @@ export function App() {
           )}
 
           {page === 'settings' && (
-            <section className="settings-page">
+            <section className="settings-page" data-reveal>
               <div className="page-lead settings-lead">
                 <div>
                   <span className="eyebrow">Preferências locais</span>
@@ -1249,7 +1278,7 @@ export function App() {
                 <div>
                   <span className="eyebrow">Tema de cor</span>
                   <h3>Escolha uma paleta</h3>
-                  <p>Dark é o tema padrão; White oferece uma leitura clara.</p>
+                  <p>Dark é o tema padrão; Light oferece uma leitura clara.</p>
                 </div>
                 <div
                   aria-label="Tema de cor"
@@ -1267,7 +1296,7 @@ export function App() {
                     >
                       <span className="theme-option__swatch" />
                       <span>
-                        <strong>{option === 'dark' ? 'Dark' : 'White'}</strong>
+                        <strong>{option === 'dark' ? 'Dark' : 'Light'}</strong>
                         <small>
                           {theme === option ? 'Selecionado' : 'Aplicar tema'}
                         </small>
@@ -1288,6 +1317,6 @@ export function App() {
           <span>Uso interno · segredos nunca expostos pelo cliente</span>
         </footer>
       </div>
-    </div>
+    </AppShell>
   );
 }

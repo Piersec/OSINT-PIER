@@ -1,4 +1,5 @@
 import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
+import { StatusPill } from '../primitives/StatusPill';
 import { AbuseIpdbResult } from './AbuseIpdbResult';
 
 export type CardState =
@@ -11,15 +12,6 @@ export type CardState =
       statusCode?: number;
       retryAfterSeconds?: number;
     };
-
-const statusLabels: Record<string, string> = {
-  idle: 'Aguardando',
-  loading: 'Carregando',
-  success: 'Sucesso',
-  error: 'Atenção',
-  skipped: 'Atenção',
-  'request-error': 'Atenção',
-};
 
 const keyLabels: Record<string, string> = {
   A: 'IPv4',
@@ -363,7 +355,7 @@ export function ResultCard({
           <span className="eyebrow">{check.id}</span>
           <h3>{check.label}</h3>
         </div>
-        <span className="status-pill">{statusLabels[visualStatus]}</span>
+        <StatusPill status={visualStatus} />
       </header>
 
       {state.status === 'idle' && (

@@ -917,15 +917,15 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         Nunca coloque esse token no frontend.
                       </DocumentationCallout>
                       <DocumentationCallout title="GHunt usa uma sessão isolada">
-                        O plugin consulta e-mails por um gateway HTTPS e precisa de
-                        GHUNT_API_URL no backend e GHUNT_API_TOKEN no cofre. A
-                        sessão/cookies do Google são configurados somente no
+                        O plugin consulta e-mails por um gateway HTTPS e precisa
+                        de GHUNT_API_URL no backend e GHUNT_API_TOKEN no cofre.
+                        A sessão/cookies do Google são configurados somente no
                         volume privado do runner Docker; nunca cole cookies no
                         painel, no Vercel ou no histórico.
                       </DocumentationCallout>
                       <DocumentationCallout title="Command tools usam runner externo">
-                        Nmap, Katana, Gobuster e Subfinder não executam dentro do
-                        Vercel. Configure COMMAND_TOOLS_API_URL no backend e
+                        Nmap, Katana, Gobuster e Subfinder não executam dentro
+                        do Vercel. Configure COMMAND_TOOLS_API_URL no backend e
                         COMMAND_TOOLS_API_TOKEN no cofre. O runner aceita apenas
                         o perfil safe; Gobuster permanece desligado no Compose
                         até ser habilitado conscientemente no host autorizado.
@@ -1021,7 +1021,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         </div>
                         <div>
                           <span className="documentation-theme-swatch documentation-theme-swatch--white" />
-                          <h3>White</h3>
+                          <h3>Light</h3>
                           <p>
                             Uma leitura clara salva somente neste navegador.
                           </p>
