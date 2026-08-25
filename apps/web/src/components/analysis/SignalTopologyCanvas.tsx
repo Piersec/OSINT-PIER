@@ -12,11 +12,11 @@ export interface SignalTopologyItem {
 }
 
 const colors: Record<SignalTopologyStatus | 'center', number> = {
-  idle: 0x788486,
-  loading: 0xff6b3d,
-  success: 0x5ed9d5,
-  attention: 0xf05d67,
-  center: 0xf1eee6,
+  idle: 0x99a4a6,
+  loading: 0x069abc,
+  success: 0x48e9ff,
+  attention: 0x9b3d48,
+  center: 0xf2f2f2,
 };
 
 function statusLabel(status: SignalTopologyStatus): string {

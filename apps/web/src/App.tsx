@@ -188,30 +188,57 @@ const plannedTools = [
   },
 ];
 
-const logoSlugs: Record<string, string | undefined> = {
-  'abuse-ipdb': 'abuseipdb',
-  'hunter-io': 'hunter',
-  nuclei: 'nuclei',
-  shodan: 'shodan',
-  'virus-total': 'virustotal',
+type ToolIcon =
+  { kind: 'simple'; slug: string } | { kind: 'favicon'; domain: string };
+
+const toolIcons: Record<string, ToolIcon> = {
+  'abuse-ipdb': { kind: 'favicon', domain: 'abuseipdb.com' },
+  cookies: { kind: 'favicon', domain: 'developer.mozilla.org' },
+  'dns-records': { kind: 'favicon', domain: 'cloudflare.com' },
+  ghunt: { kind: 'favicon', domain: 'github.com' },
+  gobuster: { kind: 'favicon', domain: 'github.com' },
+  'http-headers': { kind: 'favicon', domain: 'developer.mozilla.org' },
+  'hunter-io': { kind: 'favicon', domain: 'hunter.io' },
+  'ip-info': { kind: 'favicon', domain: 'ipinfo.io' },
+  katana: { kind: 'favicon', domain: 'projectdiscovery.io' },
+  nmap: { kind: 'favicon', domain: 'nmap.org' },
+  'osint-framework': { kind: 'favicon', domain: 'osintframework.com' },
+  osintgram: { kind: 'favicon', domain: 'github.com' },
+  phoneinfoga: { kind: 'favicon', domain: 'github.com' },
+  'redirect-chain': { kind: 'favicon', domain: 'httpstatus.io' },
+  'robots-sitemap': { kind: 'favicon', domain: 'developers.google.com' },
+  'server-location': { kind: 'favicon', domain: 'ipinfo.io' },
+  'server-status': { kind: 'favicon', domain: 'uptimerobot.com' },
+  sherlock: { kind: 'favicon', domain: 'github.com' },
+  nuclei: { kind: 'favicon', domain: 'projectdiscovery.io' },
+  shodan: { kind: 'favicon', domain: 'shodan.io' },
+  'shodan-vulnerabilities': { kind: 'favicon', domain: 'nvd.nist.gov' },
+  'ssl-certificate': { kind: 'simple', slug: 'letsencrypt' },
+  subfinder: { kind: 'favicon', domain: 'projectdiscovery.io' },
+  'tech-stack': { kind: 'simple', slug: 'wappalyzer' },
+  'virus-total': { kind: 'simple', slug: 'virustotal' },
+  'whois-rdap': { kind: 'favicon', domain: 'icann.org' },
 };
 
 function ToolLogo({ checkId, label }: { checkId: string; label: string }) {
-  const [failed, setFailed] = useState(false);
-  const slug = logoSlugs[checkId];
-  if (!slug || failed) {
-    return (
-      <div className="tool-card__icon tool-card__icon--fallback">
-        {label.slice(0, 2).toUpperCase()}
-      </div>
-    );
-  }
+  const icon = toolIcons[checkId] ?? { kind: 'favicon', domain: 'github.com' };
+  const primarySource =
+    icon.kind === 'simple'
+      ? `https://cdn.simpleicons.org/${icon.slug}/5ED9D5`
+      : `https://www.google.com/s2/favicons?domain=${icon.domain}&sz=64`;
+  const fallbackSource = 'https://cdn.simpleicons.org/simpleicons/5ED9D5';
+  const [source, setSource] = useState(primarySource);
+
+  useEffect(() => setSource(primarySource), [primarySource]);
+
   return (
     <div className="tool-card__icon tool-card__icon--logo">
       <img
-        alt=""
-        onError={() => setFailed(true)}
-        src={`https://cdn.jsdelivr.net/npm/simple-icons@v16/icons/${slug}.svg`}
+        alt={`${label} logo`}
+        onError={() => {
+          if (source !== fallbackSource) setSource(fallbackSource);
+        }}
+        src={source}
       />
     </div>
   );
@@ -327,13 +354,15 @@ function readPage(hash: string): Page {
 }
 
 function readTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'white';
   try {
     return window.localStorage.getItem('osint-pier-theme') === 'white'
       ? 'white'
-      : 'dark';
+      : window.localStorage.getItem('osint-pier-theme') === 'dark'
+        ? 'dark'
+        : 'white';
   } catch {
-    return 'dark';
+    return 'white';
   }
 }
 
@@ -402,7 +431,7 @@ export function App() {
   const [toolTarget, setToolTarget] = useState('');
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(true);
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('white');
   const themeInitialized = useRef(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -1541,7 +1570,9 @@ export function App() {
                 <div>
                   <span className="eyebrow">Tema de cor</span>
                   <h3>Escolha uma paleta</h3>
-                  <p>Dark é o tema padrão; Litght oferece uma leitura clara.</p>
+                  <p>
+                    Light é o tema padrão; Dark oferece uma leitura concentrada.
+                  </p>
                 </div>
                 <div
                   aria-label="Tema de cor"
@@ -1559,7 +1590,7 @@ export function App() {
                     >
                       <span className="theme-option__swatch" />
                       <span>
-                        <strong>{option === 'dark' ? 'Dark' : 'Litght'}</strong>
+                        <strong>{option === 'dark' ? 'Dark' : 'Light'}</strong>
                         <small>
                           {theme === option ? 'Selecionado' : 'Aplicar tema'}
                         </small>
