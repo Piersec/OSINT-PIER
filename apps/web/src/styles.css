@@ -8030,3 +8030,1342 @@ html[data-theme='white'] .analysis-chart-tooltip {
   background: #ffffff;
   box-shadow: none;
 }
+
+/* PierSec product redesign v2 — a structured investigation workspace. */
+html[data-theme='white'] {
+  --background: #f2f2f2;
+  --surface: #ffffff;
+  --surface-soft: #f8f9f9;
+  --surface-raised: #edf2f3;
+  --text: #232323;
+  --muted: #636363;
+  --border: rgba(35, 35, 35, 0.16);
+  --border-strong: rgba(35, 35, 35, 0.38);
+  --accent: #069abc;
+  --accent-strong: #232323;
+  --accent-soft: rgba(6, 154, 188, 0.1);
+  --success: #069abc;
+  --warning: #9b6b1b;
+  --danger: #9b3d48;
+}
+
+html[data-theme='dark'] {
+  --background: #0d1011;
+  --surface: #171c1e;
+  --surface-soft: #1d2426;
+  --surface-raised: #22292b;
+  --text: #f2f2f2;
+  --muted: #a5adaf;
+  --border: rgba(242, 242, 242, 0.15);
+  --border-strong: rgba(242, 242, 242, 0.38);
+  --accent: #069abc;
+  --accent-strong: #f2f2f2;
+  --accent-soft: rgba(72, 233, 255, 0.12);
+  --success: #48e9ff;
+  --warning: #e2b44a;
+  --danger: #f05d67;
+}
+
+html[data-theme='white'] body,
+html[data-theme='dark'] body {
+  background: var(--background);
+  color: var(--text);
+}
+
+html[data-theme='white'] .app-shell--piersec,
+html[data-theme='dark'] .app-shell--piersec {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar,
+html[data-theme='dark'] .app-shell--piersec .sidebar {
+  position: fixed;
+  z-index: 30;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 248px;
+  height: 100dvh;
+  padding: 22px 18px 18px;
+  flex-direction: column;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand {
+  display: flex;
+  min-height: 54px;
+  padding: 0 8px 18px;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--text);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand img,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand img {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand > span,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand > span {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.05em;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand-meta,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta {
+  display: grid;
+  padding: 17px 8px 0;
+  gap: 5px;
+  color: var(--muted);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand-meta span,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta span,
+html[data-theme='white'] .app-shell--piersec .sidebar__nav-label,
+html[data-theme='dark'] .app-shell--piersec .sidebar__nav-label {
+  color: var(--accent);
+  font: 700 9px/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand-meta small,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta small {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar nav,
+html[data-theme='dark'] .app-shell--piersec .sidebar nav {
+  display: flex;
+  margin-top: 31px;
+  padding: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__nav-label,
+html[data-theme='dark'] .app-shell--piersec .sidebar__nav-label {
+  padding: 0 12px 8px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link {
+  display: flex;
+  height: 42px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 3px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 570;
+  letter-spacing: -0.01em;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link:hover,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link:hover {
+  border-color: var(--border);
+  border-left-color: var(--accent);
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link--active,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link--active {
+  border-color: var(--border);
+  border-left-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link svg,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link svg {
+  width: 17px;
+  height: 17px;
+  color: var(--accent);
+  stroke-width: 1.55;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link > span,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link > span {
+  display: block;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status {
+  display: grid;
+  min-height: 62px;
+  padding: 13px 9px 0;
+  grid-template-columns: 8px 1fr auto;
+  align-items: start;
+  gap: 9px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status > span,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status > span {
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status div,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status div {
+  display: grid;
+  gap: 3px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status small,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status strong,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status code,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status code {
+  color: var(--accent);
+  font: 700 8px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+}
+
+html[data-theme='white'] .app-shell--piersec .workspace,
+html[data-theme='dark'] .app-shell--piersec .workspace {
+  width: calc(100% - 248px);
+  min-width: 0;
+  margin-left: 248px;
+  padding: 0 52px 32px;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar,
+html[data-theme='dark'] .app-shell--piersec .topbar {
+  display: flex;
+  min-height: 150px;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 31px 0 25px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__identity,
+html[data-theme='dark'] .app-shell--piersec .topbar__identity {
+  min-width: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__signal-line,
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-line {
+  display: flex;
+  margin-bottom: 19px;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font: 700 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__signal-status,
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success);
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__signal-status i,
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar .eyebrow,
+html[data-theme='dark'] .app-shell--piersec .topbar .eyebrow {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar h1,
+html[data-theme='dark'] .app-shell--piersec .topbar h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(32px, 4vw, 55px);
+  font-weight: 560;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar p,
+html[data-theme='dark'] .app-shell--piersec .topbar p {
+  max-width: 520px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__actions,
+html[data-theme='dark'] .app-shell--piersec .topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+html[data-theme='white'] .app-shell--piersec .wordmark,
+html[data-theme='dark'] .app-shell--piersec .wordmark {
+  display: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .auth-avatar-button,
+html[data-theme='dark'] .app-shell--piersec .auth-avatar-button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec main,
+html[data-theme='dark'] .app-shell--piersec main {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview,
+html[data-theme='dark'] .app-shell--piersec .overview {
+  display: grid;
+  padding-top: 28px;
+  grid-template-columns: minmax(0, 1.42fr) minmax(330px, 0.78fr);
+  align-items: start;
+  gap: 16px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card,
+html[data-theme='dark'] .app-shell--piersec .analysis-card {
+  min-width: 0;
+  padding: 28px 30px 25px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card__topline,
+html[data-theme='dark'] .app-shell--piersec .analysis-card__topline {
+  display: flex;
+  margin: -3px 0 28px;
+  padding-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font: 700 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card__topline span:first-child,
+html[data-theme='dark'] .app-shell--piersec .analysis-card__topline span:first-child {
+  color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card__heading,
+html[data-theme='dark'] .app-shell--piersec .analysis-card__heading {
+  display: block;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card .eyebrow,
+html[data-theme='dark'] .app-shell--piersec .analysis-card .eyebrow {
+  color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card h2,
+html[data-theme='dark'] .app-shell--piersec .analysis-card h2 {
+  max-width: 560px;
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: clamp(27px, 3vw, 39px);
+  font-weight: 570;
+  letter-spacing: -0.06em;
+  line-height: 1.03;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .analysis-card > p {
+  max-width: 540px;
+  margin: 16px 0 27px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-form > label,
+html[data-theme='dark'] .app-shell--piersec .analysis-form > label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font: 700 10px/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .target-control,
+html[data-theme='dark'] .app-shell--piersec .target-control {
+  min-height: 56px;
+  padding: 5px 5px 5px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .target-prefix,
+html[data-theme='dark'] .app-shell--piersec .target-prefix {
+  color: var(--accent);
+  font: 500 22px/1 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec input,
+html[data-theme='dark'] .app-shell--piersec input,
+html[data-theme='white'] .app-shell--piersec select,
+html[data-theme='dark'] .app-shell--piersec select,
+html[data-theme='white'] .app-shell--piersec textarea,
+html[data-theme='dark'] .app-shell--piersec textarea {
+  color: var(--text);
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .target-control input,
+html[data-theme='dark'] .app-shell--piersec .target-control input {
+  min-width: 0;
+  height: 44px;
+  padding: 0 13px;
+  border: 0;
+  background: transparent;
+  font: 500 13px/1 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .button,
+html[data-theme='dark'] .app-shell--piersec .button {
+  min-height: 38px;
+  border: 1px solid var(--accent-strong);
+  border-radius: 3px;
+  color: var(--surface);
+  background: var(--accent-strong);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+html[data-theme='white'] .app-shell--piersec .button:hover:not(:disabled),
+html[data-theme='dark'] .app-shell--piersec .button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: #ffffff;
+  background: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .button--secondary,
+html[data-theme='dark'] .app-shell--piersec .button--secondary,
+html[data-theme='white'] .app-shell--piersec .button--ghost,
+html[data-theme='dark'] .app-shell--piersec .button--ghost {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-filters,
+html[data-theme='dark'] .app-shell--piersec .analysis-filters {
+  margin-top: 21px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .filter-toggle,
+html[data-theme='dark'] .app-shell--piersec .filter-toggle {
+  width: 100%;
+  min-height: 59px;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+
+html[data-theme='white'] .app-shell--piersec .filter-toggle b,
+html[data-theme='dark'] .app-shell--piersec .filter-toggle b {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+html[data-theme='white'] .app-shell--piersec .filter-toggle small,
+html[data-theme='dark'] .app-shell--piersec .filter-toggle small {
+  color: var(--muted);
+  font: 10px/1.3 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-filters__body,
+html[data-theme='dark'] .app-shell--piersec .analysis-filters__body {
+  padding: 0 0 17px;
+  border-top: 1px solid var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .form-meta,
+html[data-theme='dark'] .app-shell--piersec .form-meta {
+  display: flex;
+  padding-top: 17px;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--muted);
+  font: 10px/1.4 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context,
+html[data-theme='dark'] .app-shell--piersec .analysis-context {
+  min-height: 100%;
+  border: 1px solid rgba(72, 233, 255, 0.24);
+  border-radius: 0;
+  color: #f2f2f2;
+  background: #232323;
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context__motion,
+html[data-theme='dark'] .app-shell--piersec .analysis-context__motion {
+  min-height: 386px;
+  padding: 28px 27px 22px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context .eyebrow,
+html[data-theme='dark'] .app-shell--piersec .analysis-context .eyebrow {
+  color: #48e9ff;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context strong,
+html[data-theme='dark'] .app-shell--piersec .analysis-context strong {
+  display: block;
+  margin-top: 9px;
+  color: #f2f2f2;
+  font-size: 23px;
+  font-weight: 560;
+  letter-spacing: -0.04em;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context p,
+html[data-theme='dark'] .app-shell--piersec .analysis-context p {
+  margin: 9px 0 18px;
+  padding: 9px 11px;
+  overflow: hidden;
+  border: 1px solid rgba(242, 242, 242, 0.15);
+  color: #bfc8ca;
+  background: rgba(255, 255, 255, 0.05);
+  font: 11px/1.4 'IBM Plex Mono', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme='white'] .app-shell--piersec .signal-topology,
+html[data-theme='dark'] .app-shell--piersec .signal-topology {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(242, 242, 242, 0.15);
+}
+
+html[data-theme='white'] .app-shell--piersec .signal-topology__header,
+html[data-theme='dark'] .app-shell--piersec .signal-topology__header {
+  color: #bfc8ca;
+}
+
+html[data-theme='white'] .app-shell--piersec .signal-topology__canvas,
+html[data-theme='dark'] .app-shell--piersec .signal-topology__canvas {
+  height: 145px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context__brand,
+html[data-theme='dark'] .app-shell--piersec .analysis-context__brand {
+  margin-top: 17px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(242, 242, 242, 0.15);
+  color: #bfc8ca;
+}
+
+html[data-theme='white'] .app-shell--piersec .metrics-grid,
+html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card,
+html[data-theme='dark'] .app-shell--piersec .metric-card {
+  min-height: 105px;
+  padding: 17px 19px 15px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card:last-child,
+html[data-theme='dark'] .app-shell--piersec .metric-card:last-child {
+  border-right: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card > span,
+html[data-theme='dark'] .app-shell--piersec .metric-card > span {
+  color: var(--muted);
+  font: 700 9px/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card strong,
+html[data-theme='dark'] .app-shell--piersec .metric-card strong {
+  display: block;
+  margin-top: 9px;
+  color: var(--text);
+  font: 500 31px/1 'IBM Plex Mono', monospace;
+  letter-spacing: -0.08em;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card small,
+html[data-theme='dark'] .app-shell--piersec .metric-card small {
+  display: block;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card--positive strong,
+html[data-theme='dark'] .app-shell--piersec .metric-card--positive strong {
+  color: var(--success);
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card--attention strong,
+html[data-theme='dark'] .app-shell--piersec .metric-card--attention strong {
+  color: var(--danger);
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-insights,
+html[data-theme='dark'] .app-shell--piersec .analysis-insights {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-section,
+html[data-theme='dark'] .app-shell--piersec .results-section {
+  margin-top: 33px;
+  padding: 28px 0 0;
+  border-top: 2px solid var(--text);
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .section-heading,
+html[data-theme='dark'] .app-shell--piersec .section-heading {
+  align-items: flex-end;
+}
+
+html[data-theme='white'] .app-shell--piersec .section-heading h2,
+html[data-theme='dark'] .app-shell--piersec .section-heading h2,
+html[data-theme='white'] .app-shell--piersec .page-lead h2,
+html[data-theme='dark'] .app-shell--piersec .page-lead h2 {
+  margin-top: 7px;
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 570;
+  letter-spacing: -0.055em;
+}
+
+html[data-theme='white'] .app-shell--piersec .section-count,
+html[data-theme='dark'] .app-shell--piersec .section-count,
+html[data-theme='white'] .app-shell--piersec .lock-badge,
+html[data-theme='dark'] .app-shell--piersec .lock-badge {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  background: transparent;
+  font: 700 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  display: grid;
+  margin-top: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .result-card,
+html[data-theme='dark'] .app-shell--piersec .result-card,
+html[data-theme='white'] .app-shell--piersec .empty-state,
+html[data-theme='dark'] .app-shell--piersec .empty-state {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .result-card,
+html[data-theme='dark'] .app-shell--piersec .result-card {
+  border-top: 2px solid var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .result-card__header h3,
+html[data-theme='dark'] .app-shell--piersec .result-card__header h3 {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+html[data-theme='white'] .app-shell--piersec .status-pill,
+html[data-theme='dark'] .app-shell--piersec .status-pill {
+  border-radius: 2px;
+  font: 700 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-section,
+html[data-theme='dark'] .app-shell--piersec .toolbox-section,
+html[data-theme='white'] .app-shell--piersec .history-page,
+html[data-theme='dark'] .app-shell--piersec .history-page,
+html[data-theme='white'] .app-shell--piersec .settings-page,
+html[data-theme='dark'] .app-shell--piersec .settings-page {
+  padding-top: 31px;
+}
+
+html[data-theme='white'] .app-shell--piersec .page-lead,
+html[data-theme='dark'] .app-shell--piersec .page-lead {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+html[data-theme='white'] .app-shell--piersec .page-copy,
+html[data-theme='dark'] .app-shell--piersec .page-copy,
+html[data-theme='white'] .app-shell--piersec .history-copy,
+html[data-theme='dark'] .app-shell--piersec .history-copy {
+  max-width: 720px;
+  margin: 15px 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-target,
+html[data-theme='dark'] .app-shell--piersec .toolbox-target {
+  padding: 19px 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-target__controls input,
+html[data-theme='dark'] .app-shell--piersec .toolbox-target__controls input {
+  height: 43px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  background: transparent;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-layout,
+html[data-theme='dark'] .app-shell--piersec .toolbox-layout {
+  display: grid;
+  margin-top: 29px;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category-nav,
+html[data-theme='dark'] .app-shell--piersec .tool-category-nav {
+  position: sticky;
+  top: 20px;
+  padding: 18px 15px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category-nav h3,
+html[data-theme='dark'] .app-shell--piersec .tool-category-nav h3 {
+  margin: 7px 0 14px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category-nav button,
+html[data-theme='dark'] .app-shell--piersec .tool-category-nav button {
+  width: 100%;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+  text-align: left;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category-nav button:hover,
+html[data-theme='dark'] .app-shell--piersec .tool-category-nav button:hover {
+  color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category,
+html[data-theme='dark'] .app-shell--piersec .tool-category {
+  padding: 0 0 27px;
+  border: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category__heading,
+html[data-theme='dark'] .app-shell--piersec .tool-category__heading {
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-category__heading h3,
+html[data-theme='dark'] .app-shell--piersec .tool-category__heading h3 {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 570;
+  letter-spacing: -0.045em;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-grid,
+html[data-theme='dark'] .app-shell--piersec .tool-grid {
+  display: grid;
+  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card,
+html[data-theme='dark'] .app-shell--piersec .tool-card,
+html[data-theme='white'] .app-shell--piersec .history-entry,
+html[data-theme='dark'] .app-shell--piersec .history-entry,
+html[data-theme='white'] .app-shell--piersec .settings-card,
+html[data-theme='dark'] .app-shell--piersec .settings-card,
+html[data-theme='white'] .app-shell--piersec .profile-card,
+html[data-theme='dark'] .app-shell--piersec .profile-card,
+html[data-theme='white'] .app-shell--piersec .credentials-panel,
+html[data-theme='dark'] .app-shell--piersec .credentials-panel {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card,
+html[data-theme='dark'] .app-shell--piersec .tool-card {
+  padding: 18px;
+  border-top: 2px solid var(--border-strong);
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card:hover,
+html[data-theme='dark'] .app-shell--piersec .tool-card:hover {
+  border-top-color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card__icon--logo,
+html[data-theme='dark'] .app-shell--piersec .tool-card__icon--logo {
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card__heading h3,
+html[data-theme='dark'] .app-shell--piersec .tool-card__heading h3 {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+html[data-theme='white'] .app-shell--piersec .history-list,
+html[data-theme='dark'] .app-shell--piersec .history-list {
+  display: grid;
+  gap: 8px;
+}
+
+html[data-theme='white'] .app-shell--piersec .history-entry,
+html[data-theme='dark'] .app-shell--piersec .history-entry {
+  min-height: 86px;
+  padding: 17px 19px;
+  border-left: 3px solid var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .history-entry h3,
+html[data-theme='dark'] .app-shell--piersec .history-entry h3 {
+  margin-top: 7px;
+  color: var(--text);
+  font: 600 16px/1.2 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .empty-state,
+html[data-theme='dark'] .app-shell--piersec .empty-state {
+  padding: 44px 26px;
+  border-style: dashed;
+  text-align: left;
+}
+
+html[data-theme='white'] .app-shell--piersec .empty-state > span,
+html[data-theme='dark'] .app-shell--piersec .empty-state > span {
+  color: var(--accent);
+  font: 600 33px/1 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .settings-card,
+html[data-theme='dark'] .app-shell--piersec .settings-card {
+  padding: 22px;
+}
+
+html[data-theme='white'] .app-shell--piersec .settings-card h3,
+html[data-theme='dark'] .app-shell--piersec .settings-card h3 {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 650;
+}
+
+html[data-theme='white'] .app-shell--piersec .site-footer,
+html[data-theme='dark'] .app-shell--piersec .site-footer {
+  max-width: 1480px;
+  margin: 42px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font: 10px/1.4 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .site-footer__docs,
+html[data-theme='dark'] .app-shell--piersec .site-footer__docs {
+  color: var(--accent);
+}
+
+html[data-theme='white'] .auth-shell,
+html[data-theme='dark'] .auth-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 48px clamp(24px, 7vw, 110px);
+  grid-template-columns: minmax(0, 1fr) minmax(350px, 460px);
+  align-items: center;
+  gap: clamp(40px, 10vw, 150px);
+  background: var(--background);
+}
+
+html[data-theme='white'] .auth-shell::before,
+html[data-theme='dark'] .auth-shell::before {
+  display: block;
+  max-width: 520px;
+  padding-left: 24px;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  content: 'PIERSEC / OSINT OPERATIONS\A\AInvestigation workspace\A\AMapeie sinais. Valide fontes.\AConserve contexto para a próxima decisão.';
+  white-space: pre-wrap;
+  font-size: clamp(25px, 4vw, 55px);
+  font-weight: 560;
+  letter-spacing: -0.065em;
+  line-height: 1.04;
+}
+
+html[data-theme='white'] .auth-card,
+html[data-theme='dark'] .auth-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 31px;
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .auth-brand,
+html[data-theme='dark'] .auth-brand {
+  margin-bottom: 32px;
+}
+
+html[data-theme='white'] .auth-card h1,
+html[data-theme='dark'] .auth-card h1 {
+  margin-top: 9px;
+  color: var(--text);
+  font-size: 31px;
+  font-weight: 570;
+  letter-spacing: -0.06em;
+}
+
+html[data-theme='white'] .auth-card .auth-copy,
+html[data-theme='dark'] .auth-card .auth-copy {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+html[data-theme='white'] .auth-form input,
+html[data-theme='dark'] .auth-form input,
+html[data-theme='white'] .mfa-challenge-form input,
+html[data-theme='dark'] .mfa-challenge-form input {
+  min-height: 45px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  background: transparent;
+}
+
+html[data-theme='white'] .auth-submit,
+html[data-theme='dark'] .auth-submit {
+  width: 100%;
+  margin-top: 7px;
+}
+
+html[data-theme='white'] .documentation-page,
+html[data-theme='dark'] .documentation-page {
+  background: var(--background);
+  color: var(--text);
+}
+
+html[data-theme='white'] .documentation-page .documentation-route-bar,
+html[data-theme='dark'] .documentation-page .documentation-route-bar,
+html[data-theme='white'] .documentation-page .documentation-hero__copy,
+html[data-theme='dark'] .documentation-page .documentation-hero__copy,
+html[data-theme='white'] .documentation-page .documentation-hero__signal,
+html[data-theme='dark'] .documentation-page .documentation-hero__signal,
+html[data-theme='white'] .documentation-page .documentation-index,
+html[data-theme='dark'] .documentation-page .documentation-index,
+html[data-theme='white'] .documentation-page .documentation-section {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme='white'] a:focus-visible,
+html[data-theme='dark'] a:focus-visible,
+html[data-theme='white'] button:focus-visible,
+html[data-theme='dark'] button:focus-visible,
+html[data-theme='white'] input:focus-visible,
+html[data-theme='dark'] input:focus-visible,
+html[data-theme='white'] select:focus-visible,
+html[data-theme='dark'] select:focus-visible,
+html[data-theme='white'] textarea:focus-visible,
+html[data-theme='dark'] textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  html[data-theme='white'] .app-shell--piersec .workspace,
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid,
+  html[data-theme='dark'] .app-shell--piersec .results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  html[data-theme='white'] .app-shell--piersec .sidebar,
+  html[data-theme='dark'] .app-shell--piersec .sidebar {
+    width: 206px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .workspace,
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: calc(100% - 206px);
+    margin-left: 206px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .overview,
+  html[data-theme='dark'] .app-shell--piersec .overview {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .analysis-context,
+  html[data-theme='dark'] .app-shell--piersec .analysis-context {
+    min-height: 0;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .toolbox-layout,
+  html[data-theme='dark'] .app-shell--piersec .toolbox-layout {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .tool-category-nav,
+  html[data-theme='dark'] .app-shell--piersec .tool-category-nav {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .sidebar,
+  html[data-theme='dark'] .app-shell--piersec .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 16px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .sidebar__brand-meta,
+  html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta,
+  html[data-theme='white'] .app-shell--piersec .sidebar__status,
+  html[data-theme='dark'] .app-shell--piersec .sidebar__status {
+    display: none;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .sidebar nav,
+  html[data-theme='dark'] .app-shell--piersec .sidebar nav {
+    margin-top: 15px;
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .sidebar__nav-label,
+  html[data-theme='dark'] .app-shell--piersec .sidebar__nav-label {
+    display: none;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .sidebar__link,
+  html[data-theme='dark'] .app-shell--piersec .sidebar__link {
+    flex: 0 0 auto;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .workspace,
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: 100%;
+    margin-left: 0;
+    padding: 0 17px 24px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .topbar,
+  html[data-theme='dark'] .app-shell--piersec .topbar {
+    min-height: 0;
+    padding: 26px 0 22px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .topbar__actions,
+  html[data-theme='dark'] .app-shell--piersec .topbar__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .analysis-card,
+  html[data-theme='dark'] .app-shell--piersec .analysis-card {
+    padding: 23px 19px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .target-control,
+  html[data-theme='dark'] .app-shell--piersec .target-control {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .target-control input,
+  html[data-theme='dark'] .app-shell--piersec .target-control input {
+    flex: 1 1 calc(100% - 35px);
+  }
+
+  html[data-theme='white'] .app-shell--piersec .target-control .button,
+  html[data-theme='dark'] .app-shell--piersec .target-control .button {
+    width: 100%;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .metrics-grid,
+  html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-theme='white'] .app-shell--piersec .metric-card:nth-child(2),
+  html[data-theme='dark'] .app-shell--piersec .metric-card:nth-child(2) {
+    border-right: 0;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .metric-card:nth-child(-n + 2),
+  html[data-theme='dark'] .app-shell--piersec .metric-card:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid,
+  html[data-theme='dark'] .app-shell--piersec .results-grid,
+  html[data-theme='white'] .app-shell--piersec .tool-grid,
+  html[data-theme='dark'] .app-shell--piersec .tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-theme='white'] .auth-shell,
+  html[data-theme='dark'] .auth-shell {
+    display: block;
+    padding: 23px 17px;
+  }
+
+  html[data-theme='white'] .auth-shell::before,
+  html[data-theme='dark'] .auth-shell::before {
+    margin: 14px 0 33px;
+    padding-left: 15px;
+    font-size: 27px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme='white'] .app-shell--piersec *,
+  html[data-theme='dark'] .app-shell--piersec *,
+  html[data-theme='white'] .auth-shell *,
+  html[data-theme='dark'] .auth-shell * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+html[data-theme='white'] .app-shell--piersec .profile-page,
+html[data-theme='dark'] .app-shell--piersec .profile-page {
+  padding-top: 31px;
+}
+
+html[data-theme='white'] .app-shell--piersec .profile-grid,
+html[data-theme='dark'] .app-shell--piersec .profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .profile-card__heading,
+html[data-theme='dark'] .app-shell--piersec .profile-card__heading,
+html[data-theme='white'] .app-shell--piersec .profile-form-heading,
+html[data-theme='dark'] .app-shell--piersec .profile-form-heading,
+html[data-theme='white'] .app-shell--piersec .plugin-settings__heading,
+html[data-theme='dark'] .app-shell--piersec .plugin-settings__heading {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .profile-card__heading h3,
+html[data-theme='dark'] .app-shell--piersec .profile-card__heading h3,
+html[data-theme='white'] .app-shell--piersec .profile-form-heading h3,
+html[data-theme='dark'] .app-shell--piersec .profile-form-heading h3,
+html[data-theme='white'] .app-shell--piersec .plugin-settings__heading h3,
+html[data-theme='dark'] .app-shell--piersec .plugin-settings__heading h3 {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+html[data-theme='white'] .app-shell--piersec .profile-field input,
+html[data-theme='dark'] .app-shell--piersec .profile-field input,
+html[data-theme='white'] .app-shell--piersec .credential-form input,
+html[data-theme='dark'] .app-shell--piersec .credential-form input {
+  min-height: 43px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .credentials-content,
+html[data-theme='dark'] .app-shell--piersec .credentials-content {
+  display: grid;
+  gap: 20px;
+}
+
+html[data-theme='white'] .app-shell--piersec .credential-form,
+html[data-theme='dark'] .app-shell--piersec .credential-form {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .credential-item,
+html[data-theme='dark'] .app-shell--piersec .credential-item,
+html[data-theme='white'] .app-shell--piersec .plugin-item,
+html[data-theme='dark'] .app-shell--piersec .plugin-item,
+html[data-theme='white'] .app-shell--piersec .mfa-factor-row,
+html[data-theme='dark'] .app-shell--piersec .mfa-factor-row {
+  border-color: var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .plugin-settings,
+html[data-theme='dark'] .app-shell--piersec .plugin-settings {
+  padding-top: 20px;
+  border-top: 1px solid var(--border-strong);
+}
+
+html[data-theme='white'] .app-shell--piersec .integration-status,
+html[data-theme='dark'] .app-shell--piersec .integration-status,
+html[data-theme='white'] .app-shell--piersec .profile-status-dot,
+html[data-theme='dark'] .app-shell--piersec .profile-status-dot,
+html[data-theme='white'] .app-shell--piersec .profile-coming-badge,
+html[data-theme='dark'] .app-shell--piersec .profile-coming-badge,
+html[data-theme='white'] .app-shell--piersec .profile-required-badge,
+html[data-theme='dark'] .app-shell--piersec .profile-required-badge {
+  border-radius: 2px;
+  font: 700 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .profile-grid,
+  html[data-theme='dark'] .app-shell--piersec .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

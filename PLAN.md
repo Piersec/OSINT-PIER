@@ -307,7 +307,7 @@ produzir `skipped`, sem interromper os outros plugins.
       busca local, onboarding, catálogo vivo e referências por seção
 - [x] Criar a primeira fundação visual do rebranding em Light com tokens oficiais da
       PierSec, superfícies planas, shell editorial, painel de topologia e estados acessíveis
-- [ ] Aplicar a fundação visual refinada a todas as rotas e revisar a experiência em Dark
+- [x] Aplicar a fundação visual refinada a todas as rotas e revisar a experiência em Dark
 - [ ] Substituir os slots CDN provisórios dos logos por SVGs oficiais fornecidos pela equipe
 
 ---

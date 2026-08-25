@@ -797,7 +797,12 @@ export function App() {
           <img src="/piersec-logo.svg" alt="" />
           <span>OSINT Pier</span>
         </a>
+        <div className="sidebar__brand-meta">
+          <span>PIERSEC / 01</span>
+          <small>Investigation workspace</small>
+        </div>
         <nav>
+          <span className="sidebar__nav-label">Workspace</span>
           {(
             [
               ['analysis', 'Análise', 'analysis'],
@@ -862,7 +867,11 @@ export function App() {
         </nav>
         <div className="sidebar__status" title="Sessão autenticada">
           <span />
-          <small>Autenticado</small>
+          <div>
+            <small>Workspace online</small>
+            <strong>Sessão autenticada</strong>
+          </div>
+          <code>LIVE</code>
         </div>
       </aside>
 
@@ -900,6 +909,10 @@ export function App() {
             <>
               <section className="overview" id="analysis" data-reveal>
                 <div className="analysis-card">
+                  <div className="analysis-card__topline">
+                    <span>01 / TARGET INTAKE</span>
+                    <span>PARALLEL EXECUTION</span>
+                  </div>
                   <div className="analysis-card__heading">
                     <div>
                       <span className="eyebrow">Nova investigação</span>

@@ -45,11 +45,11 @@ function authErrorMessage(message: string): string {
 function applyStoredTheme() {
   try {
     document.documentElement.dataset.theme =
-      window.localStorage.getItem('osint-pier-theme') === 'white'
-        ? 'white'
-        : 'dark';
+      window.localStorage.getItem('osint-pier-theme') === 'dark'
+        ? 'dark'
+        : 'white';
   } catch {
-    document.documentElement.dataset.theme = 'dark';
+    document.documentElement.dataset.theme = 'white';
   }
 }
 

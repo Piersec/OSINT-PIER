@@ -7,5 +7,9 @@ export function AppShell({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={('app-shell ' + className).trim()}>{children}</div>;
+  return (
+    <div className={('app-shell app-shell--piersec ' + className).trim()}>
+      {children}
+    </div>
+  );
 }
