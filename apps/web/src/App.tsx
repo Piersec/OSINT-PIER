@@ -1,5 +1,13 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { User } from '@supabase/supabase-js';
 import {
   ApiRequestError,
   listChecks,
@@ -30,6 +38,7 @@ import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import {
   buildAnalysisExport,
   downloadAnalysisExport,
+  printAnalysisExport,
 } from './features/export/analysis-export';
 import {
   createAnalysisHistoryEntry,
@@ -99,6 +108,8 @@ const toolDescriptions: Record<string, string> = {
   'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
   'server-location': 'Estima a localização e a rede do IP público resolvido.',
   'server-status': 'Verifica disponibilidade e tempo de resposta do servidor.',
+  nuclei:
+    'Executa templates curados do Nuclei para encontrar vulnerabilidades e enriquecer CVEs com NVD, EPSS e CISA KEV.',
   shodan: 'Consulta portas, serviços e exposição observada pelo Shodan.',
   'ssl-certificate':
     'Inspeciona validade, emissor e subject do certificado TLS.',
@@ -109,10 +120,13 @@ const toolDescriptions: Record<string, string> = {
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
+<<<<<<< HEAD
+=======
   phoneinfoga:
     'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
   'shodan-vulnerabilities':
     'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 };
 
 type ToolCategory = 'web' | 'threat' | 'personal';
@@ -153,8 +167,8 @@ const toolCategories: Record<string, ToolCategory> = {
   'robots-sitemap': 'web',
   'server-location': 'web',
   'server-status': 'web',
+  nuclei: 'threat',
   shodan: 'threat',
-  'shodan-vulnerabilities': 'threat',
   'ssl-certificate': 'web',
   subfinder: 'web',
   'tech-stack': 'web',
@@ -181,8 +195,8 @@ const plannedTools = [
 const logoSlugs: Record<string, string | undefined> = {
   'abuse-ipdb': 'abuseipdb',
   'hunter-io': 'hunter',
+  nuclei: 'nuclei',
   shodan: 'shodan',
-  'shodan-vulnerabilities': 'nvd',
   'virus-total': 'virustotal',
 };
 
@@ -204,6 +218,101 @@ function ToolLogo({ checkId, label }: { checkId: string; label: string }) {
         src={`https://cdn.jsdelivr.net/npm/simple-icons@v16/icons/${slug}.svg`}
       />
     </div>
+  );
+}
+
+function getAvatarUrl(user: User): string | undefined {
+  const metadata = user.user_metadata ?? {};
+  const candidate = metadata.avatar_url ?? metadata.picture;
+  return typeof candidate === 'string' && candidate.trim()
+    ? candidate.trim()
+    : undefined;
+}
+
+const avatarCanvasSize = 256;
+const maxAvatarFileSize = 10 * 1024 * 1024;
+
+async function prepareAvatarFile(file: File): Promise<string> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Escolha um arquivo de imagem.');
+  }
+  if (file.size > maxAvatarFileSize) {
+    throw new Error('A foto precisa ter no máximo 10 MB.');
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const loadedImage = new Image();
+      loadedImage.onload = () => resolve(loadedImage);
+      loadedImage.onerror = () =>
+        reject(new Error('Não foi possível ler a foto escolhida.'));
+      loadedImage.src = objectUrl;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = avatarCanvasSize;
+    canvas.height = avatarCanvasSize;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Seu navegador não suporta este upload.');
+
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const scale = Math.max(
+      avatarCanvasSize / sourceWidth,
+      avatarCanvasSize / sourceHeight,
+    );
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(
+      image,
+      (avatarCanvasSize - drawWidth) / 2,
+      (avatarCanvasSize - drawHeight) / 2,
+      drawWidth,
+      drawHeight,
+    );
+
+    const webp = canvas.toDataURL('image/webp', 0.85);
+    return webp.startsWith('data:image/webp')
+      ? webp
+      : canvas.toDataURL('image/jpeg', 0.85);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function getUserInitials(email?: string | null): string {
+  const value = email?.split('@')[0]?.trim() ?? '';
+  const words = value.split(/[._-]+/).filter(Boolean);
+  const initials =
+    words.length > 1
+      ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}`
+      : value.slice(0, 2);
+  return (initials || 'U').toUpperCase().padEnd(2, '•');
+}
+
+function UserAvatar({
+  avatarUrl,
+  email,
+  className = '',
+}: {
+  avatarUrl?: string;
+  email?: string | null;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => setFailed(false), [avatarUrl]);
+
+  return (
+    <span className={`user-avatar ${className}`.trim()} aria-hidden="true">
+      {avatarUrl && !failed ? (
+        <img alt="" onError={() => setFailed(true)} src={avatarUrl} />
+      ) : (
+        <span>{getUserInitials(email)}</span>
+      )}
+    </span>
   );
 }
 
@@ -275,7 +384,11 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
+<<<<<<< HEAD
+  const { user, signOut, updateAvatar } = useAuth();
+=======
   const { user, signOut, updateUser } = useAuth();
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -299,11 +412,28 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
+<<<<<<< HEAD
   const animationScopeRef = useRef<HTMLElement>(null);
+=======
+<<<<<<< HEAD
+  const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
+=======
+>>>>>>> 69a565b1844947746f6ac35319779a448e81d3e0
   const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
+
+  const avatarUrl = getAvatarUrl(user);
+  const displayedAvatarUrl =
+    avatarDraft === null ? avatarUrl : avatarDraft || undefined;
+
+  useEffect(() => {
+    setAvatarDraft(null);
+  }, [avatarUrl]);
 
   useEffect(() => {
     const handleHashChange = () => setPage(readPage(window.location.hash));
@@ -577,6 +707,61 @@ export function App() {
     );
   }
 
+  function exportPdf() {
+    if (!lastTarget || !canExport) return;
+    printAnalysisExport(
+      buildAnalysisExport({ target: lastTarget, checks, states }),
+    );
+  }
+
+  async function saveAvatar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextAvatar = avatarDraft === null ? (avatarUrl ?? '') : avatarDraft;
+    setAvatarBusy(true);
+    setAvatarMessage(null);
+    try {
+      await updateAvatar(nextAvatar);
+      setAvatarDraft(null);
+      setAvatarMessage(
+        nextAvatar.trim()
+          ? 'Foto do perfil atualizada.'
+          : 'Foto removida; as iniciais serão exibidas.',
+      );
+    } catch (error) {
+      setAvatarMessage(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível atualizar a foto do perfil.',
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function handleAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    setAvatarBusy(true);
+    setAvatarMessage(null);
+    try {
+      setAvatarDraft(await prepareAvatarFile(file));
+      setAvatarMessage(
+        'Arquivo selecionado. Clique em Salvar foto para aplicar.',
+      );
+    } catch (error) {
+      setAvatarMessage(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível preparar a foto escolhida.',
+      );
+    } finally {
+      input.value = '';
+      setAvatarBusy(false);
+    }
+  }
+
   function reuseHistoryEntry(entry: AnalysisHistoryEntry) {
     setTarget(entry.target);
     setSelectedCheckIds(null);
@@ -667,6 +852,7 @@ export function App() {
       </aside>
 
       <div className="workspace">
+<<<<<<< HEAD
         <PageHeader
           eyebrow={meta.eyebrow}
           title={meta.title}
@@ -686,6 +872,35 @@ export function App() {
             </>
           }
         />
+=======
+        <header className="topbar" id="top">
+          <div className="topbar__identity">
+            <span className="eyebrow">{meta.eyebrow}</span>
+            <h1>{meta.title}</h1>
+            <p>{meta.description}</p>
+          </div>
+          <div className="topbar__actions">
+            <span className="wordmark">
+              OSINT <b>Pier</b>
+            </span>
+            <button
+              aria-label={`Conta ${user.email ?? 'usuário autenticado'}`}
+              className="auth-avatar-button"
+              title={user.email ?? 'Usuário autenticado'}
+              type="button"
+            >
+              <UserAvatar avatarUrl={avatarUrl} email={user.email} />
+            </button>
+            <button
+              className="auth-logout"
+              onClick={() => void signOut()}
+              type="button"
+            >
+              Sair
+            </button>
+          </div>
+        </header>
+>>>>>>> 69a565b1844947746f6ac35319779a448e81d3e0
 
         <main ref={animationScopeRef} data-page={page}>
           {page === 'analysis' && (
@@ -777,21 +992,24 @@ export function App() {
                                   selectedCheckIds === null ||
                                   selectedCheckIds.includes(check.id);
                                 return (
-                                  <label
+                                  <div
                                     className={`check-picker__item ${checked ? 'check-picker__item--active' : ''}`}
                                     key={check.id}
                                   >
                                     <input
+                                      id={`analysis-check-${check.id}`}
                                       aria-label={`${checked ? 'Desativar' : 'Ativar'} ${check.label}`}
                                       checked={checked}
                                       onChange={(event) => {
+                                        const nextChecked =
+                                          event.currentTarget.checked;
                                         setSelectedCheckIds((current) => {
                                           const ids =
                                             current ??
                                             compatibleChecks.map(
                                               (item) => item.id,
                                             );
-                                          return event.target.checked
+                                          return nextChecked
                                             ? [...new Set([...ids, check.id])]
                                             : ids.filter(
                                                 (id) => id !== check.id,
@@ -800,9 +1018,13 @@ export function App() {
                                       }}
                                       type="checkbox"
                                     />
-                                    <span>{check.label}</span>
-                                    <i aria-hidden="true" />
-                                  </label>
+                                    <label
+                                      htmlFor={`analysis-check-${check.id}`}
+                                    >
+                                      <span>{check.label}</span>
+                                      <i aria-hidden="true" />
+                                    </label>
+                                  </div>
                                 );
                               })}
                               {compatibleChecks.length === 0 && (
@@ -918,6 +1140,22 @@ export function App() {
                       </svg>
                       Exportar JSON
                     </button>
+                    <button
+                      className="button button--secondary export-button"
+                      disabled={!canExport}
+                      onClick={exportPdf}
+                      title={
+                        canExport
+                          ? 'Abrir um relatório pronto para salvar como PDF'
+                          : 'Conclua uma análise para habilitar a exportação'
+                      }
+                      type="button"
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M6 3h9l3 3v15H6zM15 3v4h4M9 12h6M9 16h6" />
+                      </svg>
+                      Exportar PDF
+                    </button>
                   </div>
                 </div>
 
@@ -941,6 +1179,14 @@ export function App() {
                       </p>
                     </div>
                   )}
+<<<<<<< HEAD
+                {checks.some((check) => check.id === 'nuclei') && (
+                  <VulnerabilitySummary
+                    check={checks.find((check) => check.id === 'nuclei')!}
+                    onRetry={() => retryCheck('nuclei')}
+                    state={states.nuclei ?? { status: 'idle' }}
+                  />
+=======
                 {checks.some(
                   (check) => check.id === 'shodan-vulnerabilities',
                 ) &&
@@ -968,6 +1214,7 @@ export function App() {
                       O panorama acima mantém esse detalhe para você revisar.
                     </p>
                   </div>
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
                 )}
                 {lastTarget &&
                   analysisSummary.loading === 0 &&
@@ -985,8 +1232,13 @@ export function App() {
                     </div>
                   )}
                 <div className="results-grid">
+<<<<<<< HEAD
+                  {checks
+                    .filter((check) => check.id !== 'nuclei')
+=======
                   {successfulChecks
                     .filter((check) => check.id !== 'shodan-vulnerabilities')
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
                     .map((check) => (
                       <ResultCard
                         key={check.id}
@@ -1130,11 +1382,19 @@ export function App() {
                                   </button>
                                   {state.status !== 'idle' && (
                                     <div className="tool-card__result">
-                                      <ResultCard
-                                        check={check}
-                                        onRetry={() => retryTool(check.id)}
-                                        state={state}
-                                      />
+                                      {check.id === 'nuclei' ? (
+                                        <VulnerabilitySummary
+                                          check={check}
+                                          onRetry={() => retryTool(check.id)}
+                                          state={state}
+                                        />
+                                      ) : (
+                                        <ResultCard
+                                          check={check}
+                                          onRetry={() => retryTool(check.id)}
+                                          state={state}
+                                        />
+                                      )}
                                     </div>
                                   )}
                                 </article>
@@ -1274,11 +1534,77 @@ export function App() {
                 Escolha como o OSINT Pier deve aparecer. A opção é aplicada
                 imediatamente e não altera os resultados das análises.
               </p>
+              <div className="settings-card settings-card--profile">
+                <div className="profile-card__identity">
+                  <UserAvatar
+                    avatarUrl={displayedAvatarUrl}
+                    email={user.email}
+                    className="user-avatar--large"
+                  />
+                  <div>
+                    <span className="eyebrow">Perfil</span>
+                    <h3>Foto da conta</h3>
+                    <p>
+                      A mesma imagem aparece no cabeçalho. O e-mail fica
+                      disponível ao passar o mouse sobre o avatar.
+                    </p>
+                  </div>
+                </div>
+                <form className="profile-form" onSubmit={saveAvatar}>
+                  <label htmlFor="profile-avatar-file">
+                    Arquivo da foto do perfil
+                    <input
+                      accept="image/*"
+                      id="profile-avatar-file"
+                      onChange={handleAvatarFileChange}
+                      type="file"
+                    />
+                  </label>
+                  <p className="profile-form__hint">
+                    Escolha uma imagem na sua máquina. Ela será ajustada para o
+                    formato do avatar.
+                  </p>
+                  <div className="profile-form__actions">
+                    <button
+                      className="button"
+                      disabled={avatarBusy || avatarDraft === null}
+                      type="submit"
+                    >
+                      {avatarBusy ? 'Salvando…' : 'Salvar foto'}
+                    </button>
+                    <button
+                      className="button button--ghost"
+                      disabled={
+                        avatarBusy ||
+                        (avatarDraft === null ? !avatarUrl : !avatarDraft)
+                      }
+                      onClick={() => {
+                        setAvatarDraft('');
+                        setAvatarMessage(
+                          'A foto será removida ao salvar as alterações.',
+                        );
+                      }}
+                      type="button"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                  {avatarMessage && (
+                    <p className="inline-notice" role="status">
+                      {avatarMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
               <div className="settings-card">
                 <div>
                   <span className="eyebrow">Tema de cor</span>
                   <h3>Escolha uma paleta</h3>
+<<<<<<< HEAD
                   <p>Dark é o tema padrão; Light oferece uma leitura clara.</p>
+=======
+                  <p>Dark é o tema padrão; Litght oferece uma leitura clara.</p>
+>>>>>>> 69a565b1844947746f6ac35319779a448e81d3e0
                 </div>
                 <div
                   aria-label="Tema de cor"
@@ -1296,7 +1622,11 @@ export function App() {
                     >
                       <span className="theme-option__swatch" />
                       <span>
+<<<<<<< HEAD
                         <strong>{option === 'dark' ? 'Dark' : 'Light'}</strong>
+=======
+                        <strong>{option === 'dark' ? 'Dark' : 'Litght'}</strong>
+>>>>>>> 69a565b1844947746f6ac35319779a448e81d3e0
                         <small>
                           {theme === option ? 'Selecionado' : 'Aplicar tema'}
                         </small>

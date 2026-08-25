@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { NormalizedTarget } from '../core/target/normalize-target.js';
 import hunter from './hunter-io/index.js';
 import shodan from './shodan/index.js';
-import vulnerabilities from './shodan-vulnerabilities/index.js';
 
 const domainTarget: NormalizedTarget = {
   original: 'example.com',
@@ -164,86 +163,5 @@ describe('plugins Hunter e Shodan', () => {
 
     expect(hunterResult.status).toBe('error');
     expect(shodanResult.status).toBe('error');
-  });
-
-  it('consolida CVEs do Shodan com CVSS, EPSS e CISA KEV', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        Response.json({
-          ip_str: '8.8.8.8',
-          vulns: ['CVE-2024-0001'],
-          data: [
-            { port: 443, transport: 'tcp', product: 'Example', version: '1.0' },
-          ],
-        }),
-      )
-      .mockResolvedValueOnce(
-        Response.json({
-          vulnerabilities: [
-            {
-              cve: {
-                id: 'CVE-2024-0001',
-                descriptions: [{ lang: 'en', value: 'Example vulnerability.' }],
-                metrics: {
-                  cvssMetricV31: [
-                    {
-                      cvssData: {
-                        baseScore: 9.8,
-                        baseSeverity: 'CRITICAL',
-                        vectorString: 'CVSS:3.1/AV:N',
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          ],
-        }),
-      )
-      .mockResolvedValueOnce(Response.json({ vulnerabilities: [] }))
-      .mockResolvedValueOnce(
-        Response.json({
-          data: [{ cve: 'CVE-2024-0001', epss: '0.42', percentile: '0.95' }],
-        }),
-      )
-      .mockResolvedValueOnce(
-        Response.json({
-          vulnerabilities: [
-            {
-              cveID: 'CVE-2024-0001',
-              dateAdded: '2024-01-01',
-              dueDate: '2024-01-21',
-              product: 'Example',
-              vendorProject: 'Example Vendor',
-              knownRansomwareCampaignUse: 'Known',
-            },
-          ],
-        }),
-      );
-    vi.stubGlobal('fetch', fetchMock);
-
-    const result = await vulnerabilities.run(ipTarget, {
-      signal: new AbortController().signal,
-      credentials: { SHODAN_API_KEY: 'shodan-secret' },
-    });
-
-    expect(result.status).toBe('success');
-    expect(result.data).toMatchObject({
-      total: 1,
-      severityCounts: { critical: 1 },
-      kevCount: 1,
-      highEpssCount: 1,
-      vulnerabilities: [
-        {
-          id: 'CVE-2024-0001',
-          severity: 'critical',
-          priority: 'critical',
-          kev: true,
-          epss: { score: 0.42 },
-        },
-      ],
-    });
-    expect(JSON.stringify(result.data)).not.toContain('shodan-secret');
   });
 });

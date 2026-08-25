@@ -21,7 +21,11 @@ import { analyzePassword } from './password-strength';
 interface AuthContextValue {
   user: User;
   signOut: () => Promise<void>;
+<<<<<<< HEAD
+  updateAvatar: (avatarData: string) => Promise<void>;
+=======
   updateUser: (user: User) => void;
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -342,8 +346,42 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+<<<<<<< HEAD
+        signOut: async () => {
+          await supabase?.auth.signOut();
+        },
+        updateAvatar: async (avatarData: string) => {
+          if (!supabase) throw new Error('Autenticação indisponível.');
+
+          const normalized = avatarData.trim();
+          if (normalized) {
+            if (normalized.startsWith('data:image/')) {
+              if (normalized.length > 1_000_000) {
+                throw new Error('A foto processada ficou grande demais.');
+              }
+            } else {
+              let parsed: URL;
+              try {
+                parsed = new URL(normalized);
+              } catch {
+                throw new Error('Escolha um arquivo de imagem válido.');
+              }
+              if (!['http:', 'https:'].includes(parsed.protocol)) {
+                throw new Error('A foto precisa ser uma imagem válida.');
+              }
+            }
+          }
+
+          const { data, error: updateError } = await supabase.auth.updateUser({
+            data: { avatar_url: normalized || null },
+          });
+          if (updateError) throw new Error('Não foi possível salvar a foto.');
+          if (data.user) setUser(data.user);
+        },
+=======
         signOut,
         updateUser: updateAuthenticatedUser,
+>>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
       }}
     >
       {children}

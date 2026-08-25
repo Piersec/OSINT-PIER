@@ -101,11 +101,18 @@ Plugins desabilitados não aparecem no dashboard nem aceitam novas execuções.
 - **Shodan Host API** — resolve domínios/URLs para um IP público e consulta portas,
   serviços resumidos, organização, localização, tags e vulnerabilidades. A chave usa
   `SHODAN_API_KEY`; banners brutos não são enviados ao dashboard.
-- **Vulnerabilidades (CVE)** — mantém o card Shodan original e, em um bloco separado,
-  correlaciona fingerprints do host com a [API de vulnerabilidades do NVD](https://nvd.nist.gov/developers/vulnerabilities),
-  enriquece a probabilidade de exploração pela [API FIRST EPSS](https://www.first.org/epss/api)
-  e marca presença no [catálogo CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog).
-  A triagem visual usa CVSS + EPSS + KEV e não substitui validação do serviço exposto.
+- **Vulnerabilidades (CVE)** — mantém o card Shodan original e usa o Nuclei em um bloco
+  separado para encontrar vulnerabilidades diretamente no alvo. Achados com CVE são
+  enriquecidos pela [API do NVD](https://nvd.nist.gov/developers/vulnerabilities),
+  [FIRST EPSS](https://www.first.org/epss/api) e [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog).
+  A triagem visual usa CVSS + EPSS + KEV e não substitui validação técnica do ativo.
+- **Nuclei** — executa o [scanner CLI](https://github.com/projectdiscovery/nuclei) local
+  com saída JSONL curada e templates não intrusivos. Achados com CVE são enriquecidos
+  com NVD, EPSS e CISA KEV e alimentam o gráfico de criticidade; achados sem CVE também
+  aparecem pela severidade informada pelo template. O binário pode ser instalado com
+  `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest` e localizado
+  via `NUCLEI_PATH`. A Vercel não inclui esse executável em funções serverless, então o
+  check fica `skipped` nesse deploy até existir um worker interno autorizado.
 - **OSINT Framework** — catálogo local de referências filtrado pelo tipo de alvo, sem
   scraping automático.
 

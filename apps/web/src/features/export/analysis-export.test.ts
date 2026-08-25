@@ -3,6 +3,7 @@ import type { CheckCatalogItem } from '@osint-pier/contracts';
 import type { CardState } from '../../components/checks/ResultCard';
 import {
   buildAnalysisExport,
+  createAnalysisExportHtml,
   createAnalysisExportFilename,
   serializeAnalysisExport,
 } from './analysis-export';
@@ -91,5 +92,36 @@ describe('analysis export', () => {
         '2026-08-20T12:30:45.000Z',
       ),
     ).toBe('osint-pier_example.com-path-q-one_2026-08-20T12-30-45Z.json');
+  });
+
+  it('gera HTML de impressão sem interpretar o alvo ou os dados', () => {
+    const report = buildAnalysisExport({
+      target: '<example.test>',
+      checks,
+      states: {
+        'dns-records': {
+          status: 'done',
+          result: {
+            id: 'dns-records',
+            status: 'success',
+            data: { note: '<script>alert(1)</script>' },
+            source: 'DNS',
+            durationMs: 8,
+          },
+        },
+        'external-check': {
+          status: 'request-error',
+          message: 'Falha de rede',
+        },
+      },
+      generatedAt: new Date('2026-08-20T12:30:45.000Z'),
+    });
+
+    const html = createAnalysisExportHtml(report);
+    expect(html).toContain('&lt;example.test&gt;');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('Falha na requisição');
+    expect(html).toContain('Salvar como PDF');
   });
 });
