@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
-const documentationUpdatedAt = '24 de agosto de 2026';
-const documentationVersion = '1.5';
+const documentationUpdatedAt = '25 de agosto de 2026';
+const documentationVersion = '1.6';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -24,6 +24,11 @@ const plannedTools = [
     label: 'Sherlock',
     description:
       'Avaliado; requer runner externo autenticado para busca de usernames.',
+  },
+  {
+    label: 'httpx / dnsx / tlsx / naabu',
+    description:
+      'Próximos candidatos para probing HTTP, DNS, TLS e portas; ainda não habilitados.',
   },
 ];
 
@@ -72,7 +77,7 @@ const documentationNav: DocumentationNavGroup[] = [
         label: 'Catálogo de ferramentas',
         description: 'Checks disponíveis e planejados.',
         keywords:
-          'ferramentas plugins checks shodan virustotal hunter phoneinfoga ghunt',
+          'ferramentas plugins checks shodan virustotal hunter phoneinfoga ghunt nmap katana gobuster subfinder runner',
       },
       {
         id: 'docs-history',
@@ -917,6 +922,13 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         sessão/cookies do Google são configurados somente no
                         volume privado do runner Docker; nunca cole cookies no
                         painel, no Vercel ou no histórico.
+                      </DocumentationCallout>
+                      <DocumentationCallout title="Command tools usam runner externo">
+                        Nmap, Katana, Gobuster e Subfinder não executam dentro do
+                        Vercel. Configure COMMAND_TOOLS_API_URL no backend e
+                        COMMAND_TOOLS_API_TOKEN no cofre. O runner aceita apenas
+                        o perfil safe; Gobuster permanece desligado no Compose
+                        até ser habilitado conscientemente no host autorizado.
                       </DocumentationCallout>
                       <div className="documentation-actions">
                         <a

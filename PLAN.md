@@ -183,6 +183,8 @@ produzir `skipped`, sem interromper os outros plugins.
       automático por padrão
 - [x] Sherlock — avaliação concluída; a CLI Python não entra diretamente no Vercel e a
       execução depende de um runner externo autenticado, com resultado curado de presença/URL
+- [x] Command tools — Nmap, Katana, Gobuster e Subfinder integrados por runner Docker
+      externo autenticado, com perfis allowlisted, limites operacionais e saída curada
 
 ### Shodan
 
@@ -256,6 +258,19 @@ produzir `skipped`, sem interromper os outros plugins.
   dashboard sem curadoria e autorização específica
 - Decisão: não executar na Vercel, não guardar senha/cookies e não copiar o código GPL-3.0
   para o backend. Uma retomada depende de runner externo e revisão de licenciamento
+
+### Command tools
+
+- Implementação registrada em [`docs/command-tools-integration.md`](docs/command-tools-integration.md)
+- Serviço: `infra/command-tools/docker-compose.yml`, com gateway HTTPS separado do runner
+- Credencial: `COMMAND_TOOLS_API_TOKEN`, armazenada no cofre; URL operacional em
+  `COMMAND_TOOLS_API_URL`
+- Endpoint: `POST /api/v1/scan`, aceitando somente `tool`, `target` e `profile: safe`
+- Nmap usa TCP connect/top 100 e detecção leve; Katana usa crawl curto; Subfinder é
+  passivo; Gobuster usa wordlist interna pequena e fica desabilitado por padrão
+- O runner limita concorrência, timeout, tamanho de saída e bloqueia alvos locais/privados;
+  stdout, stderr, banners e argumentos não são devolvidos ao cliente
+- Próximos candidatos avaliados separadamente: `httpx`, `dnsx`, `tlsx` e `naabu`
 
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
@@ -590,3 +605,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   privado e devolve apenas um contrato curado; o gateway exige token e a API do Vercel só
   conhece `GHUNT_API_URL`. A ativação em produção ainda exige hospedar o gateway, autenticar
   uma conta de investigação autorizada e salvar o token no cofre.
+- `2026-08-25` — GAB-94: Nmap, Katana, Gobuster e Subfinder foram adicionados como checks
+  independentes por meio de `infra/command-tools`, um gateway autenticado e um runner
+  Docker sem shell arbitrário. Os perfis são limitados, o Gobuster começa desabilitado,
+  e o dashboard recebe somente hosts, portas, URLs, subdomínios e caminhos curados. A
+  ativação em produção ainda exige hospedar o gateway HTTPS e salvar o token no cofre.
