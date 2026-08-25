@@ -680,6 +680,15 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           Nova análise. O relatório ativo é limpo, o histórico
                           permanece intacto e o foco volta para o campo de alvo.
                         </DocumentationStep>
+                        <DocumentationStep
+                          number="09"
+                          title="Acompanhe a execução em tela cheia"
+                        >
+                          Enquanto os checks respondem, a cena 3D ocupa o
+                          viewport para destacar que a coleta está ativa. Ao
+                          finalizar, o overlay desaparece e o relatório
+                          completo fica disponível automaticamente.
+                        </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">
                         <div>

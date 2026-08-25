@@ -596,6 +596,17 @@ export function App() {
 
   useGsapReveal(animationScopeRef, page);
 
+  useEffect(() => {
+    if (analysisSummary.loading === 0) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [analysisSummary.loading]);
+
   const canExport = Boolean(
     lastTarget &&
     checks.length > 0 &&
@@ -881,6 +892,17 @@ export function App() {
         <main ref={animationScopeRef} data-page={page}>
           {page === 'analysis' && (
             <>
+              {analysisSummary.loading > 0 && lastTarget && (
+                <div
+                  className="analysis-fullscreen-stage"
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Análise em andamento"
+                >
+                  <AnalysisScene phase="running" target={lastTarget} />
+                </div>
+              )}
+
               <section
                 className={`overview ${lastTarget ? 'overview--report' : 'overview--landing'}`}
                 id="analysis"
@@ -915,11 +937,8 @@ export function App() {
                     respondem.
                   </p>
 
-                  {(!lastTarget || analysisSummary.loading > 0) && (
-                    <AnalysisScene
-                      phase={analysisSummary.loading > 0 ? 'running' : 'idle'}
-                      target={lastTarget ?? target.trim()}
-                    />
+                  {!lastTarget && (
+                    <AnalysisScene phase="idle" target={target.trim()} />
                   )}
 
                   <form className="analysis-form" onSubmit={analyze}>
