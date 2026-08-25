@@ -10672,3 +10672,55 @@ html[data-theme='dark'] .app-shell--piersec .overview--report .analysis-scene {
     width: 100%;
   }
 }
+
+html[data-theme='white'] .app-shell--piersec .analysis-card__heading,
+html[data-theme='dark'] .app-shell--piersec .analysis-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.app-shell--piersec .analysis-new-button {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  gap: 7px;
+  margin-top: 1px;
+  padding: 0 13px;
+  white-space: nowrap;
+}
+
+.app-shell--piersec .analysis-new-button > span {
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card--report .target-control,
+html[data-theme='dark'] .app-shell--piersec .analysis-card--report .target-control {
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card--report .target-control > .button,
+html[data-theme='dark'] .app-shell--piersec .analysis-card--report .target-control > .button {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .analysis-card__heading,
+  html[data-theme='dark'] .app-shell--piersec .analysis-card__heading {
+    flex-wrap: wrap;
+  }
+
+  .app-shell--piersec .analysis-new-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -675,6 +675,11 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           perder os resultados curados; uma requisição que ainda
                           estava carregando volta para Aguardando.
                         </DocumentationStep>
+                        <DocumentationStep number="08" title="Comece outra análise">
+                          Quando uma rodada restaurada estiver aberta, clique em
+                          Nova análise. O relatório ativo é limpo, o histórico
+                          permanece intacto e o foco volta para o campo de alvo.
+                        </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">
                         <div>
