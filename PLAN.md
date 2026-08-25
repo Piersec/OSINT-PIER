@@ -139,6 +139,8 @@ Cada nova integração deve:
       incompatíveis e cards redundantes de erro na análise principal
 - [x] Panorama de segurança com índice de risco, postura radial, radar de exposição,
       mapa de criticidade, reputação externa e falhas priorizadas
+- [x] Entrada imersiva de análise com campo de alvo destacado, cena 3D Three.js durante
+      a coleta e relatório completo preservado após a execução
 
 ---
 
