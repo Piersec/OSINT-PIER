@@ -32,6 +32,7 @@ import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 import { getSuccessfulChecks } from './features/analysis/visible-results';
 import { getCompatibleChecks } from './features/analysis/compatible-checks';
 import {
+  clearAnalysisSession,
   readAnalysisSession,
   writeAnalysisSession,
 } from './features/analysis/analysis-session';
@@ -437,6 +438,7 @@ export function App() {
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const animationScopeRef = useRef<HTMLElement>(null);
+  const targetInputRef = useRef<HTMLInputElement>(null);
   const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
@@ -790,6 +792,17 @@ export function App() {
     }
   }
 
+  function startNewAnalysis() {
+    clearAnalysisSession();
+    setTarget('');
+    setLastTarget(null);
+    setLastTargetKind('auto');
+    setSelectedCheckIds(null);
+    setStates({});
+    setFiltersOpen(false);
+    window.requestAnimationFrame(() => targetInputRef.current?.focus());
+  }
+
   function reuseHistoryEntry(entry: AnalysisHistoryEntry) {
     setTarget(entry.target);
     setSelectedCheckIds(null);
@@ -885,6 +898,16 @@ export function App() {
                       <span className="eyebrow">Nova investigação</span>
                       <h2>O que você quer investigar?</h2>
                     </div>
+                    {lastTarget && (
+                      <button
+                        className="button button--secondary analysis-new-button"
+                        onClick={startNewAnalysis}
+                        type="button"
+                      >
+                        <span aria-hidden="true">＋</span>
+                        Nova análise
+                      </button>
+                    )}
                   </div>
                   <p>
                     Digite um domínio, IP, URL ou identidade. O mapa de sinais
@@ -905,6 +928,7 @@ export function App() {
                       <span className="target-prefix">›</span>
                       <input
                         id="target"
+                        ref={targetInputRef}
                         onChange={(event) => setTarget(event.target.value)}
                         placeholder="example.com, 8.8.8.8, username ou e-mail"
                         required

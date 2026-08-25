@@ -141,6 +141,7 @@ Cada nova integração deve:
       mapa de criticidade, reputação externa e falhas priorizadas
 - [x] Entrada imersiva de análise com campo de alvo destacado, cena 3D Three.js durante
       a coleta e relatório completo preservado após a execução
+- [x] Ação explícita de Nova análise para trocar o alvo restaurado sem apagar o histórico
 
 ---
 
