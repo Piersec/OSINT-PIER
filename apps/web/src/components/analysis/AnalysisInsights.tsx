@@ -19,6 +19,7 @@ import {
   YAxis,
   ZAxis,
 } from 'recharts';
+import type { TooltipContentProps } from 'recharts';
 import type { CardState } from '../checks/ResultCard';
 
 type SecuritySeverity = 'critical' | 'high' | 'medium' | 'low' | 'unknown';
@@ -609,25 +610,50 @@ export function buildAnalysisSnapshot(
   return { ...signals, insights };
 }
 
-function chartTooltipStyle() {
-  return {
-    backgroundColor: 'var(--surface-raised)',
-    border: '1px solid var(--border-strong)',
-    borderRadius: 10,
-    color: 'var(--text)',
-    fontSize: 11,
-  };
-}
+function SecurityChartTooltip({
+  active,
+  label,
+  payload,
+}: TooltipContentProps) {
+  if (!active || !payload?.length) return null;
 
-function riskTooltipFormatter(
-  value: unknown,
-  _name: unknown,
-  item: { payload?: { detail?: string } },
-) {
-  return [
-    String(value ?? '—'),
-    item.payload?.detail ?? 'Sinal de segurança',
-  ] as [string, string];
+  const entry = payload[0];
+  if (!entry) return null;
+  const data = isRecord(entry.payload) ? entry.payload : {};
+  const title =
+    typeof data.name === 'string'
+      ? data.name
+      : typeof data.subject === 'string'
+        ? data.subject
+        : String(label ?? 'Sinal de segurança');
+  const detail =
+    typeof data.detail === 'string'
+      ? data.detail
+      : 'Sinal derivado da postura de segurança';
+  const rawValue = numberValue(data.value) ?? numberValue(entry.value);
+  const isPercentage =
+    title.startsWith('VT ') || title === 'AbuseIPDB' || title === 'Postura';
+  const value = rawValue === null ? '—' : `${rawValue}${isPercentage ? '%' : ''}`;
+  const color =
+    typeof data.color === 'string'
+      ? data.color
+      : typeof entry.color === 'string'
+        ? entry.color
+        : 'var(--accent)';
+
+  return (
+    <div className="analysis-chart-tooltip" role="tooltip">
+      <span className="analysis-chart-tooltip__eyebrow">
+        Sinal de segurança
+      </span>
+      <strong className="analysis-chart-tooltip__title">{title}</strong>
+      <div className="analysis-chart-tooltip__value">
+        <i aria-hidden="true" style={{ backgroundColor: color, color }} />
+        <b>{value}</b>
+      </div>
+      <span className="analysis-chart-tooltip__detail">{detail}</span>
+    </div>
+  );
 }
 
 export function AnalysisInsights({
@@ -770,8 +796,7 @@ export function AnalysisInsights({
                     strokeWidth={2}
                   />
                   <Tooltip
-                    contentStyle={chartTooltipStyle()}
-                    formatter={riskTooltipFormatter}
+                    content={SecurityChartTooltip}
                   />
                 </RadarChart>
               </ResponsiveContainer>
@@ -823,12 +848,8 @@ export function AnalysisInsights({
                   />
                   <ZAxis dataKey="z" range={[90, 620]} type="number" />
                   <Tooltip
-                    contentStyle={chartTooltipStyle()}
                     cursor={{ strokeDasharray: '3 3' }}
-                    formatter={riskTooltipFormatter}
-                    labelFormatter={(_, payload) =>
-                      payload?.[0]?.payload?.name ?? 'Sinal de segurança'
-                    }
+                    content={SecurityChartTooltip}
                   />
                   <Scatter data={snapshot.criticalityPoints} dataKey="y">
                     {snapshot.criticalityPoints.map((point) => (
@@ -896,11 +917,7 @@ export function AnalysisInsights({
                     width={92}
                   />
                   <Tooltip
-                    contentStyle={chartTooltipStyle()}
-                    formatter={(value, _name, item) => [
-                      `${value}% · ${item.payload.detail}`,
-                      'Sinal',
-                    ]}
+                    content={SecurityChartTooltip}
                   />
                   <Bar barSize={13} dataKey="value" radius={[0, 6, 6, 0]}>
                     {reputationData.map((item) => (
@@ -961,11 +978,7 @@ export function AnalysisInsights({
                     width={112}
                   />
                   <Tooltip
-                    contentStyle={chartTooltipStyle()}
-                    formatter={(value, _name, item) => [
-                      value,
-                      item.payload.detail,
-                    ]}
+                    content={SecurityChartTooltip}
                   />
                   <Bar
                     barSize={13}
