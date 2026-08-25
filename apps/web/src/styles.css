@@ -9369,3 +9369,275 @@ html[data-theme='dark'] .app-shell--piersec .profile-required-badge {
     grid-template-columns: 1fr;
   }
 }
+
+html[data-theme='white'] .app-shell--piersec .account-menu,
+html[data-theme='dark'] .app-shell--piersec .account-menu {
+  position: relative;
+  z-index: 50;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__trigger,
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger {
+  display: inline-flex;
+  width: auto;
+  min-width: 47px;
+  height: 40px;
+  padding: 3px 7px 3px 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__trigger:hover,
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger:hover,
+html[data-theme='white'] .app-shell--piersec .account-menu__trigger[aria-expanded='true'],
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__trigger .user-avatar,
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger .user-avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__chevron,
+html[data-theme='dark'] .app-shell--piersec .account-menu__chevron {
+  display: inline-flex;
+  width: 13px;
+  height: 13px;
+  color: var(--muted);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__chevron svg,
+html[data-theme='dark'] .app-shell--piersec .account-menu__chevron svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__popover,
+html[data-theme='dark'] .app-shell--piersec .account-menu__popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 258px;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgba(13, 16, 17, 0.14);
+  transform-origin: top right;
+}
+
+html[data-theme='dark'] .app-shell--piersec .account-menu__popover {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__identity,
+html[data-theme='dark'] .app-shell--piersec .account-menu__identity {
+  display: grid;
+  padding: 11px 10px;
+  grid-template-columns: 7px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__status,
+html[data-theme='dark'] .app-shell--piersec .account-menu__status {
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__identity div,
+html[data-theme='dark'] .app-shell--piersec .account-menu__identity div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__identity strong,
+html[data-theme='dark'] .app-shell--piersec .account-menu__identity strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__identity span:not(.account-menu__status),
+html[data-theme='dark'] .app-shell--piersec .account-menu__identity span:not(.account-menu__status) {
+  overflow: hidden;
+  color: var(--muted);
+  font: 10px/1.3 'IBM Plex Mono', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__divider,
+html[data-theme='dark'] .app-shell--piersec .account-menu__divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item:hover,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item:hover {
+  border-color: var(--border);
+  background: var(--surface-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item > span,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item svg,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item small,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item small {
+  color: var(--muted);
+  font: 9px/1.2 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item--danger,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item--danger {
+  color: var(--danger);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-menu__item--danger svg,
+html[data-theme='dark'] .app-shell--piersec .account-menu__item--danger svg {
+  stroke: var(--danger);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page,
+html[data-theme='dark'] .app-shell--piersec .account-page {
+  padding-top: 31px;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tabs,
+html[data-theme='dark'] .app-shell--piersec .account-page__tabs {
+  display: flex;
+  min-height: 64px;
+  padding: 0 0 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tabs > div:first-child,
+html[data-theme='dark'] .app-shell--piersec .account-page__tabs > div:first-child {
+  display: grid;
+  gap: 7px;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tabs strong,
+html[data-theme='dark'] .app-shell--piersec .account-page__tabs strong {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tablist,
+html[data-theme='dark'] .app-shell--piersec .account-page__tablist {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tab,
+html[data-theme='dark'] .app-shell--piersec .account-page__tab {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--muted);
+  background: transparent;
+  font: 700 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.03em;
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page__tab:hover,
+html[data-theme='dark'] .app-shell--piersec .account-page__tab:hover,
+html[data-theme='white'] .app-shell--piersec .account-page__tab--active,
+html[data-theme='dark'] .app-shell--piersec .account-page__tab--active {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .account-page .profile-page,
+html[data-theme='dark'] .app-shell--piersec .account-page .profile-page,
+html[data-theme='white'] .app-shell--piersec .account-page .settings-page,
+html[data-theme='dark'] .app-shell--piersec .account-page .settings-page {
+  padding-top: 22px;
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .account-menu__popover,
+  html[data-theme='dark'] .app-shell--piersec .account-menu__popover {
+    position: fixed;
+    top: 75px;
+    right: 17px;
+    width: min(258px, calc(100vw - 34px));
+  }
+
+  html[data-theme='white'] .app-shell--piersec .account-page__tabs,
+  html[data-theme='dark'] .app-shell--piersec .account-page__tabs {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .account-page__tablist,
+  html[data-theme='dark'] .app-shell--piersec .account-page__tablist {
+    width: 100%;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .account-page__tab,
+  html[data-theme='dark'] .app-shell--piersec .account-page__tab {
+    flex: 1;
+  }
+}

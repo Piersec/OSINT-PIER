@@ -34,6 +34,7 @@ import {
   writeAnalysisSession,
 } from './features/analysis/analysis-session';
 import { CredentialsPanel } from './features/credentials/CredentialsPanel';
+import { AccountMenu } from './components/shell/AccountMenu';
 import {
   buildAnalysisExport,
   downloadAnalysisExport,
@@ -49,6 +50,7 @@ import { useGsapReveal } from './hooks/useGsapReveal';
 
 type Page =
   'analysis' | 'results' | 'history' | 'credentials' | 'profile' | 'settings';
+type AccountTab = 'profile' | 'settings';
 type Theme = 'dark' | 'white';
 
 const pageMeta: Record<
@@ -421,6 +423,7 @@ export function App() {
   // only available in the browser, so reading it during useState would make
   // `/` and `/#credentials` produce different trees during hydration.
   const [page, setPage] = useState<Page>('analysis');
+  const [accountTab, setAccountTab] = useState<AccountTab>('profile');
   const [target, setTarget] = useState('');
   const [lastTarget, setLastTarget] = useState<string | null>(null);
   const [lastTargetKind, setLastTargetKind] = useState<TargetKind | 'auto'>(
@@ -451,8 +454,14 @@ export function App() {
   }, [avatarUrl]);
 
   useEffect(() => {
-    const handleHashChange = () => setPage(readPage(window.location.hash));
-    setPage(readPage(window.location.hash));
+    const handleHashChange = () => {
+      const nextPage = readPage(window.location.hash);
+      setPage(nextPage);
+      if (nextPage === 'profile' || nextPage === 'settings') {
+        setAccountTab(nextPage);
+      }
+    };
+    handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -596,8 +605,15 @@ export function App() {
   );
 
   function navigate(nextPage: Page) {
+    if (nextPage === 'profile' || nextPage === 'settings') {
+      setAccountTab(nextPage);
+    }
     window.location.hash = `#${nextPage}`;
     setPage(nextPage);
+  }
+
+  function navigateAccountTab(nextTab: AccountTab) {
+    navigate(nextTab);
   }
 
   async function requestCheck(
@@ -809,8 +825,6 @@ export function App() {
               ['results', 'Ferramentas', 'results'],
               ['history', 'Histórico', 'history'],
               ['credentials', 'Credenciais', 'credentials'],
-              ['profile', 'Perfil', 'profile'],
-              ['settings', 'Configurações', 'settings'],
             ] as const
           ).map(([itemPage, label, icon]) => (
             <a
@@ -848,18 +862,6 @@ export function App() {
                     <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
                   </>
                 )}
-                {icon === 'settings' && (
-                  <>
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.5v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1Z" />
-                  </>
-                )}
-                {icon === 'profile' && (
-                  <>
-                    <circle cx="12" cy="8" r="3" />
-                    <path d="M5 21a7 7 0 0 1 14 0" />
-                  </>
-                )}
               </svg>
               <span>{label}</span>
             </a>
@@ -885,21 +887,14 @@ export function App() {
               <span className="wordmark">
                 OSINT <b>Pier</b>
               </span>
-              <button
-                aria-label={`Conta ${user.email ?? 'usuário autenticado'}`}
-                className="auth-avatar-button"
-                title={user.email ?? 'Usuário autenticado'}
-                type="button"
-              >
-                <UserAvatar avatarUrl={avatarUrl} email={user.email} />
-              </button>
-              <button
-                className="auth-logout"
-                onClick={() => void signOut()}
-                type="button"
-              >
-                Sair
-              </button>
+              <AccountMenu
+                email={user.email}
+                onNavigate={navigateAccountTab}
+                onSignOut={() => void signOut()}
+                trigger={
+                  <UserAvatar avatarUrl={avatarUrl} email={user.email} />
+                }
+              />
             </>
           }
         />
@@ -1500,118 +1495,165 @@ export function App() {
             </>
           )}
 
-          {page === 'profile' && (
-            <ProfilePage onUserUpdated={updateUser} user={user} />
-          )}
-
-          {page === 'settings' && (
-            <section className="settings-page" data-reveal>
-              <div className="page-lead settings-lead">
+          {(page === 'profile' || page === 'settings') && (
+            <section className="account-page" data-reveal>
+              <div className="account-page__tabs">
                 <div>
-                  <span className="eyebrow">Preferências locais</span>
-                  <h2>Aparência do painel</h2>
-                </div>
-                <span className="section-count">Salvo neste navegador</span>
-              </div>
-              <p className="muted page-copy">
-                Escolha como o OSINT Pier deve aparecer. A opção é aplicada
-                imediatamente e não altera os resultados das análises.
-              </p>
-              <div className="settings-card settings-card--profile">
-                <div className="profile-card__identity">
-                  <UserAvatar
-                    avatarUrl={displayedAvatarUrl}
-                    email={user.email}
-                    className="user-avatar--large"
-                  />
-                  <div>
-                    <span className="eyebrow">Perfil</span>
-                    <h3>Foto da conta</h3>
-                    <p>
-                      A mesma imagem aparece no cabeçalho. O e-mail fica
-                      disponível ao passar o mouse sobre o avatar.
-                    </p>
-                  </div>
-                </div>
-                <form className="profile-form" onSubmit={saveAvatar}>
-                  <label htmlFor="profile-avatar-file">
-                    Arquivo da foto do perfil
-                    <input
-                      accept="image/*"
-                      id="profile-avatar-file"
-                      onChange={handleAvatarFileChange}
-                      type="file"
-                    />
-                  </label>
-                  <p className="profile-form__hint">
-                    Escolha uma imagem na sua máquina. Ela será ajustada para o
-                    formato do avatar.
-                  </p>
-                  <div className="profile-form__actions">
-                    <button
-                      className="button"
-                      disabled={avatarBusy || avatarDraft === null}
-                      type="submit"
-                    >
-                      {avatarBusy ? 'Salvando…' : 'Salvar foto'}
-                    </button>
-                    <button
-                      className="button button--ghost"
-                      disabled={
-                        avatarBusy ||
-                        (avatarDraft === null ? !avatarUrl : !avatarDraft)
-                      }
-                      onClick={() => {
-                        setAvatarDraft('');
-                        setAvatarMessage(
-                          'A foto será removida ao salvar as alterações.',
-                        );
-                      }}
-                      type="button"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                  {avatarMessage && (
-                    <p className="inline-notice" role="status">
-                      {avatarMessage}
-                    </p>
-                  )}
-                </form>
-              </div>
-              <div className="settings-card">
-                <div>
-                  <span className="eyebrow">Tema de cor</span>
-                  <h3>Escolha uma paleta</h3>
-                  <p>
-                    Light é o tema padrão; Dark oferece uma leitura concentrada.
-                  </p>
+                  <span className="eyebrow">Account / control plane</span>
+                  <strong>Perfil e configurações</strong>
                 </div>
                 <div
-                  aria-label="Tema de cor"
-                  className="theme-options"
-                  role="radiogroup"
+                  aria-label="Área da conta"
+                  className="account-page__tablist"
+                  role="tablist"
                 >
-                  {(['dark', 'white'] as const).map((option) => (
-                    <button
-                      aria-checked={theme === option}
-                      className={`theme-option theme-option--${option} ${theme === option ? 'theme-option--active' : ''}`}
-                      key={option}
-                      onClick={() => setTheme(option)}
-                      role="radio"
-                      type="button"
-                    >
-                      <span className="theme-option__swatch" />
-                      <span>
-                        <strong>{option === 'dark' ? 'Dark' : 'Light'}</strong>
-                        <small>
-                          {theme === option ? 'Selecionado' : 'Aplicar tema'}
-                        </small>
-                      </span>
-                    </button>
-                  ))}
+                  <button
+                    aria-controls="account-profile-panel"
+                    aria-selected={accountTab === 'profile'}
+                    className={`account-page__tab ${accountTab === 'profile' ? 'account-page__tab--active' : ''}`}
+                    onClick={() => navigateAccountTab('profile')}
+                    role="tab"
+                    type="button"
+                  >
+                    Perfil
+                  </button>
+                  <button
+                    aria-controls="account-settings-panel"
+                    aria-selected={accountTab === 'settings'}
+                    className={`account-page__tab ${accountTab === 'settings' ? 'account-page__tab--active' : ''}`}
+                    onClick={() => navigateAccountTab('settings')}
+                    role="tab"
+                    type="button"
+                  >
+                    Configurações
+                  </button>
                 </div>
               </div>
+
+              {accountTab === 'profile' ? (
+                <div id="account-profile-panel" role="tabpanel">
+                  <ProfilePage onUserUpdated={updateUser} user={user} />
+                </div>
+              ) : (
+                <section
+                  className="settings-page"
+                  data-reveal
+                  id="account-settings-panel"
+                  role="tabpanel"
+                >
+                  <div className="page-lead settings-lead">
+                    <div>
+                      <span className="eyebrow">Preferências locais</span>
+                      <h2>Aparência do painel</h2>
+                    </div>
+                    <span className="section-count">Salvo neste navegador</span>
+                  </div>
+                  <p className="muted page-copy">
+                    Escolha como o OSINT Pier deve aparecer. A opção é aplicada
+                    imediatamente e não altera os resultados das análises.
+                  </p>
+                  <div className="settings-card settings-card--profile">
+                    <div className="profile-card__identity">
+                      <UserAvatar
+                        avatarUrl={displayedAvatarUrl}
+                        email={user.email}
+                        className="user-avatar--large"
+                      />
+                      <div>
+                        <span className="eyebrow">Identidade visual</span>
+                        <h3>Foto da conta</h3>
+                        <p>
+                          A mesma imagem aparece no cabeçalho e no menu da
+                          conta.
+                        </p>
+                      </div>
+                    </div>
+                    <form className="profile-form" onSubmit={saveAvatar}>
+                      <label htmlFor="profile-avatar-file">
+                        Arquivo da foto do perfil
+                        <input
+                          accept="image/*"
+                          id="profile-avatar-file"
+                          onChange={handleAvatarFileChange}
+                          type="file"
+                        />
+                      </label>
+                      <p className="profile-form__hint">
+                        Escolha uma imagem na sua máquina. Ela será ajustada
+                        para o formato do avatar.
+                      </p>
+                      <div className="profile-form__actions">
+                        <button
+                          className="button"
+                          disabled={avatarBusy || avatarDraft === null}
+                          type="submit"
+                        >
+                          {avatarBusy ? 'Salvando…' : 'Salvar foto'}
+                        </button>
+                        <button
+                          className="button button--ghost"
+                          disabled={
+                            avatarBusy ||
+                            (avatarDraft === null ? !avatarUrl : !avatarDraft)
+                          }
+                          onClick={() => {
+                            setAvatarDraft('');
+                            setAvatarMessage(
+                              'A foto será removida ao salvar as alterações.',
+                            );
+                          }}
+                          type="button"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                      {avatarMessage && (
+                        <p className="inline-notice" role="status">
+                          {avatarMessage}
+                        </p>
+                      )}
+                    </form>
+                  </div>
+                  <div className="settings-card">
+                    <div>
+                      <span className="eyebrow">Tema de cor</span>
+                      <h3>Escolha uma paleta</h3>
+                      <p>
+                        Light é o tema padrão; Dark oferece uma leitura
+                        concentrada.
+                      </p>
+                    </div>
+                    <div
+                      aria-label="Tema de cor"
+                      className="theme-options"
+                      role="radiogroup"
+                    >
+                      {(['dark', 'white'] as const).map((option) => (
+                        <button
+                          aria-checked={theme === option}
+                          className={`theme-option theme-option--${option} ${theme === option ? 'theme-option--active' : ''}`}
+                          key={option}
+                          onClick={() => setTheme(option)}
+                          role="radio"
+                          type="button"
+                        >
+                          <span className="theme-option__swatch" />
+                          <span>
+                            <strong>
+                              {option === 'dark' ? 'Dark' : 'Light'}
+                            </strong>
+                            <small>
+                              {theme === option
+                                ? 'Selecionado'
+                                : 'Aplicar tema'}
+                            </small>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
             </section>
           )}
         </main>
