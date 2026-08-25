@@ -258,7 +258,7 @@ produzir `skipped`, sem interromper os outros plugins.
   de resultados JSON para o dashboard
 - Decisão: não executar a CLI no runtime serverless da Vercel. O próximo passo é um runner
   Python/Docker separado, HTTPS privado e token interno, seguindo `supportedTargetKinds:
-  ['username']`
+['username']`
 - Escopo público futuro: username, presença e URL por serviço. Respostas brutas, cookies,
   proxies, stdout e credenciais nunca devem sair do runner
 - Dependências e follow-up estão descritos na GAB-93, vinculada à GAB-69
@@ -299,15 +299,12 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Permitir recolher e expandir a caixa de filtros da página de Análise
 - [x] Transformar o histórico em página de auditoria com ação “Usar novamente”
 - [x] Aplicar nome OSINT Pier, símbolo PierSec, paleta e tipografia do brand kit
-<<<<<<< HEAD
 - [x] Permitir configurar a foto do perfil via Supabase Auth metadata e reutilizá-la no
       cabeçalho, exibindo o e-mail apenas no hover do avatar
-=======
 - [x] Criar página separada de documentação interna passo a passo, acessível fora
       da sidebar pelo link no rodapé e pela rota `/docs`
 - [x] Evoluir a documentação para uma experiência profissional com navegação própria,
       busca local, onboarding, catálogo vivo e referências por seção
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 
 ---
 
@@ -535,7 +532,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   segura para configurar Supabase e a chave mestra, sem incluir o segredo enviado. Os
   conflitos Git persistidos em configuração, testes, documentação e plano também foram
   resolvidos preservando autenticação Supabase e o cofre sem `ADMIN_TOKEN`.
-<<<<<<< HEAD
 - `2026-08-24` — Nuclei adicionado como scanner de vulnerabilidades no lugar do consolidado
   baseado em Shodan. O plugin executa o CLI local sem shell, bloqueia rede privada e
   templates intrusivos, interpreta JSONL curado e alimenta o gráfico com NVD, EPSS e KEV;
@@ -546,7 +542,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   O toggle administrativo de plugins recebeu atualização otimista com rollback seguro.
   A análise agora oferece JSON e um relatório PDF em janela de impressão, sem nova
   dependência ou envio de resultados ao backend.
-=======
 - `2026-08-21` — Pipeline de colaboração atualizada em `COLLABORATION.md`: toda tarefa
   sincroniza a base com `pull`, usa branch exclusiva e faz `push`; após validação, a
   entrega é integrada e publicada na `master` autorizada pelo proprietário.
@@ -642,4 +637,3 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   Docker sem shell arbitrário. Os perfis são limitados, o Gobuster começa desabilitado,
   e o dashboard recebe somente hosts, portas, URLs, subdomínios e caminhos curados. A
   ativação em produção ainda exige hospedar o gateway HTTPS e salvar o token no cofre.
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15

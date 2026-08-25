@@ -21,11 +21,8 @@ import { analyzePassword } from './password-strength';
 interface AuthContextValue {
   user: User;
   signOut: () => Promise<void>;
-<<<<<<< HEAD
   updateAvatar: (avatarData: string) => Promise<void>;
-=======
   updateUser: (user: User) => void;
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -346,10 +343,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-<<<<<<< HEAD
-        signOut: async () => {
-          await supabase?.auth.signOut();
-        },
+        signOut,
         updateAvatar: async (avatarData: string) => {
           if (!supabase) throw new Error('Autenticação indisponível.');
 
@@ -378,10 +372,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           if (updateError) throw new Error('Não foi possível salvar a foto.');
           if (data.user) setUser(data.user);
         },
-=======
-        signOut,
         updateUser: updateAuthenticatedUser,
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
       }}
     >
       {children}

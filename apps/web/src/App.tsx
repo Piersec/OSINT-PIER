@@ -92,10 +92,8 @@ const toolDescriptions: Record<string, string> = {
   'ip-info': 'Descobre os endereços IP associados ao domínio consultado.',
   gobuster:
     'Enumera caminhos web com uma wordlist interna curta e perfil controlado.',
-  katana:
-    'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
-  nmap:
-    'Identifica portas TCP abertas e versões de serviço nos top ports.',
+  katana: 'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
+  nmap: 'Identifica portas TCP abertas e versões de serviço nos top ports.',
   'redirect-chain': 'Segue a cadeia de redirecionamentos HTTP do alvo.',
   'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
   'server-location': 'Estima a localização e a rede do IP público resolvido.',
@@ -112,13 +110,10 @@ const toolDescriptions: Record<string, string> = {
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
-<<<<<<< HEAD
-=======
   phoneinfoga:
     'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
   'shodan-vulnerabilities':
     'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
 };
 
 type ToolCategory = 'web' | 'threat' | 'personal';
@@ -376,11 +371,7 @@ function checkDescription(check: CheckCatalogItem): string {
 }
 
 export function App() {
-<<<<<<< HEAD
-  const { user, signOut, updateAvatar } = useAuth();
-=======
-  const { user, signOut, updateUser } = useAuth();
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
+  const { user, signOut, updateAvatar, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -404,13 +395,10 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
-<<<<<<< HEAD
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
-=======
   const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
@@ -1123,30 +1111,13 @@ export function App() {
                       </p>
                     </div>
                   )}
-<<<<<<< HEAD
                 {checks.some((check) => check.id === 'nuclei') && (
                   <VulnerabilitySummary
                     check={checks.find((check) => check.id === 'nuclei')!}
                     onRetry={() => retryCheck('nuclei')}
                     state={states.nuclei ?? { status: 'idle' }}
                   />
-=======
-                {checks.some(
-                  (check) => check.id === 'shodan-vulnerabilities',
-                ) &&
-                  states['shodan-vulnerabilities']?.status === 'done' &&
-                  states['shodan-vulnerabilities'].result.status ===
-                    'success' && (
-                    <VulnerabilitySummary
-                      check={checks.find(
-                        (check) => check.id === 'shodan-vulnerabilities',
-                      )!}
-                      onRetry={() => retryCheck('shodan-vulnerabilities')}
-                      state={
-                        states['shodan-vulnerabilities'] ?? { status: 'idle' }
-                      }
-                    />
-                  )}
+                )}
                 {lastTarget && analysisSummary.attention > 0 && (
                   <div className="results-filter-notice" role="status">
                     <span aria-hidden="true">i</span>
@@ -1158,7 +1129,6 @@ export function App() {
                       O panorama acima mantém esse detalhe para você revisar.
                     </p>
                   </div>
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
                 )}
                 {lastTarget &&
                   analysisSummary.loading === 0 &&
@@ -1176,13 +1146,8 @@ export function App() {
                     </div>
                   )}
                 <div className="results-grid">
-<<<<<<< HEAD
-                  {checks
-                    .filter((check) => check.id !== 'nuclei')
-=======
                   {successfulChecks
-                    .filter((check) => check.id !== 'shodan-vulnerabilities')
->>>>>>> cd19a2d066bc61434a1447a6e2995fd34b89de15
+                    .filter((check) => check.id !== 'nuclei')
                     .map((check) => (
                       <ResultCard
                         key={check.id}
