@@ -933,14 +933,18 @@ input::placeholder {
   min-height: 100%;
   flex-direction: column;
   overflow: hidden;
-  padding: 32px;
+  padding: 28px;
+  border-color: rgba(72, 233, 255, 0.2);
   background:
     radial-gradient(
-      circle at 100% 0%,
-      rgba(72, 233, 255, 0.13),
-      transparent 60%
+      circle at 100% 0,
+      rgba(72, 233, 255, 0.16),
+      transparent 48%
     ),
-    linear-gradient(145deg, #282828, #171717 67%);
+    linear-gradient(145deg, var(--surface-raised), var(--surface) 72%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 42px rgba(0, 0, 0, 0.14);
 }
 
 .analysis-context__brand {
@@ -948,6 +952,8 @@ input::placeholder {
   gap: 10px;
   align-items: center;
   margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(242, 242, 242, 0.1);
   color: rgba(242, 242, 242, 0.62);
   font:
     700 9px 'Open Sans',
@@ -967,15 +973,17 @@ input::placeholder {
   position: absolute;
   right: -28px;
   bottom: -28px;
-  width: 140px;
-  height: 140px;
-  border: 1px solid rgba(72, 233, 255, 0.24);
+  width: 154px;
+  height: 154px;
+  border: 1px solid rgba(72, 233, 255, 0.2);
   border-radius: 50%;
   content: '';
+  pointer-events: none;
 }
 
 .analysis-context strong {
   max-width: 280px;
+  margin-top: 9px;
   font-size: clamp(25px, 2.7vw, 38px);
   line-height: 1.08;
   letter-spacing: -0.045em;
@@ -983,18 +991,22 @@ input::placeholder {
 
 .analysis-context p {
   max-width: 300px;
-  margin: 18px 0 54px;
+  margin: 18px 0 28px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   overflow-wrap: anywhere;
   color: #a0a09d;
+  background: rgba(0, 0, 0, 0.12);
   font-size: 13px;
   line-height: 1.55;
 }
 
 .signal-line {
   position: relative;
-  height: 48px;
-  margin-top: auto;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.13);
+  height: 42px;
+  margin-top: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 }
 
 .signal-line::before {
@@ -6011,12 +6023,109 @@ html[data-theme='white'] .documentation-brand img {
 
 .analysis-insights .recharts-tooltip-wrapper {
   outline: none;
+  z-index: 20;
+}
+
+.analysis-chart-tooltip {
+  min-width: 190px;
+  max-width: 250px;
+  padding: 12px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+  background:
+    linear-gradient(145deg, rgba(72, 233, 255, 0.08), transparent 62%),
+    var(--surface-raised);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  font-family: 'Merriweather Sans', 'Open Sans', sans-serif;
+}
+
+.analysis-chart-tooltip__eyebrow {
+  display: block;
+  color: var(--accent);
+  font:
+    700 8px 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.analysis-chart-tooltip__title {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.analysis-chart-tooltip__value {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+
+.analysis-chart-tooltip__value i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.analysis-chart-tooltip__value b {
+  color: var(--text);
+  font:
+    700 13px 'IBM Plex Mono',
+    monospace;
+}
+
+.analysis-chart-tooltip__detail {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 html[data-theme='white'] .analysis-insights {
   background:
     linear-gradient(135deg, rgba(8, 127, 152, 0.06), transparent 34%),
     var(--surface);
+}
+
+html[data-theme='white'] .analysis-context {
+  border-color: rgba(8, 127, 152, 0.2);
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(8, 127, 152, 0.12),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #ffffff, #f1f7f7 72%);
+  box-shadow: 0 16px 42px rgba(31, 47, 50, 0.09);
+}
+
+html[data-theme='white'] .analysis-context p {
+  color: var(--muted);
+  background: rgba(8, 127, 152, 0.045);
+}
+
+html[data-theme='white'] .analysis-context__brand {
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+html[data-theme='white'] .signal-line {
+  border-color: var(--border-strong);
+}
+
+html[data-theme='white'] .analysis-chart-tooltip {
+  box-shadow: 0 14px 32px rgba(31, 47, 50, 0.16);
 }
 
 @media (max-width: 1260px) {
