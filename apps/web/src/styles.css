@@ -9641,3 +9641,748 @@ html[data-theme='dark'] .app-shell--piersec .account-page .settings-page {
     flex: 1;
   }
 }
+
+/* Dark ops/compliance direction from the dashboard reference. */
+html[data-theme='white'] .app-shell--piersec .results-ledger__header {
+  display: none;
+}
+
+html[data-theme='dark'] {
+  --background: #1a1a1a;
+  --surface: #232323;
+  --surface-soft: #2a2a2a;
+  --surface-raised: #303030;
+  --text: #f2f2f2;
+  --muted: #9c9c9c;
+  --border: #3a3a3a;
+  --border-strong: #4a4a4a;
+  --accent: #48e9ff;
+  --accent-strong: #48e9ff;
+  --accent-soft: rgba(72, 233, 255, 0.12);
+  --success: #4ade80;
+  --warning: #e8b339;
+  --danger: #f16063;
+}
+
+html[data-theme='dark'] body,
+html[data-theme='dark'] button,
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea {
+  font-family: Inter, 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+html[data-theme='dark'] .app-shell--piersec,
+html[data-theme='dark'] .app-shell--piersec .sidebar,
+html[data-theme='dark'] .app-shell--piersec .workspace {
+  background: #1a1a1a;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar {
+  width: 240px;
+  padding: 18px 13px 13px;
+  border-right-color: var(--border);
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand {
+  min-height: 40px;
+  padding: 0 8px 17px;
+  border-bottom-color: var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand img {
+  width: 24px;
+  height: 24px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand > span {
+  font-size: 15px;
+  letter-spacing: -0.035em;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta {
+  display: none;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar nav {
+  margin-top: 23px;
+  gap: 20px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__nav-group {
+  display: grid;
+  gap: 3px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__nav-label {
+  padding: 0 10px 6px;
+  color: #636363;
+  font-size: 8px;
+  letter-spacing: 0.13em;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__link {
+  height: 34px;
+  padding: 0 10px;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #9c9c9c;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__link svg {
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__link:hover,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link--active {
+  border-color: #303030;
+  border-left-color: transparent;
+  color: #f2f2f2;
+  background: #2a2a2a;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__link--active svg {
+  color: #48e9ff;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__status {
+  min-height: 57px;
+  padding: 12px 10px 0;
+  border-top-color: var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__status strong {
+  color: #f2f2f2;
+  font-size: 10px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__status small {
+  color: #636363;
+  font-size: 9px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .sidebar__status code {
+  color: #4ade80;
+}
+
+html[data-theme='dark'] .app-shell--piersec .workspace {
+  width: calc(100% - 240px);
+  margin-left: 240px;
+  padding: 0 28px 28px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar {
+  min-height: 89px;
+  padding: 18px 0 14px;
+  align-items: center;
+  border-bottom-color: var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-line {
+  margin-bottom: 7px;
+  gap: 12px;
+  color: #636363;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-status {
+  color: #4ade80;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar .eyebrow {
+  display: inline;
+  margin: 0 8px 0 0;
+  color: #636363;
+  font-size: 9px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar h1 {
+  display: inline;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar p {
+  display: inline;
+  margin: 0 0 0 10px;
+  color: #636363;
+  font: 10px/1.2 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='dark'] .app-shell--piersec .topbar__actions {
+  gap: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger {
+  height: 32px;
+  min-width: 39px;
+  border-color: var(--border);
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .account-menu__trigger .user-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+html[data-theme='dark'] .app-shell--piersec main {
+  max-width: none;
+}
+
+html[data-theme='dark'] .app-shell--piersec .overview {
+  display: grid;
+  padding-top: 17px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-card {
+  padding: 17px 18px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-card__topline {
+  margin: -1px 0 14px;
+  padding-bottom: 10px;
+  border-bottom-color: var(--border);
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-card h2 {
+  margin-top: 5px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-card > p {
+  max-width: none;
+  margin: 8px 0 14px;
+  color: #9c9c9c;
+  font-size: 11px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-form > label {
+  margin-bottom: 5px;
+  color: #9c9c9c;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .target-control {
+  min-height: 42px;
+  padding: 3px 3px 3px 11px;
+  border-color: var(--border);
+  border-radius: 5px;
+  background: #1a1a1a;
+}
+
+html[data-theme='dark'] .app-shell--piersec .target-control input {
+  height: 34px;
+  color: #f2f2f2;
+  font-size: 11px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .target-prefix {
+  color: #48e9ff;
+  font-size: 17px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .button {
+  min-height: 30px;
+  border-color: #48e9ff;
+  border-radius: 5px;
+  color: #1a1a1a;
+  background: #48e9ff;
+  font-size: 10px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .button:hover:not(:disabled) {
+  border-color: #8cf3ff;
+  color: #1a1a1a;
+  background: #8cf3ff;
+}
+
+html[data-theme='dark'] .app-shell--piersec .button--secondary,
+html[data-theme='dark'] .app-shell--piersec .button--ghost {
+  border-color: var(--border-strong);
+  color: #f2f2f2;
+  background: transparent;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-filters {
+  margin-top: 13px;
+  border-top-color: var(--border);
+  border-bottom-color: var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .filter-toggle {
+  min-height: 40px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .filter-toggle b {
+  color: #f2f2f2;
+  font-size: 10px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .form-meta {
+  padding-top: 10px;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-context {
+  min-height: 0;
+  border-color: var(--border);
+  border-radius: 8px;
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-context__motion {
+  min-height: 150px;
+  padding: 15px 18px 13px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-context strong {
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-context p {
+  margin: 5px 0 7px;
+  padding: 6px 8px;
+  font-size: 9px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .signal-topology {
+  margin-top: 5px;
+  padding-top: 7px;
+  border-top-color: var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .signal-topology__canvas {
+  height: 64px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .signal-topology__legend {
+  display: none;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-context__brand {
+  display: none;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  border: 0;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card {
+  min-height: 88px;
+  padding: 14px 15px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #2a2a2a;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card > span {
+  color: #9c9c9c;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card strong {
+  margin-top: 7px;
+  color: #f2f2f2;
+  font-size: 27px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card small {
+  margin-top: 5px;
+  color: #636363;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card--positive strong {
+  color: #f2f2f2;
+}
+
+html[data-theme='dark'] .app-shell--piersec .metric-card--attention strong {
+  color: #f2f2f2;
+}
+
+html[data-theme='dark'] .app-shell--piersec .analysis-insights {
+  border-color: var(--border);
+  border-radius: 8px;
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-section {
+  margin-top: 17px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+html[data-theme='dark'] .app-shell--piersec .section-heading {
+  min-height: 43px;
+  padding: 0 2px 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme='dark'] .app-shell--piersec .section-heading h2 {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+html[data-theme='dark'] .app-shell--piersec .section-heading .eyebrow {
+  color: #636363;
+  font-size: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .section-heading__actions {
+  gap: 7px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .section-heading__actions .button {
+  min-height: 27px;
+  padding: 0 9px;
+  border-color: var(--border);
+  color: #f2f2f2;
+  background: transparent;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  display: grid;
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  background: #2a2a2a;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-grid::before {
+  display: grid;
+  min-height: 29px;
+  padding: 0 15px;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(220px, 1.5fr) 120px 100px;
+  align-items: center;
+  color: #636363;
+  background: #232323;
+  content: 'FONTE / CHECK\A\0A DADOS OBSERVADOS\A\0A FONTE\A\0A STATUS';
+  white-space: pre;
+  font: 700 8px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.07em;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+  display: grid;
+  min-height: 72px;
+  padding: 0 15px;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(220px, 1.5fr) 120px 100px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: #2a2a2a;
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card:hover {
+  background: #303030;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card__header {
+  display: flex;
+  min-width: 0;
+  padding: 11px 14px 11px 0;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .source-logo {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #232323;
+}
+
+html[data-theme='dark'] .app-shell--piersec .source-logo img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card__header h3 {
+  overflow: hidden;
+  color: #f2f2f2;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card__header .eyebrow {
+  color: #636363;
+  font-size: 7px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card > .result-data,
+html[data-theme='dark'] .app-shell--piersec .result-card > .result-alert,
+html[data-theme='dark'] .app-shell--piersec .result-card > .skeleton-stack,
+html[data-theme='dark'] .app-shell--piersec .result-card > .muted {
+  min-width: 0;
+  max-height: 43px;
+  padding: 8px 12px 8px 0;
+  overflow: hidden;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: #9c9c9c;
+  font-size: 9px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card .result-data {
+  display: block;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card .result-data .result-block {
+  display: inline-flex;
+  margin: 0 12px 4px 0;
+  gap: 5px;
+  align-items: baseline;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card .result-block h4 {
+  color: #636363;
+  font: 700 7px/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card .result-block > div,
+html[data-theme='dark'] .app-shell--piersec .result-card .result-block > span {
+  color: #f2f2f2;
+  font-size: 9px;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-card__footer {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0 10px 0 0;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  gap: 3px;
+  border: 0;
+  color: #636363;
+  font: 8px/1.2 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-actions {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  grid-column: 4;
+  grid-row: 1 / span 2;
+  justify-content: flex-end;
+}
+
+html[data-theme='dark'] .app-shell--piersec .result-actions .button,
+html[data-theme='dark'] .app-shell--piersec .result-action-link {
+  min-height: 25px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: #9c9c9c;
+  background: transparent;
+  font: 9px/1 'IBM Plex Mono', monospace;
+}
+
+html[data-theme='dark'] .app-shell--piersec .status-pill {
+  min-height: 18px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+html[data-theme='dark'] .app-shell--piersec .status-pill--success {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+
+html[data-theme='dark'] .app-shell--piersec .status-pill--error,
+html[data-theme='dark'] .app-shell--piersec .status-pill--request-error,
+html[data-theme='dark'] .app-shell--piersec .status-pill--skipped {
+  color: #f16063;
+  background: rgba(241, 96, 99, 0.12);
+}
+
+html[data-theme='dark'] .app-shell--piersec .status-pill--loading {
+  color: #48e9ff;
+  background: rgba(72, 233, 255, 0.12);
+}
+
+html[data-theme='dark'] .app-shell--piersec .status-pill--idle {
+  color: #9c9c9c;
+  background: rgba(156, 156, 156, 0.12);
+}
+
+html[data-theme='dark'] .app-shell--piersec .site-footer {
+  margin-top: 25px;
+  padding-top: 12px;
+  border-top-color: var(--border);
+  font-size: 8px;
+}
+
+@media (max-width: 920px) {
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: calc(100% - 206px);
+    margin-left: 206px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .sidebar {
+    width: 206px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .results-grid::before,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+    grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1.4fr) 100px 82px;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .sidebar {
+    width: 100%;
+    padding: 14px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .sidebar nav {
+    margin-top: 15px;
+    gap: 9px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .sidebar__nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 3px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .sidebar__nav-label {
+    display: none;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .results-grid::before {
+    display: none;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+    display: grid;
+    min-height: 0;
+    padding: 10px 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    gap: 4px;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .result-card__header {
+    padding: 0;
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .result-card > .result-data,
+  html[data-theme='dark'] .app-shell--piersec .result-card > .result-alert,
+  html[data-theme='dark'] .app-shell--piersec .result-card > .skeleton-stack,
+  html[data-theme='dark'] .app-shell--piersec .result-card > .muted {
+    max-height: 38px;
+    padding: 2px 0;
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .result-card__footer {
+    padding: 0;
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .result-actions {
+    grid-column: 2;
+    grid-row: auto;
+  }
+
+  html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-ledger__header {
+  display: grid;
+  min-height: 29px;
+  padding: 0 15px;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(220px, 1.5fr) 120px 100px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  color: #636363;
+  background: #232323;
+  font: 700 8px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-ledger__header span {
+  min-width: 0;
+}
+
+html[data-theme='dark'] .app-shell--piersec .results-grid::before {
+  display: none;
+}
+
+@media (max-width: 920px) {
+  html[data-theme='dark'] .app-shell--piersec .results-ledger__header {
+    grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1.4fr) 100px 82px;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme='dark'] .app-shell--piersec .results-ledger__header {
+    display: none;
+  }
+}

@@ -1,5 +1,6 @@
 import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
 import { StatusPill } from '../primitives/StatusPill';
+import { ToolLogo } from '../primitives/ToolLogo';
 import { AbuseIpdbResult } from './AbuseIpdbResult';
 
 export type CardState =
@@ -351,9 +352,16 @@ export function ResultCard({
       className={`result-card result-card--${visualStatus}`}
     >
       <header className="result-card__header">
-        <div>
-          <span className="eyebrow">{check.id}</span>
-          <h3>{check.label}</h3>
+        <div className="result-card__identity">
+          <ToolLogo
+            checkId={check.id}
+            label={check.label}
+            className="source-logo"
+          />
+          <div>
+            <span className="eyebrow">{check.id}</span>
+            <h3>{check.label}</h3>
+          </div>
         </div>
         <StatusPill status={visualStatus} />
       </header>

@@ -22,6 +22,7 @@ import {
 } from './components/analysis/SignalTopologyCanvas';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { MetricCard } from './components/primitives/MetricCard';
+import { ToolLogo } from './components/primitives/ToolLogo';
 import { MotionSurface } from './components/motion/MotionSurface';
 import { AppShell } from './components/shell/AppShell';
 import { PageHeader } from './components/shell/PageHeader';
@@ -90,6 +91,57 @@ const pageMeta: Record<
     description: 'Ajuste a aparência do painel para o seu fluxo de trabalho.',
   },
 };
+
+type SidebarIcon = 'analysis' | 'results' | 'history' | 'credentials';
+
+const sidebarGroups = [
+  {
+    label: 'Operations',
+    items: [
+      ['analysis', 'Análise', 'analysis'],
+      ['results', 'Ferramentas', 'results'],
+      ['history', 'Histórico', 'history'],
+    ] as const,
+  },
+  {
+    label: 'Compliance',
+    items: [['credentials', 'Credenciais', 'credentials']] as const,
+  },
+] as const;
+
+function SidebarNavIcon({ icon }: { icon: SidebarIcon }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      {icon === 'analysis' && (
+        <>
+          <circle cx="12" cy="12" r="3" />
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+        </>
+      )}
+      {icon === 'results' && (
+        <>
+          <rect height="7" rx="2" width="7" x="3" y="3" />
+          <rect height="7" rx="2" width="7" x="14" y="3" />
+          <rect height="7" rx="2" width="7" x="3" y="14" />
+          <rect height="7" rx="2" width="7" x="14" y="14" />
+        </>
+      )}
+      {icon === 'history' && (
+        <>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 7v5l3 2M4 5l-2 2 2 2" />
+        </>
+      )}
+      {icon === 'credentials' && (
+        <>
+          <rect height="11" rx="3" width="16" x="4" y="10" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 const toolDescriptions: Record<string, string> = {
   'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',
@@ -189,62 +241,6 @@ const plannedTools = [
       'Planejado: depende do binário local e execução controlada de username.',
   },
 ];
-
-type ToolIcon =
-  { kind: 'simple'; slug: string } | { kind: 'favicon'; domain: string };
-
-const toolIcons: Record<string, ToolIcon> = {
-  'abuse-ipdb': { kind: 'favicon', domain: 'abuseipdb.com' },
-  cookies: { kind: 'favicon', domain: 'developer.mozilla.org' },
-  'dns-records': { kind: 'favicon', domain: 'cloudflare.com' },
-  ghunt: { kind: 'favicon', domain: 'github.com' },
-  gobuster: { kind: 'favicon', domain: 'github.com' },
-  'http-headers': { kind: 'favicon', domain: 'developer.mozilla.org' },
-  'hunter-io': { kind: 'favicon', domain: 'hunter.io' },
-  'ip-info': { kind: 'favicon', domain: 'ipinfo.io' },
-  katana: { kind: 'favicon', domain: 'projectdiscovery.io' },
-  nmap: { kind: 'favicon', domain: 'nmap.org' },
-  'osint-framework': { kind: 'favicon', domain: 'osintframework.com' },
-  osintgram: { kind: 'favicon', domain: 'github.com' },
-  phoneinfoga: { kind: 'favicon', domain: 'github.com' },
-  'redirect-chain': { kind: 'favicon', domain: 'httpstatus.io' },
-  'robots-sitemap': { kind: 'favicon', domain: 'developers.google.com' },
-  'server-location': { kind: 'favicon', domain: 'ipinfo.io' },
-  'server-status': { kind: 'favicon', domain: 'uptimerobot.com' },
-  sherlock: { kind: 'favicon', domain: 'github.com' },
-  nuclei: { kind: 'favicon', domain: 'projectdiscovery.io' },
-  shodan: { kind: 'favicon', domain: 'shodan.io' },
-  'shodan-vulnerabilities': { kind: 'favicon', domain: 'nvd.nist.gov' },
-  'ssl-certificate': { kind: 'simple', slug: 'letsencrypt' },
-  subfinder: { kind: 'favicon', domain: 'projectdiscovery.io' },
-  'tech-stack': { kind: 'simple', slug: 'wappalyzer' },
-  'virus-total': { kind: 'simple', slug: 'virustotal' },
-  'whois-rdap': { kind: 'favicon', domain: 'icann.org' },
-};
-
-function ToolLogo({ checkId, label }: { checkId: string; label: string }) {
-  const icon = toolIcons[checkId] ?? { kind: 'favicon', domain: 'github.com' };
-  const primarySource =
-    icon.kind === 'simple'
-      ? `https://cdn.simpleicons.org/${icon.slug}/5ED9D5`
-      : `https://www.google.com/s2/favicons?domain=${icon.domain}&sz=64`;
-  const fallbackSource = 'https://cdn.simpleicons.org/simpleicons/5ED9D5';
-  const [source, setSource] = useState(primarySource);
-
-  useEffect(() => setSource(primarySource), [primarySource]);
-
-  return (
-    <div className="tool-card__icon tool-card__icon--logo">
-      <img
-        alt={`${label} logo`}
-        onError={() => {
-          if (source !== fallbackSource) setSource(fallbackSource);
-        }}
-        src={source}
-      />
-    </div>
-  );
-}
 
 function getAvatarUrl(user: User): string | undefined {
   const metadata = user.user_metadata ?? {};
@@ -818,53 +814,22 @@ export function App() {
           <small>Investigation workspace</small>
         </div>
         <nav>
-          <span className="sidebar__nav-label">Workspace</span>
-          {(
-            [
-              ['analysis', 'Análise', 'analysis'],
-              ['results', 'Ferramentas', 'results'],
-              ['history', 'Histórico', 'history'],
-              ['credentials', 'Credenciais', 'credentials'],
-            ] as const
-          ).map(([itemPage, label, icon]) => (
-            <a
-              className={`sidebar__link ${page === itemPage ? 'sidebar__link--active' : ''}`}
-              href={`#${itemPage}`}
-              key={itemPage}
-              onClick={() => setPage(itemPage)}
-              aria-current={page === itemPage ? 'page' : undefined}
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                {icon === 'analysis' && (
-                  <>
-                    <circle cx="12" cy="12" r="3" />
-                    <circle cx="12" cy="12" r="8" />
-                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-                  </>
-                )}
-                {icon === 'results' && (
-                  <>
-                    <rect height="7" rx="2" width="7" x="3" y="3" />
-                    <rect height="7" rx="2" width="7" x="14" y="3" />
-                    <rect height="7" rx="2" width="7" x="3" y="14" />
-                    <rect height="7" rx="2" width="7" x="14" y="14" />
-                  </>
-                )}
-                {icon === 'history' && (
-                  <>
-                    <circle cx="12" cy="12" r="8" />
-                    <path d="M12 7v5l3 2M4 5l-2 2 2 2" />
-                  </>
-                )}
-                {icon === 'credentials' && (
-                  <>
-                    <rect height="11" rx="3" width="16" x="4" y="10" />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-                  </>
-                )}
-              </svg>
-              <span>{label}</span>
-            </a>
+          {sidebarGroups.map((group) => (
+            <div className="sidebar__nav-group" key={group.label}>
+              <span className="sidebar__nav-label">{group.label}</span>
+              {group.items.map(([itemPage, label, icon]) => (
+                <a
+                  className={`sidebar__link ${page === itemPage ? 'sidebar__link--active' : ''}`}
+                  href={`#${itemPage}`}
+                  key={itemPage}
+                  onClick={() => setPage(itemPage)}
+                  aria-current={page === itemPage ? 'page' : undefined}
+                >
+                  <SidebarNavIcon icon={icon} />
+                  <span>{label}</span>
+                </a>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar__status" title="Sessão autenticada">
@@ -1214,6 +1179,12 @@ export function App() {
                       </p>
                     </div>
                   )}
+                <div className="results-ledger__header" aria-hidden="true">
+                  <span>Fonte / check</span>
+                  <span>Dados observados</span>
+                  <span>Fonte</span>
+                  <span>Status</span>
+                </div>
                 <div className="results-grid">
                   {successfulChecks
                     .filter((check) => check.id !== 'nuclei')
