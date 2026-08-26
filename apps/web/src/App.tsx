@@ -28,7 +28,7 @@ import { MotionSurface } from './components/motion/MotionSurface';
 import { AppShell } from './components/shell/AppShell';
 import { PageHeader } from './components/shell/PageHeader';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
-import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
+import type { TargetKind } from '@osint-pier/contracts';
 import { getSuccessfulChecks } from './features/analysis/visible-results';
 import { getCompatibleChecks } from './features/analysis/compatible-checks';
 import {
@@ -36,6 +36,7 @@ import {
   readAnalysisSession,
   writeAnalysisSession,
 } from './features/analysis/analysis-session';
+import { getCheckDescription } from './features/analysis/check-descriptions';
 import { CredentialsPanel } from './features/credentials/CredentialsPanel';
 import { AccountMenu } from './components/shell/AccountMenu';
 import {
@@ -144,42 +145,6 @@ function SidebarNavIcon({ icon }: { icon: SidebarIcon }) {
     </svg>
   );
 }
-
-const toolDescriptions: Record<string, string> = {
-  'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',
-  cookies: 'Inspeciona cookies HTTP e sinaliza flags de segurança.',
-  'dns-records': 'Resolve registros A, AAAA, MX, NS, TXT e CNAME.',
-  ghunt:
-    'Consulta sinais públicos de um e-mail Google por um runner isolado e autorizado.',
-  'http-headers': 'Lê headers HTTP e verifica políticas de segurança.',
-  'hunter-io':
-    'Busca e-mails profissionais de um domínio ou verifica um e-mail.',
-  'ip-info': 'Descobre os endereços IP associados ao domínio consultado.',
-  gobuster:
-    'Enumera caminhos web com uma wordlist interna curta e perfil controlado.',
-  katana: 'Faz um crawl web curto e limitado para encontrar URLs observáveis.',
-  nmap: 'Identifica portas TCP abertas e versões de serviço nos top ports.',
-  'redirect-chain': 'Segue a cadeia de redirecionamentos HTTP do alvo.',
-  'robots-sitemap': 'Consulta robots.txt e sitemap.xml disponíveis no site.',
-  'server-location': 'Estima a localização e a rede do IP público resolvido.',
-  'server-status': 'Verifica disponibilidade e tempo de resposta do servidor.',
-  nuclei:
-    'Executa templates curados do Nuclei para encontrar vulnerabilidades e enriquecer CVEs com NVD, EPSS e CISA KEV.',
-  shodan: 'Consulta portas, serviços e exposição observada pelo Shodan.',
-  'ssl-certificate':
-    'Inspeciona validade, emissor e subject do certificado TLS.',
-  subfinder:
-    'Descobre subdomínios de forma passiva usando fontes configuradas no runner.',
-  'tech-stack': 'Detecta tecnologias e frameworks expostos pela página.',
-  'virus-total': 'Consulta reputação e detecções agregadas do VirusTotal.',
-  'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
-  'osint-framework':
-    'Oferece referências curadas do OSINT Framework sem scraping automático.',
-  phoneinfoga:
-    'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
-  'shodan-vulnerabilities':
-    'Consolida CVEs dos serviços observados pelo Shodan com NVD, EPSS e CISA KEV.',
-};
 
 type ToolCategory = 'web' | 'threat' | 'personal';
 
@@ -401,13 +366,6 @@ function inferTargetKind(value: string): TargetKind {
   return 'domain';
 }
 
-function checkDescription(check: CheckCatalogItem): string {
-  return (
-    toolDescriptions[check.id] ??
-    `Executa a verificação independente ${check.label} sobre o alvo informado.`
-  );
-}
-
 export function App() {
   const { user, signOut, updateAvatar, updateUser } = useAuth();
   const queryClient = useQueryClient();
@@ -598,8 +556,7 @@ export function App() {
 
   useEffect(() => {
     const shouldLockViewport =
-      page === 'analysis' &&
-      (!lastTarget || analysisSummary.loading > 0);
+      page === 'analysis' && (!lastTarget || analysisSummary.loading > 0);
     if (!shouldLockViewport) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -958,124 +915,130 @@ export function App() {
                       />
                       <button
                         className="button"
-                        disabled={checks.length === 0 || analysisSummary.loading > 0}
+                        disabled={
+                          checks.length === 0 || analysisSummary.loading > 0
+                        }
                         type="submit"
                       >
-                        {analysisSummary.loading > 0 ? 'Mapeando…' : 'Analisar agora'}
+                        {analysisSummary.loading > 0
+                          ? 'Mapeando…'
+                          : 'Analisar agora'}
                       </button>
                     </div>
 
                     {(lastTarget || target.trim()) && (
                       <div className="analysis-filters">
-                      <button
-                        className="filter-toggle"
-                        type="button"
-                        aria-expanded={filtersOpen}
-                        onClick={() => setFiltersOpen((open) => !open)}
-                      >
-                        <span>
-                          <b>Filtros e ferramentas</b>
-                          <small>
-                            {checks.length} de {compatibleChecks.length}{' '}
-                            selecionadas
-                          </small>
-                        </span>
-                        <span className="filter-toggle__state">
-                          {filtersOpen ? 'Recolher' : 'Expandir'}
-                          <svg aria-hidden="true" viewBox="0 0 24 24">
-                            <path
-                              d={filtersOpen ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}
-                            />
-                          </svg>
-                        </span>
-                      </button>
-
-                      {filtersOpen && (
-                        <div className="analysis-filters__body">
-                          <fieldset className="check-picker">
-                            <legend>Ferramentas desta análise</legend>
-                            <div className="check-picker__actions">
-                              <button
-                                className="button button--secondary button--small"
-                                onClick={() =>
-                                  setSelectedCheckIds(
-                                    compatibleChecks.map((check) => check.id),
-                                  )
+                        <button
+                          className="filter-toggle"
+                          type="button"
+                          aria-expanded={filtersOpen}
+                          onClick={() => setFiltersOpen((open) => !open)}
+                        >
+                          <span>
+                            <b>Filtros e ferramentas</b>
+                            <small>
+                              {checks.length} de {compatibleChecks.length}{' '}
+                              selecionadas
+                            </small>
+                          </span>
+                          <span className="filter-toggle__state">
+                            {filtersOpen ? 'Recolher' : 'Expandir'}
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                              <path
+                                d={
+                                  filtersOpen ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'
                                 }
-                                type="button"
-                              >
-                                Selecionar todas
-                              </button>
-                              <button
-                                className="button button--secondary button--small"
-                                onClick={() => setSelectedCheckIds([])}
-                                type="button"
-                              >
-                                Limpar seleção
-                              </button>
-                            </div>
-                            <div className="check-picker__list">
-                              {compatibleChecks.map((check) => {
-                                const checked =
-                                  selectedCheckIds === null ||
-                                  selectedCheckIds.includes(check.id);
-                                return (
-                                  <div
-                                    className={`check-picker__item ${checked ? 'check-picker__item--active' : ''}`}
-                                    key={check.id}
-                                  >
-                                    <input
-                                      id={`analysis-check-${check.id}`}
-                                      aria-label={`${checked ? 'Desativar' : 'Ativar'} ${check.label}`}
-                                      checked={checked}
-                                      onChange={(event) => {
-                                        const nextChecked =
-                                          event.currentTarget.checked;
-                                        setSelectedCheckIds((current) => {
-                                          const ids =
-                                            current ??
-                                            compatibleChecks.map(
-                                              (item) => item.id,
-                                            );
-                                          return nextChecked
-                                            ? [...new Set([...ids, check.id])]
-                                            : ids.filter(
-                                                (id) => id !== check.id,
-                                              );
-                                        });
-                                      }}
-                                      type="checkbox"
-                                    />
-                                    <label
-                                      htmlFor={`analysis-check-${check.id}`}
+                              />
+                            </svg>
+                          </span>
+                        </button>
+
+                        {filtersOpen && (
+                          <div className="analysis-filters__body">
+                            <fieldset className="check-picker">
+                              <legend>Ferramentas desta análise</legend>
+                              <div className="check-picker__actions">
+                                <button
+                                  className="button button--secondary button--small"
+                                  onClick={() =>
+                                    setSelectedCheckIds(
+                                      compatibleChecks.map((check) => check.id),
+                                    )
+                                  }
+                                  type="button"
+                                >
+                                  Selecionar todas
+                                </button>
+                                <button
+                                  className="button button--secondary button--small"
+                                  onClick={() => setSelectedCheckIds([])}
+                                  type="button"
+                                >
+                                  Limpar seleção
+                                </button>
+                              </div>
+                              <div className="check-picker__list">
+                                {compatibleChecks.map((check) => {
+                                  const checked =
+                                    selectedCheckIds === null ||
+                                    selectedCheckIds.includes(check.id);
+                                  return (
+                                    <div
+                                      className={`check-picker__item ${checked ? 'check-picker__item--active' : ''}`}
+                                      key={check.id}
                                     >
-                                      <span>{check.label}</span>
-                                      <i aria-hidden="true" />
-                                    </label>
-                                  </div>
-                                );
-                              })}
-                              {compatibleChecks.length === 0 && (
-                                <span className="muted">
-                                  Nenhum plugin disponível para este tipo de
-                                  consulta.
-                                </span>
-                              )}
-                            </div>
-                          </fieldset>
-                        </div>
-                      )}
+                                      <input
+                                        id={`analysis-check-${check.id}`}
+                                        aria-label={`${checked ? 'Desativar' : 'Ativar'} ${check.label}`}
+                                        checked={checked}
+                                        onChange={(event) => {
+                                          const nextChecked =
+                                            event.currentTarget.checked;
+                                          setSelectedCheckIds((current) => {
+                                            const ids =
+                                              current ??
+                                              compatibleChecks.map(
+                                                (item) => item.id,
+                                              );
+                                            return nextChecked
+                                              ? [...new Set([...ids, check.id])]
+                                              : ids.filter(
+                                                  (id) => id !== check.id,
+                                                );
+                                          });
+                                        }}
+                                        type="checkbox"
+                                      />
+                                      <label
+                                        htmlFor={`analysis-check-${check.id}`}
+                                      >
+                                        <span>{check.label}</span>
+                                        <i aria-hidden="true" />
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                                {compatibleChecks.length === 0 && (
+                                  <span className="muted">
+                                    Nenhum plugin disponível para este tipo de
+                                    consulta.
+                                  </span>
+                                )}
+                              </div>
+                            </fieldset>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {(lastTarget || target.trim()) && (
                       <div className="form-meta">
-                      <span>{checks.length} plugins selecionados</span>
-                      <span>
-                        {lastTarget
-                          ? `${analysisSummary.resolved}/${checks.length} concluídos para ${lastTarget}`
-                          : 'Aguardando um alvo'}
-                      </span>
+                        <span>{checks.length} plugins selecionados</span>
+                        <span>
+                          {lastTarget
+                            ? `${analysisSummary.resolved}/${checks.length} concluídos para ${lastTarget}`
+                            : 'Aguardando um alvo'}
+                        </span>
                       </div>
                     )}
                   </form>
@@ -1083,59 +1046,59 @@ export function App() {
 
                 {lastTarget && (
                   <aside className="analysis-context">
-                  <MotionSurface className="analysis-context__motion">
-                    <span className="eyebrow">Estado atual</span>
-                    <strong>
-                      {analysisSummary.loading > 0
-                        ? 'Análise em andamento'
-                        : lastTarget
-                          ? 'Última análise concluída'
-                          : 'Sistema pronto'}
-                    </strong>
-                    <p>
-                      {lastTarget
-                        ? lastTarget
-                        : 'As integrações disponíveis serão acionadas sob demanda.'}
-                    </p>
-                    <SignalTopologyCanvas
-                      items={topologyItems}
-                      target={lastTarget}
-                    />
-                    <div className="signal-line" aria-hidden="true">
-                      <span />
-                    </div>
-                    <div className="analysis-context__brand">
-                      <img src="/piersec-logo.svg" alt="" />
-                      <span>PierSec intelligence</span>
-                    </div>
-                  </MotionSurface>
+                    <MotionSurface className="analysis-context__motion">
+                      <span className="eyebrow">Estado atual</span>
+                      <strong>
+                        {analysisSummary.loading > 0
+                          ? 'Análise em andamento'
+                          : lastTarget
+                            ? 'Última análise concluída'
+                            : 'Sistema pronto'}
+                      </strong>
+                      <p>
+                        {lastTarget
+                          ? lastTarget
+                          : 'As integrações disponíveis serão acionadas sob demanda.'}
+                      </p>
+                      <SignalTopologyCanvas
+                        items={topologyItems}
+                        target={lastTarget}
+                      />
+                      <div className="signal-line" aria-hidden="true">
+                        <span />
+                      </div>
+                      <div className="analysis-context__brand">
+                        <img src="/piersec-logo.svg" alt="" />
+                        <span>PierSec intelligence</span>
+                      </div>
+                    </MotionSurface>
                   </aside>
                 )}
 
                 {lastTarget && (
                   <div className="metrics-grid" aria-label="Resumo da análise">
-                  <MetricCard
-                    label="Plugins"
-                    value={checks.length}
-                    detail="Fontes disponíveis"
-                  />
-                  <MetricCard
-                    label="Concluídos"
-                    value={analysisSummary.resolved}
-                    detail="Respostas recebidas"
-                  />
-                  <MetricCard
-                    label="Sucesso"
-                    value={analysisSummary.success}
-                    detail="Sinais processados"
-                    tone="positive"
-                  />
-                  <MetricCard
-                    label="Atenção"
-                    value={analysisSummary.attention}
-                    detail="Erros ou integrações puladas"
-                    tone="attention"
-                  />
+                    <MetricCard
+                      label="Plugins"
+                      value={checks.length}
+                      detail="Fontes disponíveis"
+                    />
+                    <MetricCard
+                      label="Concluídos"
+                      value={analysisSummary.resolved}
+                      detail="Respostas recebidas"
+                    />
+                    <MetricCard
+                      label="Sucesso"
+                      value={analysisSummary.success}
+                      detail="Sinais processados"
+                      tone="positive"
+                    />
+                    <MetricCard
+                      label="Atenção"
+                      value={analysisSummary.attention}
+                      detail="Erros ou integrações puladas"
+                      tone="attention"
+                    />
                   </div>
                 )}
 
@@ -1150,123 +1113,123 @@ export function App() {
 
               {lastTarget && (
                 <section className="results-section" id="results" data-reveal>
-                <div className="section-heading">
-                  <div>
-                    <span className="eyebrow">Execução em paralelo</span>
-                    <h2>Resultados desta análise</h2>
+                  <div className="section-heading">
+                    <div>
+                      <span className="eyebrow">Execução em paralelo</span>
+                      <h2>Resultados desta análise</h2>
+                    </div>
+                    <div className="section-heading__actions">
+                      <span className="section-count">
+                        {successfulChecks.length} com dados · {checks.length}{' '}
+                        módulos
+                      </span>
+                      <button
+                        className="button button--secondary export-button"
+                        disabled={!canExport}
+                        onClick={exportAnalysis}
+                        title={
+                          canExport
+                            ? 'Baixar relatório completo em JSON'
+                            : 'Conclua uma análise para habilitar a exportação'
+                        }
+                        type="button"
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 24 24">
+                          <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                        </svg>
+                        Exportar JSON
+                      </button>
+                      <button
+                        className="button button--secondary export-button"
+                        disabled={!canExport}
+                        onClick={exportPdf}
+                        title={
+                          canExport
+                            ? 'Abrir um relatório pronto para salvar como PDF'
+                            : 'Conclua uma análise para habilitar a exportação'
+                        }
+                        type="button"
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 24 24">
+                          <path d="M6 3h9l3 3v15H6zM15 3v4h4M9 12h6M9 16h6" />
+                        </svg>
+                        Exportar PDF
+                      </button>
+                    </div>
                   </div>
-                  <div className="section-heading__actions">
-                    <span className="section-count">
-                      {successfulChecks.length} com dados · {checks.length}{' '}
-                      módulos
-                    </span>
-                    <button
-                      className="button button--secondary export-button"
-                      disabled={!canExport}
-                      onClick={exportAnalysis}
-                      title={
-                        canExport
-                          ? 'Baixar relatório completo em JSON'
-                          : 'Conclua uma análise para habilitar a exportação'
-                      }
-                      type="button"
-                    >
-                      <svg aria-hidden="true" viewBox="0 0 24 24">
-                        <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-                      </svg>
-                      Exportar JSON
-                    </button>
-                    <button
-                      className="button button--secondary export-button"
-                      disabled={!canExport}
-                      onClick={exportPdf}
-                      title={
-                        canExport
-                          ? 'Abrir um relatório pronto para salvar como PDF'
-                          : 'Conclua uma análise para habilitar a exportação'
-                      }
-                      type="button"
-                    >
-                      <svg aria-hidden="true" viewBox="0 0 24 24">
-                        <path d="M6 3h9l3 3v15H6zM15 3v4h4M9 12h6M9 16h6" />
-                      </svg>
-                      Exportar PDF
-                    </button>
-                  </div>
-                </div>
 
-                {checksQuery.isLoading && (
-                  <p className="muted">Descobrindo plugins disponíveis…</p>
-                )}
-                {checksQuery.isError && (
-                  <p className="error-message">
-                    A API não está disponível. Verifique o backend.
-                  </p>
-                )}
-                {!checksQuery.isLoading &&
-                  !checksQuery.isError &&
-                  checks.length === 0 && (
-                    <div className="empty-state">
-                      <span>00</span>
-                      <h3>Nenhum check está habilitado</h3>
-                      <p>
-                        Abra a página de credenciais para habilitar módulos de
-                        análise.
-                      </p>
-                    </div>
+                  {checksQuery.isLoading && (
+                    <p className="muted">Descobrindo plugins disponíveis…</p>
                   )}
-                {checks.some((check) => check.id === 'nuclei') && (
-                  <VulnerabilitySummary
-                    check={checks.find((check) => check.id === 'nuclei')!}
-                    onRetry={() => retryCheck('nuclei')}
-                    state={states.nuclei ?? { status: 'idle' }}
-                  />
-                )}
-                {lastTarget && analysisSummary.attention > 0 && (
-                  <div className="results-filter-notice" role="status">
-                    <span aria-hidden="true">i</span>
-                    <p>
-                      {analysisSummary.attention}{' '}
-                      {analysisSummary.attention === 1
-                        ? 'fonte não retornou dados e foi ocultada.'
-                        : 'fontes não retornaram dados e foram ocultadas.'}{' '}
-                      O panorama acima mantém esse detalhe para você revisar.
+                  {checksQuery.isError && (
+                    <p className="error-message">
+                      A API não está disponível. Verifique o backend.
                     </p>
-                  </div>
-                )}
-                {lastTarget &&
-                  analysisSummary.loading === 0 &&
-                  analysisSummary.resolved === checks.length &&
-                  checks.length > 0 &&
-                  successfulChecks.length === 0 && (
-                    <div className="empty-state results-filter-empty">
-                      <span>00</span>
-                      <h3>Nenhuma fonte retornou dados</h3>
+                  )}
+                  {!checksQuery.isLoading &&
+                    !checksQuery.isError &&
+                    checks.length === 0 && (
+                      <div className="empty-state">
+                        <span>00</span>
+                        <h3>Nenhum check está habilitado</h3>
+                        <p>
+                          Abra a página de credenciais para habilitar módulos de
+                          análise.
+                        </p>
+                      </div>
+                    )}
+                  {checks.some((check) => check.id === 'nuclei') && (
+                    <VulnerabilitySummary
+                      check={checks.find((check) => check.id === 'nuclei')!}
+                      onRetry={() => retryCheck('nuclei')}
+                      state={states.nuclei ?? { status: 'idle' }}
+                    />
+                  )}
+                  {lastTarget && analysisSummary.attention > 0 && (
+                    <div className="results-filter-notice" role="status">
+                      <span aria-hidden="true">i</span>
                       <p>
-                        As respostas desta rodada foram ocultadas porque não
-                        concluíram com sucesso. Revise o panorama de atenção e
-                        tente novamente.
+                        {analysisSummary.attention}{' '}
+                        {analysisSummary.attention === 1
+                          ? 'fonte não retornou dados e foi ocultada.'
+                          : 'fontes não retornaram dados e foram ocultadas.'}{' '}
+                        O panorama acima mantém esse detalhe para você revisar.
                       </p>
                     </div>
                   )}
-                <div className="results-ledger__header" aria-hidden="true">
-                  <span>Fonte / check</span>
-                  <span>Dados observados</span>
-                  <span>Fonte</span>
-                  <span>Status</span>
-                </div>
-                <div className="results-grid">
-                  {successfulChecks
-                    .filter((check) => check.id !== 'nuclei')
-                    .map((check) => (
-                      <ResultCard
-                        key={check.id}
-                        check={check}
-                        onRetry={() => retryCheck(check.id)}
-                        state={states[check.id] ?? { status: 'idle' }}
-                      />
-                    ))}
-                </div>
+                  {lastTarget &&
+                    analysisSummary.loading === 0 &&
+                    analysisSummary.resolved === checks.length &&
+                    checks.length > 0 &&
+                    successfulChecks.length === 0 && (
+                      <div className="empty-state results-filter-empty">
+                        <span>00</span>
+                        <h3>Nenhuma fonte retornou dados</h3>
+                        <p>
+                          As respostas desta rodada foram ocultadas porque não
+                          concluíram com sucesso. Revise o panorama de atenção e
+                          tente novamente.
+                        </p>
+                      </div>
+                    )}
+                  <div className="results-ledger__header" aria-hidden="true">
+                    <span>Fonte / check</span>
+                    <span>Dados observados</span>
+                    <span>Fonte</span>
+                    <span>Status</span>
+                  </div>
+                  <div className="results-grid">
+                    {successfulChecks
+                      .filter((check) => check.id !== 'nuclei')
+                      .map((check) => (
+                        <ResultCard
+                          key={check.id}
+                          check={check}
+                          onRetry={() => retryCheck(check.id)}
+                          state={states[check.id] ?? { status: 'idle' }}
+                        />
+                      ))}
+                  </div>
                 </section>
               )}
             </>
@@ -1381,7 +1344,7 @@ export function App() {
                                       <h3>{check.label}</h3>
                                     </div>
                                   </div>
-                                  <p>{checkDescription(check)}</p>
+                                  <p>{getCheckDescription(check)}</p>
                                   <div className="tool-card__meta">
                                     {check.supportedTargetKinds
                                       .map(formatTargetKind)

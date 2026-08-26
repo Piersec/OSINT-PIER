@@ -41,6 +41,11 @@ describe('ResultCard', () => {
         .getAttribute('href'),
     ).toBe('#credentials');
     expect(
+      screen.getByText(
+        'Executa a verificação independente External Check sobre o alvo informado.',
+      ),
+    ).toBeTruthy();
+    expect(
       screen.queryByRole('button', { name: 'Tentar novamente' }),
     ).toBeNull();
   });

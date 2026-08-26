@@ -5421,15 +5421,18 @@ input::placeholder {
 
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   column-count: initial;
-  gap: 12px;
+  gap: 22px;
 }
 
 .result-card {
+  display: flex;
+  min-height: 340px;
+  flex-direction: column;
   margin-bottom: 0;
-  padding: 18px;
-  border-radius: var(--radius-sm);
+  padding: 22px;
+  border-radius: 12px;
   box-shadow: none;
 }
 
@@ -5445,6 +5448,14 @@ input::placeholder {
 
 .result-card__header h3 {
   font-size: 15px;
+}
+
+.result-card__description {
+  min-height: 36px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
 }
 
 .status-pill {
@@ -5486,8 +5497,15 @@ input::placeholder {
 }
 
 .result-card__footer {
+  margin-top: auto;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 8px;
+}
+
+@media (max-width: 1260px) {
+  .results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .empty-state {

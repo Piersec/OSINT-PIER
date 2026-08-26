@@ -2,6 +2,7 @@ import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
 import { StatusPill } from '../primitives/StatusPill';
 import { ToolLogo } from '../primitives/ToolLogo';
 import { AbuseIpdbResult } from './AbuseIpdbResult';
+import { getCheckDescription } from '../../features/analysis/check-descriptions';
 
 export type CardState =
   | { status: 'idle' }
@@ -365,6 +366,7 @@ export function ResultCard({
         </div>
         <StatusPill status={visualStatus} />
       </header>
+      <p className="result-card__description">{getCheckDescription(check)}</p>
 
       {state.status === 'idle' && (
         <p className="muted">
