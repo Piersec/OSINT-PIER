@@ -648,3 +648,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   Docker sem shell arbitrário. Os perfis são limitados, o Gobuster começa desabilitado,
   e o dashboard recebe somente hosts, portas, URLs, subdomínios e caminhos curados. A
   ativação em produção ainda exige hospedar o gateway HTTPS e salvar o token no cofre.
+- `2026-08-26` — O relatório de análise voltou a exibir cada check como um card independente,
+  com dados curados em blocos legíveis, espaçamento responsivo e tipografia ligeiramente
+  maior. O cabeçalho do relatório para impressão/PDF passou a incluir o símbolo PierSec ao
+  lado do OSINT Pier.

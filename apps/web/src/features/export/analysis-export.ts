@@ -164,6 +164,8 @@ function exportStatusLabel(status: string): string {
   );
 }
 
+const piersecSymbolSvg = `<svg class="brand-mark__svg" viewBox="0 0 96 141" aria-hidden="true" focusable="false"><path fill="#0787a0" d="M62.6461 0H83.7065C89.8184 2.44211 92.1332 3.55654 95.0423 9.87173C95.2996 10.4302 95.7468 11.9115 96 12.2953V45.4187L95.9686 45.4822C95.4007 46.6439 94.7677 51.1018 94.4191 52.6968C93.7746 55.6499 92.9401 58.5583 91.9207 61.4039C85.0528 80.6229 68.8737 96.381 49.6453 103.117C42.379 105.704 34.7247 107.032 27.0119 107.044C27.1011 118.362 27.1226 129.681 27.0765 141H0V62.3273C0.487598 61.3157 1.22547 55.6599 1.65824 53.8074C3.20449 47.1886 5.24058 42.0053 8.46158 36.0428C16.947 20.3316 31.2337 8.55624 48.2761 3.2271C50.5705 2.5128 52.9845 1.86693 55.3439 1.39875C57.7714 0.917039 60.2769 0.70703 62.6461 0ZM28.4413 79.8319C38.9658 79.7145 49.7735 74.3551 56.9627 66.8485C67.6585 55.6806 69.2528 43.9937 69.005 29.1335C68.9952 28.5492 69.0366 27.6056 68.7072 27.1608C68.0048 26.9105 67.4887 27.0384 66.7512 27.14C53.9245 28.6259 44.5166 32.958 36.1408 43.2908C27.5769 53.8556 26.5541 66.4517 27.1326 79.5807C27.658 80.0218 27.5824 79.8812 28.4413 79.8319Z"/></svg>`;
+
 export function createAnalysisExportHtml(report: AnalysisExport): string {
   const generatedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
@@ -202,7 +204,11 @@ export function createAnalysisExportHtml(report: AnalysisExport): string {
       * { box-sizing: border-box; }
       body { max-width: 900px; margin: 0 auto; padding: 42px 34px; }
       .brand { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 3px solid #08a7c3; }
+      .brand-lockup { display: flex; align-items: center; gap: 10px; }
+      .brand-mark { display: inline-flex; width: 25px; height: 36px; align-items: center; justify-content: center; }
+      .brand-mark__svg { display: block; width: 100%; height: 100%; }
       .brand strong { color: #0787a0; font-size: 22px; letter-spacing: .08em; text-transform: uppercase; }
+      .brand-lockup .brand-by { color: #0787a0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
       .brand span { color: #667071; font-size: 11px; }
       h1 { margin: 34px 0 8px; font-size: 32px; line-height: 1.1; }
       .target { margin: 0 0 26px; color: #566366; font-size: 14px; overflow-wrap: anywhere; }
@@ -228,7 +234,7 @@ export function createAnalysisExportHtml(report: AnalysisExport): string {
     </style>
   </head>
   <body>
-    <div class="brand"><strong>OSINT Pier</strong><span>Relatório de análise · ${escapeHtml(generatedAt)}</span></div>
+    <div class="brand"><div class="brand-lockup"><span class="brand-mark">${piersecSymbolSvg}</span><strong>OSINT Pier</strong><span class="brand-by">PierSec</span></div><span>Relatório de análise · ${escapeHtml(generatedAt)}</span></div>
     <h1>Relatório de investigação</h1>
     <p class="target"><b>Alvo:</b> ${escapeHtml(report.target)}</p>
     <section class="summary" aria-label="Resumo">

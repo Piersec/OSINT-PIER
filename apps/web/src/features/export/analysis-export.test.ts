@@ -123,5 +123,8 @@ describe('analysis export', () => {
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('Falha na requisição');
     expect(html).toContain('Salvar como PDF');
+    expect(html).toContain('class="brand-lockup"');
+    expect(html).toContain('class="brand-mark__svg"');
+    expect(html).toContain('>PierSec</span>');
   });
 });
