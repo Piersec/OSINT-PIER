@@ -684,10 +684,11 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           number="09"
                           title="Acompanhe a execução em tela cheia"
                         >
-                          Enquanto os checks respondem, a cena 3D ocupa o
-                          viewport para destacar que a coleta está ativa. Ao
-                          finalizar, o overlay desaparece e o relatório
-                          completo fica disponível automaticamente.
+                          A tela inicial já abre a cena 3D em todo o viewport,
+                          com o campo de alvo sobreposto. Enquanto os checks
+                          respondem, a mesma experiência destaca que a coleta
+                          está ativa. Ao finalizar, o overlay desaparece e o
+                          relatório completo fica disponível automaticamente.
                         </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">

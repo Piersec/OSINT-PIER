@@ -597,7 +597,10 @@ export function App() {
   useGsapReveal(animationScopeRef, page);
 
   useEffect(() => {
-    if (analysisSummary.loading === 0) return;
+    const shouldLockViewport =
+      page === 'analysis' &&
+      (!lastTarget || analysisSummary.loading > 0);
+    if (!shouldLockViewport) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -605,7 +608,7 @@ export function App() {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [analysisSummary.loading]);
+  }, [analysisSummary.loading, lastTarget, page]);
 
   const canExport = Boolean(
     lastTarget &&
