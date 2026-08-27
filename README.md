@@ -134,6 +134,15 @@ scanners ou sessões de conta e serão avaliados com autorização explícita an
 habilitados. OSINT Framework será tratado como catálogo de referências, não como uma
 fonte automática de resultados.
 
+## Portainer e ferramentas Docker
+
+O guia [`infra/portainer/README.md`](infra/portainer/README.md) prepara um Portainer CE
+com Docker Standalone e explica como publicar, em stacks separadas, o gateway das
+Command Tools (Nmap, Katana, Gobuster e Subfinder), PhoneInfoga e GHunt. Os runners não
+ficam expostos diretamente; cada gateway usa um token próprio e deve ser colocado atrás
+de HTTPS, firewall ou túnel autorizado. Uma instalação na rede `192.168.x.x` não é
+acessível pelo backend hospedado na Vercel sem um endpoint HTTPS intermediário.
+
 ## Cache e proteção da API
 
 Resultados bem-sucedidos são mantidos somente na memória do processo por 5 minutos. A

@@ -30,7 +30,7 @@ services:
     depends_on:
       - runner
     ports:
-      - '8080:8080'
+      - '${GHUNT_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${GHUNT_GATEWAY_PORT:-8080}:8080'
     networks:
       - ghunt
     read_only: true

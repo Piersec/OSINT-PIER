@@ -26,7 +26,7 @@ services:
     depends_on:
       - phoneinfoga
     ports:
-      - '8080:8080'
+      - '${PHONEINFOGA_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${PHONEINFOGA_GATEWAY_PORT:-8080}:8080'
     networks:
       - phoneinfoga
     read_only: true

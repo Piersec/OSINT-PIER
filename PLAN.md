@@ -652,3 +652,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   com dados curados em blocos legíveis, espaçamento responsivo e tipografia ligeiramente
   maior. O cabeçalho do relatório para impressão/PDF passou a incluir o símbolo PierSec ao
   lado do OSINT Pier.
+- `2026-08-27` — A operação das integrações Docker foi documentada em `infra/portainer`.
+  O Portainer CE agora tem compose próprio, e Command Tools, PhoneInfoga e GHunt podem
+  coexistir em stacks separadas com portas configuráveis, gateways presos ao host por
+  padrão e instruções para publicação HTTPS segura.

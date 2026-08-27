@@ -1,0 +1,16 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: osint-pier-portainer
+    restart: unless-stopped
+    ports:
+      - '${PORTAINER_BIND_ADDRESS:-0.0.0.0}:${PORTAINER_HTTPS_PORT:-9443}:9443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  portainer_data:
+    name: osint_pier_portainer_data

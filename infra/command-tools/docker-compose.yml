@@ -30,7 +30,7 @@ services:
     depends_on:
       - runner
     ports:
-      - '${COMMAND_TOOLS_GATEWAY_PORT:-8080}:8080'
+      - '${COMMAND_TOOLS_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${COMMAND_TOOLS_GATEWAY_PORT:-8080}:8080'
     networks:
       - command-tools
     read_only: true
