@@ -4,15 +4,14 @@ ARG SUBFINDER_VERSION=v2.16.0
 ARG KATANA_VERSION=v1.7.0
 ARG GOBUSTER_VERSION=v3.8.2
 
-ENV CGO_ENABLED=0
 ENV GOTOOLCHAIN=local
 # Keep the build reproducible on small Docker Desktop installations.
 ENV GOMAXPROCS=2
 ENV GOFLAGS=-p=1
 
-RUN go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/subfinder/v2/cmd/subfinder@${SUBFINDER_VERSION} \
-    && go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/katana/cmd/katana@${KATANA_VERSION} \
-    && go install -trimpath -ldflags='-s -w' github.com/OJ/gobuster/v3@${GOBUSTER_VERSION}
+RUN CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/subfinder/v2/cmd/subfinder@${SUBFINDER_VERSION} \
+    && CGO_ENABLED=1 go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/katana/cmd/katana@${KATANA_VERSION} \
+    && CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/OJ/gobuster/v3@${GOBUSTER_VERSION}
 
 FROM python:3.13-slim
 
