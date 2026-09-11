@@ -317,6 +317,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Aplicar a fundação visual refinada a todas as rotas e revisar a experiência em Dark
 - [x] Simplificar a central para um fluxo operacional de investigação: navegação e cabeçalho
       compactos, coleta sem bloquear a tela, entrada focada no alvo e superfícies mais densas
+- [x] Padronizar a régua visual dos cards de resultados: grade, padding, altura mínima,
+      rodapé e espaçamento entre blocos internos consistentes entre integrações
 - [ ] Substituir os slots CDN provisórios dos logos por SVGs oficiais fornecidos pela equipe
 
 ---
@@ -662,3 +664,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   investigação minimalista. A entrada 3D e o bloqueio de viewport deixaram de interromper
   o fluxo; a coleta continua paralela e o dashboard mantém os resultados, topologia,
   histórico, ferramentas e credenciais com navegação e superfícies mais compactas.
+- `2026-09-11` — GAB-113: a grade de resultados passou a usar uma régua única de
+  espaçamento. Cards, cabeçalhos, descrições, blocos internos, rodapés e ações agora
+  mantêm padding, gaps e alturas mínimas consistentes, evitando “degraus” entre plugins.

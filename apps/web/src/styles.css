@@ -11753,3 +11753,96 @@ html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card la
     padding: 20px 17px;
   }
 }
+
+/* GAB-113 — one spacing rhythm for every result card and data block. */
+html[data-theme='white'] .app-shell--piersec .results-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  align-items: stretch;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+  display: flex;
+  min-height: 320px;
+  height: 100%;
+  padding: 18px;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 6px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header {
+  min-height: 40px;
+  align-items: center;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__description,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__description {
+  min-height: 42px;
+  margin: 12px 0 0;
+  line-height: 1.5;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .result-data,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .result-data {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block {
+  display: flex;
+  min-height: 76px;
+  margin: 0;
+  padding: 12px 13px;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 7px;
+  border-radius: 6px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block h4,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block h4 {
+  min-height: 12px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block > div,
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block > span,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block > div,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block > span {
+  min-width: 0;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__footer,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__footer {
+  min-height: 30px;
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-actions,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-actions {
+  min-height: 28px;
+  margin-top: 10px;
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .results-grid,
+  html[data-theme='dark'] .app-shell--piersec .results-grid {
+    gap: 12px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+    min-height: 0;
+    padding: 16px;
+  }
+}
