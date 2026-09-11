@@ -324,7 +324,9 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
       {Object.entries(curated).map(([key, value]) => (
         <section className="result-block" key={key}>
           <h4>{labelForKey(key)}</h4>
-          <DataValue depth={0} field={key} value={value} />
+          <div className="result-block__value">
+            <DataValue depth={0} field={key} value={value} />
+          </div>
         </section>
       ))}
     </div>

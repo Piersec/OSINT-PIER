@@ -319,6 +319,8 @@ produzir `skipped`, sem interromper os outros plugins.
       compactos, coleta sem bloquear a tela, entrada focada no alvo e superfícies mais densas
 - [x] Padronizar a régua visual dos cards de resultados: grade, padding, altura mínima,
       rodapé e espaçamento entre blocos internos consistentes entre integrações
+- [x] Redesenhar a leitura dos resultados como painéis operacionais compactos, com linhas
+      chave/valor, hierarquia de status e expansão natural apenas para conteúdo longo
 - [ ] Substituir os slots CDN provisórios dos logos por SVGs oficiais fornecidos pela equipe
 
 ---
@@ -667,3 +669,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-09-11` — GAB-113: a grade de resultados passou a usar uma régua única de
   espaçamento. Cards, cabeçalhos, descrições, blocos internos, rodapés e ações agora
   mantêm padding, gaps e alturas mínimas consistentes, evitando “degraus” entre plugins.
+- `2026-09-11` — GAB-114: os cards de resultados foram redesenhados como painéis
+  operacionais compactos. Os dados agora aparecem em linhas chave/valor sem caixas
+  aninhadas e sem altura vazia artificial; status, fonte, erros e conteúdo longo mantêm
+  leitura e expansão responsivas nos temas Dark e White.

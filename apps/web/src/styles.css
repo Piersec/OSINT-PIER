@@ -11846,3 +11846,165 @@ html[data-theme='dark'] .app-shell--piersec .results-grid .result-actions {
     padding: 16px;
   }
 }
+
+/* GAB-114 — compact operational panels for progressive investigation results. */
+html[data-theme='white'] .app-shell--piersec .results-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  align-items: start;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+  align-self: start;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-top: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card--error,
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card--request-error,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card--error,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card--request-error {
+  border-left-color: #ff5f68;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card--skipped,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card--skipped {
+  border-left-color: #f3b94b;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header {
+  min-height: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__description,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__description {
+  min-height: 0;
+  margin: 0;
+  padding: 10px 15px 11px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .result-data,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .result-data {
+  display: grid;
+  flex: initial;
+  gap: 0;
+  margin: 0;
+  padding: 0 15px;
+}
+
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-card
+  > .result-alert,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-card
+  > .result-alert {
+  margin: 13px 15px 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .muted,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .muted {
+  margin: 14px 15px 13px;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .skeleton-stack,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .skeleton-stack {
+  gap: 8px;
+  margin: 14px 15px 15px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.42fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  min-height: 0;
+  padding: 11px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block:last-child,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block:last-child {
+  border-bottom: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block h4,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block h4 {
+  min-height: 0;
+  margin: 2px 0 0;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__footer,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__footer {
+  min-height: 0;
+  margin: 0;
+  padding: 10px 15px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-actions,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-actions {
+  min-height: 0;
+  margin: 0;
+  padding: 8px 15px 11px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 540px) {
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
