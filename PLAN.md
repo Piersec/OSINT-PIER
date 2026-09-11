@@ -321,6 +321,8 @@ produzir `skipped`, sem interromper os outros plugins.
       rodapé e espaçamento entre blocos internos consistentes entre integrações
 - [x] Redesenhar a leitura dos resultados como painéis operacionais compactos, com linhas
       chave/valor, hierarquia de status e expansão natural apenas para conteúdo longo
+- [x] Usar fluxo masonry responsivo na grade de resultados para eliminar vazios verticais
+      entre painéis de alturas diferentes, preservando quebras de tabelas e listas
 - [ ] Substituir os slots CDN provisórios dos logos por SVGs oficiais fornecidos pela equipe
 
 ---
@@ -673,3 +675,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   operacionais compactos. Os dados agora aparecem em linhas chave/valor sem caixas
   aninhadas e sem altura vazia artificial; status, fonte, erros e conteúdo longo mantêm
   leitura e expansão responsivas nos temas Dark e White.
+- `2026-09-11` — GAB-115: a grade deixou de usar linhas rígidas do CSS Grid e passou a
+  distribuir os painéis em fluxo masonry responsivo (3/2/1 colunas). Cards curtos não
+  deixam mais buracos até o painel vizinho mais alto, e a distância entre painéis ficou
+  uniforme sem cortar tabelas ou listas longas.

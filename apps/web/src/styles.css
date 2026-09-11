@@ -12008,3 +12008,46 @@ html[data-theme='dark'] .app-shell--piersec .results-grid .result-actions {
     gap: 5px;
   }
 }
+
+/* GAB-115 — let result panels flow naturally instead of inheriting row height. */
+html[data-theme='white'] .app-shell--piersec .results-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  display: block;
+  column-count: 3;
+  column-gap: 12px;
+  column-fill: balance;
+  gap: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+  width: 100%;
+  margin: 0 0 12px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card:last-child,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1180px) {
+  html[data-theme='white'] .app-shell--piersec .results-grid,
+  html[data-theme='dark'] .app-shell--piersec .results-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .results-grid,
+  html[data-theme='dark'] .app-shell--piersec .results-grid {
+    column-count: 1;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+    margin-bottom: 10px;
+  }
+}
