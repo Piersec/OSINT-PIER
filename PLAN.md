@@ -315,6 +315,8 @@ produzir `skipped`, sem interromper os outros plugins.
 - [x] Criar a primeira fundação visual do rebranding em Light com tokens oficiais da
       PierSec, superfícies planas, shell editorial, painel de topologia e estados acessíveis
 - [x] Aplicar a fundação visual refinada a todas as rotas e revisar a experiência em Dark
+- [x] Simplificar a central para um fluxo operacional de investigação: navegação e cabeçalho
+      compactos, coleta sem bloquear a tela, entrada focada no alvo e superfícies mais densas
 - [ ] Substituir os slots CDN provisórios dos logos por SVGs oficiais fornecidos pela equipe
 
 ---
@@ -656,3 +658,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   O Portainer CE agora tem compose próprio, e Command Tools, PhoneInfoga e GHunt podem
   coexistir em stacks separadas com portas configuráveis, gateways presos ao host por
   padrão e instruções para publicação HTTPS segura.
+- `2026-09-11` — GAB-112: a UX da central foi refinada para uma ferramenta de
+  investigação minimalista. A entrada 3D e o bloqueio de viewport deixaram de interromper
+  o fluxo; a coleta continua paralela e o dashboard mantém os resultados, topologia,
+  histórico, ferramentas e credenciais com navegação e superfícies mais compactas.

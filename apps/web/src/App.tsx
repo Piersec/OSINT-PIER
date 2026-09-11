@@ -16,7 +16,6 @@ import {
   saveHistory,
 } from './api/client';
 import { AnalysisInsights } from './components/analysis/AnalysisInsights';
-import { AnalysisScene } from './components/analysis/AnalysisScene';
 import {
   SignalTopologyCanvas,
   type SignalTopologyItem,
@@ -554,19 +553,6 @@ export function App() {
 
   useGsapReveal(animationScopeRef, page);
 
-  useEffect(() => {
-    const shouldLockViewport =
-      page === 'analysis' && (!lastTarget || analysisSummary.loading > 0);
-    if (!shouldLockViewport) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [analysisSummary.loading, lastTarget, page]);
-
   const canExport = Boolean(
     lastTarget &&
     checks.length > 0 &&
@@ -852,17 +838,6 @@ export function App() {
         <main ref={animationScopeRef} data-page={page}>
           {page === 'analysis' && (
             <>
-              {analysisSummary.loading > 0 && lastTarget && (
-                <div
-                  className="analysis-fullscreen-stage"
-                  role="status"
-                  aria-live="polite"
-                  aria-label="Análise em andamento"
-                >
-                  <AnalysisScene phase="running" target={lastTarget} />
-                </div>
-              )}
-
               <section
                 className={`overview ${lastTarget ? 'overview--report' : 'overview--landing'}`}
                 id="analysis"
@@ -872,8 +847,8 @@ export function App() {
                   className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
                 >
                   <div className="analysis-card__topline">
-                    <span>01 / TARGET INTAKE</span>
-                    <span>3D SIGNAL MAP</span>
+                    <span>CASO / NOVA CONSULTA</span>
+                    <span>COLETA PARALELA</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
@@ -892,14 +867,10 @@ export function App() {
                     )}
                   </div>
                   <p>
-                    Digite um domínio, IP, URL ou identidade. O mapa de sinais
-                    acompanha a coleta e o relatório aparece assim que as fontes
-                    respondem.
+                    Digite um domínio, IP, URL ou identidade. As fontes são
+                    consultadas em paralelo e o relatório é preenchido conforme
+                    cada resposta chega.
                   </p>
-
-                  {!lastTarget && (
-                    <AnalysisScene phase="idle" target={target.trim()} />
-                  )}
 
                   <form className="analysis-form" onSubmit={analyze}>
                     <label htmlFor="target">Alvo da análise</label>

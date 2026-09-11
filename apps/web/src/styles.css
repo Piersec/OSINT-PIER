@@ -9282,6 +9282,371 @@ html[data-theme='dark'] textarea:focus-visible {
   }
 }
 
+/* GAB-112 — compact operational workspace. This intentionally follows the
+   existing PierSec tokens instead of introducing a second visual identity. */
+html[data-theme='white'] .app-shell--piersec .sidebar,
+html[data-theme='dark'] .app-shell--piersec .sidebar {
+  width: 260px;
+  padding: 18px 16px 16px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand {
+  min-height: 48px;
+  padding: 0 8px 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__brand-meta,
+html[data-theme='dark'] .app-shell--piersec .sidebar__brand-meta {
+  padding-top: 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar nav,
+html[data-theme='dark'] .app-shell--piersec .sidebar nav {
+  margin-top: 24px;
+  gap: 2px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__nav-group,
+html[data-theme='dark'] .app-shell--piersec .sidebar__nav-group {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__link,
+html[data-theme='dark'] .app-shell--piersec .sidebar__link {
+  height: 38px;
+  border-left-width: 2px;
+  border-radius: 4px;
+}
+
+html[data-theme='white'] .app-shell--piersec .sidebar__status,
+html[data-theme='dark'] .app-shell--piersec .sidebar__status {
+  min-height: 54px;
+  padding-top: 11px;
+}
+
+html[data-theme='white'] .app-shell--piersec .workspace,
+html[data-theme='dark'] .app-shell--piersec .workspace {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+  padding: 0 44px 44px;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar,
+html[data-theme='dark'] .app-shell--piersec .topbar {
+  min-height: 112px;
+  padding: 22px 0 19px;
+  align-items: center;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar__signal-line,
+html[data-theme='dark'] .app-shell--piersec .topbar__signal-line {
+  margin-bottom: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar h1,
+html[data-theme='dark'] .app-shell--piersec .topbar h1 {
+  font-size: clamp(27px, 3vw, 40px);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+html[data-theme='white'] .app-shell--piersec .topbar p,
+html[data-theme='dark'] .app-shell--piersec .topbar p {
+  margin-top: 7px;
+  font-size: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview,
+html[data-theme='dark'] .app-shell--piersec .overview,
+html[data-theme='white'] .app-shell--piersec .overview--landing,
+html[data-theme='dark'] .app-shell--piersec .overview--landing {
+  display: grid;
+  padding-top: 24px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--report,
+html[data-theme='dark'] .app-shell--piersec .overview--report {
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 0.38fr);
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card,
+html[data-theme='dark'] .app-shell--piersec .analysis-card,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+  min-height: 0;
+  padding: 24px 26px 22px;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card::after,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card::after {
+  display: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card__topline,
+html[data-theme='dark'] .app-shell--piersec .analysis-card__topline,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card__topline,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card__topline {
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card h2,
+html[data-theme='dark'] .app-shell--piersec .analysis-card h2,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card h2,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card h2 {
+  max-width: 640px;
+  color: var(--text);
+  font-size: clamp(27px, 3.2vw, 40px);
+  letter-spacing: -0.06em;
+  line-height: 1.04;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .analysis-card > p,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > p {
+  max-width: 620px;
+  margin: 12px 0 19px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-form,
+html[data-theme='dark'] .app-shell--piersec .analysis-form,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-form,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-form {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .target-control,
+html[data-theme='dark'] .app-shell--piersec .target-control,
+html[data-theme='white'] .app-shell--piersec .overview--landing .target-control,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .target-control {
+  min-height: 54px;
+  padding: 4px 4px 4px 14px;
+  border-color: var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .target-control input,
+html[data-theme='dark'] .app-shell--piersec .target-control input,
+html[data-theme='white'] .app-shell--piersec .overview--landing .target-control input,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .target-control input {
+  height: 44px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .target-control .button,
+html[data-theme='dark'] .app-shell--piersec .target-control .button,
+html[data-theme='white'] .app-shell--piersec .overview--landing .target-control .button,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .target-control .button {
+  min-height: 44px;
+  padding-inline: 16px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-filters,
+html[data-theme='dark'] .app-shell--piersec .analysis-filters {
+  margin-top: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .filter-toggle,
+html[data-theme='dark'] .app-shell--piersec .filter-toggle,
+html[data-theme='white'] .app-shell--piersec .analysis-filters__body,
+html[data-theme='dark'] .app-shell--piersec .analysis-filters__body {
+  border-radius: 5px;
+}
+
+html[data-theme='white'] .app-shell--piersec .form-meta,
+html[data-theme='dark'] .app-shell--piersec .form-meta {
+  margin-top: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context,
+html[data-theme='dark'] .app-shell--piersec .analysis-context {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context__motion,
+html[data-theme='dark'] .app-shell--piersec .analysis-context__motion {
+  position: sticky;
+  top: 18px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .analysis-context strong,
+html[data-theme='dark'] .app-shell--piersec .analysis-context strong {
+  margin-top: 7px;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+}
+
+html[data-theme='white'] .app-shell--piersec .signal-topology,
+html[data-theme='dark'] .app-shell--piersec .signal-topology {
+  min-height: 160px;
+  margin-top: 18px;
+  border-radius: 4px;
+}
+
+html[data-theme='white'] .app-shell--piersec .metrics-grid,
+html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+  grid-column: 1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .metric-card,
+html[data-theme='dark'] .app-shell--piersec .metric-card {
+  min-height: 112px;
+  padding: 15px 16px;
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-section,
+html[data-theme='dark'] .app-shell--piersec .results-section {
+  margin-top: 28px;
+  padding-top: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .section-heading,
+html[data-theme='dark'] .app-shell--piersec .section-heading {
+  padding-bottom: 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid {
+  grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card {
+  min-height: 280px;
+  padding: 17px;
+  border-top-width: 1px;
+  border-radius: 5px;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-section,
+html[data-theme='dark'] .app-shell--piersec .toolbox-section,
+html[data-theme='white'] .app-shell--piersec .history-page,
+html[data-theme='dark'] .app-shell--piersec .history-page,
+html[data-theme='white'] .app-shell--piersec .settings-page,
+html[data-theme='dark'] .app-shell--piersec .settings-page {
+  padding-top: 24px;
+}
+
+html[data-theme='white'] .app-shell--piersec .toolbox-target,
+html[data-theme='dark'] .app-shell--piersec .toolbox-target,
+html[data-theme='white'] .app-shell--piersec .tool-category-nav,
+html[data-theme='dark'] .app-shell--piersec .tool-category-nav,
+html[data-theme='white'] .app-shell--piersec .tool-category,
+html[data-theme='dark'] .app-shell--piersec .tool-category,
+html[data-theme='white'] .app-shell--piersec .history-entry,
+html[data-theme='dark'] .app-shell--piersec .history-entry,
+html[data-theme='white'] .app-shell--piersec .settings-card,
+html[data-theme='dark'] .app-shell--piersec .settings-card,
+html[data-theme='white'] .app-shell--piersec .profile-card,
+html[data-theme='dark'] .app-shell--piersec .profile-card,
+html[data-theme='white'] .app-shell--piersec .credentials-panel,
+html[data-theme='dark'] .app-shell--piersec .credentials-panel {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-grid,
+html[data-theme='dark'] .app-shell--piersec .tool-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card,
+html[data-theme='dark'] .app-shell--piersec .tool-card {
+  min-height: 240px;
+  padding: 17px;
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .tool-card:hover,
+html[data-theme='dark'] .app-shell--piersec .tool-card:hover {
+  transform: none;
+}
+
+@media (max-width: 980px) {
+  html[data-theme='white'] .app-shell--piersec .workspace,
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: calc(100% - 260px);
+    padding-inline: 28px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .overview--report,
+  html[data-theme='dark'] .app-shell--piersec .overview--report {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-theme='white'] .app-shell--piersec .analysis-context,
+  html[data-theme='dark'] .app-shell--piersec .analysis-context,
+  html[data-theme='white'] .app-shell--piersec .metrics-grid,
+  html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .workspace,
+  html[data-theme='dark'] .app-shell--piersec .workspace {
+    width: 100%;
+    margin-left: 0;
+    padding: 0 16px 32px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .topbar,
+  html[data-theme='dark'] .app-shell--piersec .topbar {
+    min-height: 0;
+    padding: 18px 0;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .analysis-card,
+  html[data-theme='dark'] .app-shell--piersec .analysis-card,
+  html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+  html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+    min-height: 0;
+    padding: 20px 17px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .metrics-grid,
+  html[data-theme='dark'] .app-shell--piersec .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html[data-theme='white'] .app-shell--piersec *,
   html[data-theme='dark'] .app-shell--piersec *,
@@ -9407,6 +9772,11 @@ html[data-theme='dark'] .app-shell--piersec .account-menu__trigger {
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card::after,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card::after {
+  display: none;
 }
 
 html[data-theme='white'] .app-shell--piersec .account-menu__trigger:hover,
@@ -10691,6 +11061,63 @@ html[data-theme='dark'] .app-shell--piersec .overview--report .analysis-scene {
   }
 }
 
+/* Final precedence for the compact investigation intake. */
+html[data-theme='white'] .app-shell--piersec .overview--landing,
+html[data-theme='dark'] .app-shell--piersec .overview--landing {
+  display: grid;
+  min-height: 0;
+  padding-top: 24px;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+  display: block;
+  min-height: 0;
+  padding: 24px 26px 22px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__topline,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__topline {
+  position: static;
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__heading,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__heading,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-form,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-form {
+  position: static;
+  z-index: auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > p {
+  margin: 12px 0 19px;
+  color: var(--muted);
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card h2,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card h2,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card label,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card label {
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+  html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+    min-height: 0;
+    padding: 20px 17px;
+  }
+}
+
 html[data-theme='white'] .app-shell--piersec .analysis-card__heading,
 html[data-theme='dark'] .app-shell--piersec .analysis-card__heading {
   display: flex;
@@ -11257,5 +11684,72 @@ html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-form {
     top: 24px;
     right: 18px;
     left: 18px;
+  }
+}
+
+/* GAB-112 takes precedence over the earlier immersive landing experiment. */
+html[data-theme='white'] .app-shell--piersec .overview--landing,
+html[data-theme='dark'] .app-shell--piersec .overview--landing {
+  position: static;
+  z-index: auto;
+  display: grid;
+  min-height: 0;
+  overflow: visible;
+  padding-top: 24px;
+  background: transparent;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+  display: block;
+  width: auto;
+  min-height: 0;
+  padding: 24px 26px 22px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card::after,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card::after {
+  display: none;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__topline,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__topline {
+  position: static;
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__heading,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > .analysis-card__heading,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-form,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-form {
+  position: static;
+  z-index: auto;
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card > p,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card > p {
+  margin: 12px 0 19px;
+  color: var(--muted);
+}
+
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card h2,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card h2,
+html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card label,
+html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card label {
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  html[data-theme='white'] .app-shell--piersec .overview--landing .analysis-card,
+  html[data-theme='dark'] .app-shell--piersec .overview--landing .analysis-card {
+    min-height: 0;
+    padding: 20px 17px;
   }
 }
