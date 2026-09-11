@@ -146,6 +146,8 @@ Cada nova integração deve:
 - [x] Cena 3D da coleta expandida para o viewport inteiro durante a execução, com retorno
       automático ao relatório e scroll bloqueado enquanto houver checks ativos
 - [x] Ação explícita de Nova análise para trocar o alvo restaurado sem apagar o histórico
+- [x] Reforçar a densidade visual dos cards, ampliando a tipografia e usando toda a largura
+      útil para linhas, tabelas e valores curados
 
 ---
 
@@ -679,3 +681,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   distribuir os painéis em fluxo masonry responsivo (3/2/1 colunas). Cards curtos não
   deixam mais buracos até o painel vizinho mais alto, e a distância entre painéis ficou
   uniforme sem cortar tabelas ou listas longas.
+- `2026-09-11` — GAB-116: os cards de resultado ganharam tipografia mais legível e linhas
+  chave/valor que ocupam toda a largura disponível. Tabelas, listas, chips e valores
+  aninhados agora têm escala e espaçamento próprios, mantendo a leitura responsiva.

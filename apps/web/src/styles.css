@@ -12051,3 +12051,203 @@ html[data-theme='dark'] .app-shell--piersec .results-grid .result-card:last-chil
     margin-bottom: 10px;
   }
 }
+
+/* GAB-116 — give curated values the same visual weight as the panels around them. */
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header {
+  gap: 14px;
+  padding: 15px 18px 14px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .source-logo,
+html[data-theme='dark'] .app-shell--piersec .results-grid .source-logo {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header h3,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header h3 {
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header .eyebrow,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__description,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__description {
+  padding: 12px 18px 13px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .result-data,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .result-data {
+  width: 100%;
+  padding-right: 18px;
+  padding-left: 18px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block {
+  grid-template-columns: minmax(118px, 30%) minmax(0, 1fr);
+  gap: 18px;
+  padding: 14px 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block h4,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block h4 {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block__value,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block__value {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-nested,
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-inline-grid,
+html[data-theme='white']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-table,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-nested,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-inline-grid,
+html[data-theme='dark']
+  .app-shell--piersec
+  .results-grid
+  .result-data
+  .result-block__value
+  > .result-table {
+  width: 100%;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-nested,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-nested {
+  gap: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-nested__field > span,
+html[data-theme='white'] .app-shell--piersec .results-grid .result-inline-field > span,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-nested__field > span,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-inline-field > span {
+  margin-bottom: 5px;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-inline-grid,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-inline-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 16px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-table,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-table {
+  gap: 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-table__row,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-table__row {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 14px;
+  padding: 12px 0;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-table__cell > span:first-child,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-table__cell > span:first-child {
+  margin-bottom: 5px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-table__cell > span:last-child,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-table__cell > span:last-child {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-chip,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-chip {
+  padding: 6px 9px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-bool,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-bool {
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-empty,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-empty {
+  font-size: 13px;
+}
+
+html[data-theme='white'] .app-shell--piersec .results-grid .result-card__footer,
+html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__footer {
+  padding: 11px 18px;
+  font-size: 11px;
+}
+
+@media (max-width: 540px) {
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-card__header,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__header {
+    padding: 14px 15px 13px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-card__description,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card__description {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-card > .result-data,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-card > .result-data {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  html[data-theme='white'] .app-shell--piersec .results-grid .result-data .result-block,
+  html[data-theme='dark'] .app-shell--piersec .results-grid .result-data .result-block {
+    gap: 7px;
+    padding: 12px 0;
+  }
+}
