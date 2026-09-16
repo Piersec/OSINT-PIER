@@ -336,6 +336,35 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
   );
 }
 
+function getPresentation(
+  checkId: string,
+): 'evidence' | 'inventory' | 'signal' | 'brief' {
+  if (
+    [
+      'dns-records',
+      'cookies',
+      'http-headers',
+      'ssl-certificate',
+      'shodan',
+    ].includes(checkId)
+  )
+    return 'inventory';
+  if (
+    ['virus-total', 'abuse-ipdb', 'nuclei', 'server-status'].includes(checkId)
+  )
+    return 'signal';
+  if (
+    [
+      'whois-rdap',
+      'redirect-chain',
+      'robots-sitemap',
+      'osint-framework',
+    ].includes(checkId)
+  )
+    return 'evidence';
+  return 'brief';
+}
+
 export function ResultCard({
   check,
   state,
@@ -355,7 +384,7 @@ export function ResultCard({
   return (
     <article
       aria-busy={state.status === 'loading'}
-      className={`result-card result-card--${visualStatus}`}
+      className={`result-card result-card--${visualStatus} result-card--${getPresentation(check.id)}`}
     >
       <header className="result-card__header">
         <div className="result-card__identity">
@@ -424,8 +453,12 @@ export function ResultCard({
               <ResultData checkId={check.id} data={state.result.data} />
             ))}
           <footer className="result-card__footer">
-            <span>Fonte: {state.result.source}</span>
-            <span>{Math.round(state.result.durationMs)} ms</span>
+            <span>Origem: {state.result.source}</span>
+            <span
+              aria-label={`Resposta em ${Math.round(state.result.durationMs)} milissegundos`}
+            >
+              Atualizado agora
+            </span>
           </footer>
         </>
       )}

@@ -2,12 +2,12 @@ export type StatusPillStatus =
   'idle' | 'loading' | 'success' | 'error' | 'skipped' | 'request-error';
 
 const statusLabels: Record<StatusPillStatus, string> = {
-  idle: 'Aguardando',
-  loading: 'Carregando',
-  success: 'Sucesso',
-  error: 'Erro da fonte',
-  skipped: 'Credencial ausente',
-  'request-error': 'Falha de rede',
+  idle: 'Na fila',
+  loading: 'Consultando',
+  success: 'Resposta recebida',
+  error: 'Fonte indisponível',
+  skipped: 'Configuração necessária',
+  'request-error': 'Conexão interrompida',
 };
 
 export function StatusPill({

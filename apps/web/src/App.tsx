@@ -68,9 +68,9 @@ const pageMeta: Record<
   },
   results: {
     eyebrow: 'OSINT Pier / ferramentas',
-    title: 'Caixa de ferramentas',
+    title: 'Registro de fontes',
     description:
-      'Execute cada integração separadamente e veja o que ela consulta.',
+      'Escolha uma fonte, entenda seu escopo e execute uma consulta isolada.',
   },
   history: {
     eyebrow: 'OSINT Pier / auditoria',
@@ -1058,22 +1058,22 @@ export function App() {
                 >
                   {!lastTarget && <InvestigationConstellation />}
                   <div className="analysis-card__topline">
-                    <span>Inteligência de superfície</span>
-                    <span>Fontes conectadas · sob demanda</span>
+                    <span>Nova investigação</span>
+                    <span>Coleta dirigida</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
                       <span className="eyebrow">
                         {lastTarget
-                          ? 'Nova investigação'
-                          : 'Observe o invisível'}
+                          ? 'Caso em preparo'
+                          : 'Central de investigação'}
                       </span>
                       <h2>
                         {lastTarget ? (
                           'O que você quer investigar?'
                         ) : (
                           <>
-                            Contexto para cada <em>superfície.</em>
+                            Comece por um <em>alvo.</em>
                           </>
                         )}
                       </h2>
@@ -1092,7 +1092,7 @@ export function App() {
                   <p>
                     {lastTarget
                       ? 'Digite um domínio, IP, URL ou identidade. As fontes são consultadas em paralelo e o relatório é preenchido conforme cada resposta chega.'
-                      : 'Transforme sinais dispersos em uma visão clara de ativos, exposição e reputação.'}
+                      : 'Informe um indicador. A plataforma organiza evidências de rede, exposição e reputação em uma única leitura.'}
                   </p>
 
                   <form className="analysis-form" onSubmit={analyze}>
@@ -1131,14 +1131,14 @@ export function App() {
                         aria-label="Capacidades da plataforma"
                       >
                         <span>
-                          <b>{checks.length || '—'}</b> fontes disponíveis
+                          <b>
+                            {checks.filter((check) => check.configured)
+                              .length || '—'}
+                          </b>{' '}
+                          fontes prontas
                         </span>
-                        <span>
-                          <b>7</b> tipos de alvo
-                        </span>
-                        <span>
-                          <b>∞</b> contexto sob demanda
-                        </span>
+                        <span>Detecção automática de alvo</span>
+                        <span>Resultados progressivos</span>
                       </div>
                     )}
 
@@ -1336,25 +1336,25 @@ export function App() {
                 {lastTarget && (
                   <div className="metrics-grid" aria-label="Resumo da análise">
                     <MetricCard
-                      label="Plugins"
+                      label="Fontes consultadas"
                       value={reportChecks.length}
-                      detail="Fontes disponíveis"
+                      detail="Escopo desta investigação"
                     />
                     <MetricCard
-                      label="Concluídos"
+                      label="Evidências recebidas"
                       value={analysisSummary.resolved}
-                      detail="Respostas recebidas"
+                      detail="Fontes que responderam"
                     />
                     <MetricCard
-                      label="Sucesso"
+                      label="Sinais confirmados"
                       value={analysisSummary.success}
-                      detail="Sinais processados"
+                      detail="Dados utilizáveis no caso"
                       tone="positive"
                     />
                     <MetricCard
-                      label="Atenção"
+                      label="Pontos pendentes"
                       value={analysisSummary.attention}
-                      detail="Erros ou integrações puladas"
+                      detail="Fontes indisponíveis ou sem configuração"
                       tone="attention"
                     />
                   </div>
@@ -1592,16 +1592,16 @@ export function App() {
             <section className="toolbox-section" data-reveal>
               <div className="page-lead">
                 <div>
-                  <span className="eyebrow">Execução individual</span>
-                  <h2>Escolha uma ferramenta</h2>
+                  <span className="eyebrow">Fontes disponíveis</span>
+                  <h2>Selecione uma fonte</h2>
                 </div>
                 <span className="section-count">
                   {toolboxChecks.length} disponíveis
                 </span>
               </div>
               <p className="muted page-copy">
-                Cada módulo roda isoladamente. Informe um alvo uma vez e execute
-                apenas as fontes que deseja consultar.
+                Cada fonte informa quais alvos aceita, como está configurada e o
+                tipo de evidência que pode trazer para o caso.
               </p>
               <div className="toolbox-target">
                 <label htmlFor="tool-target">Alvo da ferramenta</label>
@@ -1674,8 +1674,8 @@ export function App() {
                   className="tool-category-nav"
                   aria-label="Categorias de ferramentas"
                 >
-                  <span className="eyebrow">Índice</span>
-                  <h3>Categorias</h3>
+                  <span className="eyebrow">Navegação</span>
+                  <h3>Por contexto</h3>
                   <nav>
                     {visibleToolCategories.map((category) => (
                       <button
@@ -1718,7 +1718,7 @@ export function App() {
                         >
                           <div className="tool-category__heading">
                             <div>
-                              <span className="eyebrow">Categoria</span>
+                              <span className="eyebrow">Grupo de fontes</span>
                               <h3>{toolCategoryMeta[category].label}</h3>
                               <p>{toolCategoryMeta[category].description}</p>
                             </div>
@@ -1733,7 +1733,10 @@ export function App() {
                                 status: 'idle',
                               };
                               return (
-                                <article className="tool-card" key={check.id}>
+                                <article
+                                  className={`tool-card tool-card--${toolCategories[check.id] ?? 'web'}`}
+                                  key={check.id}
+                                >
                                   <div className="tool-card__heading">
                                     <ToolLogo
                                       checkId={check.id}
@@ -1742,8 +1745,8 @@ export function App() {
                                     <div>
                                       <span className="eyebrow">
                                         {check.configured
-                                          ? 'Disponível'
-                                          : 'Indisponível · credencial pendente'}
+                                          ? 'Pronta para consulta'
+                                          : 'Configuração necessária'}
                                       </span>
                                       <h3>{check.label}</h3>
                                     </div>
@@ -1767,7 +1770,7 @@ export function App() {
                                     {state.status === 'loading'
                                       ? 'Executando…'
                                       : check.configured
-                                        ? 'Executar ferramenta'
+                                        ? 'Consultar fonte'
                                         : 'Indisponível'}
                                   </button>
                                   {state.status !== 'idle' && (
@@ -1792,7 +1795,7 @@ export function App() {
                             })}
                             {categoryPlanned.map((tool) => (
                               <article
-                                className="tool-card tool-card--planned"
+                                className={`tool-card tool-card--planned tool-card--${tool.category}`}
                                 key={tool.id}
                               >
                                 <div className="tool-card__heading">

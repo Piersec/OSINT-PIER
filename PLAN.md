@@ -158,6 +158,8 @@ Cada nova integração deve:
       à caixa de ferramentas
 - [x] Rebranding editorial premium: tipografia Inter, hero com constelação de investigação,
       bento grid assimétrico, superfícies com profundidade e interações refinadas
+- [x] Refinar a linguagem visual para investigação semântica: fontes locais em vez de favicons
+      remotos, cards orientados por tipo de evidência, hierarquia editorial e superfícies reduzidas
 
 ---
 
