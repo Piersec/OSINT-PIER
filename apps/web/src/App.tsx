@@ -28,7 +28,6 @@ import { AppShell } from './components/shell/AppShell';
 import { PageHeader } from './components/shell/PageHeader';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { TargetKind } from '@osint-pier/contracts';
-import { getSuccessfulChecks } from './features/analysis/visible-results';
 import { getCompatibleChecks } from './features/analysis/compatible-checks';
 import {
   clearAnalysisSession,
@@ -55,6 +54,8 @@ type Page =
   'analysis' | 'results' | 'history' | 'credentials' | 'profile' | 'settings';
 type AccountTab = 'profile' | 'settings';
 type Theme = 'dark' | 'white';
+type ResultFilter = 'all' | 'success' | 'attention';
+type TargetKindSelection = TargetKind | 'auto';
 
 const pageMeta: Record<
   Page,
@@ -288,14 +289,22 @@ function UserAvatar({
   email?: string | null;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => setFailed(false), [avatarUrl]);
-
   return (
-    <span className={`user-avatar ${className}`.trim()} aria-hidden="true">
-      {avatarUrl && !failed ? (
-        <img alt="" onError={() => setFailed(true)} src={avatarUrl} />
+    <span
+      aria-label={
+        avatarUrl
+          ? `Foto de ${email ?? 'usuário'}`
+          : `Iniciais de ${email ?? 'usuário'}`
+      }
+      className={`user-avatar ${className}`.trim()}
+      role="img"
+    >
+      {avatarUrl ? (
+        <span
+          aria-hidden="true"
+          className="user-avatar__image"
+          style={{ backgroundImage: `url("${avatarUrl}")` }}
+        />
       ) : (
         <span>{getUserInitials(email)}</span>
       )}
@@ -365,6 +374,21 @@ function inferTargetKind(value: string): TargetKind {
   return 'domain';
 }
 
+function isAttentionState(state: CardState | undefined): boolean {
+  return Boolean(
+    state?.status === 'request-error' ||
+    (state?.status === 'done' && state.result.status !== 'success'),
+  );
+}
+
+function getResultFilterLabel(filter: ResultFilter): string {
+  return {
+    all: 'Todos',
+    success: 'Com dados',
+    attention: 'Atenção',
+  }[filter];
+}
+
 export function App() {
   const { user, signOut, updateAvatar, updateUser } = useAuth();
   const queryClient = useQueryClient();
@@ -380,6 +404,8 @@ export function App() {
   const [page, setPage] = useState<Page>('analysis');
   const [accountTab, setAccountTab] = useState<AccountTab>('profile');
   const [target, setTarget] = useState('');
+  const [targetKindSelection, setTargetKindSelection] =
+    useState<TargetKindSelection>('auto');
   const [lastTarget, setLastTarget] = useState<string | null>(null);
   const [lastTargetKind, setLastTargetKind] = useState<TargetKind | 'auto'>(
     'auto',
@@ -387,8 +413,14 @@ export function App() {
   const [states, setStates] = useState<Record<string, CardState>>({});
   const [toolStates, setToolStates] = useState<Record<string, CardState>>({});
   const [toolTarget, setToolTarget] = useState('');
+  const [toolSearch, setToolSearch] = useState('');
+  const [toolCategoryFilter, setToolCategoryFilter] = useState<
+    ToolCategory | 'all'
+  >('all');
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
+  const [analysisCanceled, setAnalysisCanceled] = useState(false);
   const [theme, setTheme] = useState<Theme>('white');
   const themeInitialized = useRef(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
@@ -400,6 +432,8 @@ export function App() {
   const [selectedCheckIds, setSelectedCheckIds] = useState<string[] | null>(
     null,
   );
+  const analysisRunRef = useRef(0);
+  const analysisAbortRef = useRef<AbortController | null>(null);
 
   const avatarUrl = getAvatarUrl(user);
   const displayedAvatarUrl =
@@ -445,6 +479,7 @@ export function App() {
       setTarget(session.target ?? '');
       setLastTarget(session.target);
       setLastTargetKind(session.targetKind);
+      setTargetKindSelection(session.targetKind);
       setSelectedCheckIds(session.selectedCheckIds);
       setStates(session.states);
       setHistory(session.history);
@@ -474,7 +509,12 @@ export function App() {
     () => (checksQuery.data ?? []).filter((check) => check.enabled),
     [checksQuery.data],
   );
-  const analysisTargetKind = target.trim() ? inferTargetKind(target) : null;
+  const inferredTargetKind = target.trim() ? inferTargetKind(target) : null;
+  const analysisTargetKind = target.trim()
+    ? targetKindSelection === 'auto'
+      ? inferredTargetKind
+      : targetKindSelection
+    : null;
   const compatibleChecks = useMemo(
     () => getCompatibleChecks(activeChecks, analysisTargetKind),
     [activeChecks, analysisTargetKind],
@@ -488,16 +528,44 @@ export function App() {
           ),
     [compatibleChecks, selectedCheckIds],
   );
-  const toolboxChecks = activeChecks;
+  const normalizedToolSearch = toolSearch.trim().toLocaleLowerCase('pt-BR');
+  const toolboxChecks = useMemo(
+    () =>
+      activeChecks.filter((check) => {
+        const category = toolCategories[check.id] ?? 'web';
+        if (toolCategoryFilter !== 'all' && category !== toolCategoryFilter)
+          return false;
+        if (!normalizedToolSearch) return true;
+        return `${check.label} ${check.id} ${getCheckDescription(check)}`
+          .toLocaleLowerCase('pt-BR')
+          .includes(normalizedToolSearch);
+      }),
+    [activeChecks, normalizedToolSearch, toolCategoryFilter],
+  );
+  const visiblePlannedTools = useMemo(
+    () =>
+      plannedTools.filter((tool) => {
+        if (
+          toolCategoryFilter !== 'all' &&
+          tool.category !== toolCategoryFilter
+        )
+          return false;
+        if (!normalizedToolSearch) return true;
+        return `${tool.label} ${tool.id} ${tool.description}`
+          .toLocaleLowerCase('pt-BR')
+          .includes(normalizedToolSearch);
+      }),
+    [normalizedToolSearch, toolCategoryFilter],
+  );
   const visibleToolCategories = useMemo(
     () =>
       (Object.keys(toolCategoryMeta) as ToolCategory[]).filter(
         (category) =>
           toolboxChecks.some(
             (check) => (toolCategories[check.id] ?? 'web') === category,
-          ) || plannedTools.some((tool) => tool.category === category),
+          ) || visiblePlannedTools.some((tool) => tool.category === category),
       ),
-    [toolboxChecks],
+    [toolboxChecks, visiblePlannedTools],
   );
   const visibleHistory = useMemo(() => {
     const entries = [...history, ...(historyQuery.data ?? [])];
@@ -528,9 +596,17 @@ export function App() {
     };
   }, [checks, states]);
 
-  const successfulChecks = useMemo(
-    () => getSuccessfulChecks(checks, states),
-    [checks, states],
+  const visibleResultChecks = useMemo(
+    () =>
+      checks.filter((check) => {
+        const state = states[check.id];
+        if (resultFilter === 'success') {
+          return state?.status === 'done' && state.result.status === 'success';
+        }
+        if (resultFilter === 'attention') return isAttentionState(state);
+        return true;
+      }),
+    [checks, resultFilter, states],
   );
 
   const topologyItems = useMemo<SignalTopologyItem[]>(
@@ -576,12 +652,14 @@ export function App() {
     checkId: string,
     submittedTarget: string,
     submittedTargetKind: TargetKind | 'auto',
+    signal?: AbortSignal,
   ): Promise<CardState> {
     try {
       const result = await runCheck(
         checkId,
         submittedTarget,
         submittedTargetKind === 'auto' ? undefined : submittedTargetKind,
+        signal,
       );
       return { status: 'done', result };
     } catch (error) {
@@ -605,23 +683,31 @@ export function App() {
     checkId: string,
     submittedTarget: string,
     submittedTargetKind: TargetKind | 'auto',
+    options: { runId?: number; signal?: AbortSignal } = {},
   ): Promise<CardState> {
-    setStates((current) => ({
-      ...current,
-      [checkId]: { status: 'loading' },
-    }));
+    const runId = options.runId ?? analysisRunRef.current;
+    if (runId === analysisRunRef.current) {
+      setStates((current) => ({
+        ...current,
+        [checkId]: { status: 'loading' },
+      }));
+    }
     const nextState = await requestCheck(
       checkId,
       submittedTarget,
       submittedTargetKind,
+      options.signal,
     );
-    setStates((current) => ({ ...current, [checkId]: nextState }));
+    if (runId === analysisRunRef.current && !options.signal?.aborted) {
+      setStates((current) => ({ ...current, [checkId]: nextState }));
+    }
     return nextState;
   }
 
   async function executeTool(checkId: string) {
     const submittedTarget = toolTarget.trim();
-    if (!submittedTarget) return;
+    const check = toolboxChecks.find((candidate) => candidate.id === checkId);
+    if (!submittedTarget || !check?.configured) return;
     const submittedTargetKind = inferTargetKind(submittedTarget);
     setToolStates((current) => ({
       ...current,
@@ -639,10 +725,21 @@ export function App() {
     event.preventDefault();
     const submittedTarget = target.trim();
     if (!submittedTarget || checks.length === 0) return;
-    const submittedTargetKind = inferTargetKind(submittedTarget);
+    const submittedTargetKind =
+      targetKindSelection === 'auto'
+        ? inferTargetKind(submittedTarget)
+        : targetKindSelection;
+
+    analysisAbortRef.current?.abort();
+    const controller = new AbortController();
+    analysisAbortRef.current = controller;
+    const runId = analysisRunRef.current + 1;
+    analysisRunRef.current = runId;
 
     setLastTarget(submittedTarget);
     setLastTargetKind(submittedTargetKind);
+    setResultFilter('all');
+    setAnalysisCanceled(false);
     setStates(
       Object.fromEntries(
         checks.map((check) => [check.id, { status: 'loading' }]),
@@ -651,9 +748,16 @@ export function App() {
 
     const completedStates = await Promise.all(
       checks.map((check) =>
-        executeOneCheck(check.id, submittedTarget, submittedTargetKind),
+        executeOneCheck(check.id, submittedTarget, submittedTargetKind, {
+          runId,
+          signal: controller.signal,
+        }),
       ),
     );
+    if (controller.signal.aborted || runId !== analysisRunRef.current) return;
+    if (analysisAbortRef.current === controller) {
+      analysisAbortRef.current = null;
+    }
     const entry = createAnalysisHistoryEntry({
       target: submittedTarget,
       targetKind: submittedTargetKind,
@@ -677,6 +781,29 @@ export function App() {
       .catch(() => {
         // A temporary Supabase outage must not hide the local session history.
       });
+  }
+
+  function cancelAnalysis() {
+    if (analysisSummary.loading === 0) return;
+    analysisRunRef.current += 1;
+    analysisAbortRef.current?.abort();
+    analysisAbortRef.current = null;
+    setAnalysisCanceled(true);
+    setStates((current) =>
+      Object.fromEntries(
+        Object.entries(current).map(([checkId, state]) =>
+          state.status === 'loading'
+            ? [
+                checkId,
+                {
+                  status: 'request-error',
+                  message: 'Execução cancelada pelo usuário.',
+                },
+              ]
+            : [checkId, state],
+        ),
+      ),
+    );
   }
 
   function retryCheck(checkId: string) {
@@ -750,18 +877,25 @@ export function App() {
   }
 
   function startNewAnalysis() {
+    analysisRunRef.current += 1;
+    analysisAbortRef.current?.abort();
+    analysisAbortRef.current = null;
     clearAnalysisSession();
     setTarget('');
+    setTargetKindSelection('auto');
     setLastTarget(null);
     setLastTargetKind('auto');
     setSelectedCheckIds(null);
     setStates({});
     setFiltersOpen(false);
+    setResultFilter('all');
+    setAnalysisCanceled(false);
     window.requestAnimationFrame(() => targetInputRef.current?.focus());
   }
 
   function reuseHistoryEntry(entry: AnalysisHistoryEntry) {
     setTarget(entry.target);
+    setTargetKindSelection(entry.targetKind);
     setSelectedCheckIds(null);
     navigate('analysis');
   }
@@ -913,6 +1047,48 @@ export function App() {
                           : 'Analisar agora'}
                       </button>
                     </div>
+
+                    <div className="target-preflight" aria-live="polite">
+                      <label htmlFor="target-kind">Interpretar como</label>
+                      <select
+                        id="target-kind"
+                        onChange={(event) =>
+                          setTargetKindSelection(
+                            event.target.value as TargetKindSelection,
+                          )
+                        }
+                        value={targetKindSelection}
+                      >
+                        <option value="auto">
+                          Detecção automática
+                          {inferredTargetKind
+                            ? ` · ${formatTargetKind(inferredTargetKind)}`
+                            : ''}
+                        </option>
+                        <option value="domain">Domínio</option>
+                        <option value="ip">IP</option>
+                        <option value="url">URL</option>
+                        <option value="name">Nome</option>
+                        <option value="username">Username</option>
+                        <option value="email">E-mail</option>
+                        <option value="phone">Telefone</option>
+                      </select>
+                      <span>
+                        {target.trim()
+                          ? `${formatTargetKind(analysisTargetKind ?? 'domain')} · ${checks.length} fonte${checks.length === 1 ? '' : 's'} compatível${checks.length === 1 ? '' : 'is'}`
+                          : 'A detecção automática será confirmada antes da execução.'}
+                      </span>
+                    </div>
+
+                    {analysisSummary.loading > 0 && (
+                      <button
+                        className="button button--quiet analysis-cancel-button"
+                        onClick={cancelAnalysis}
+                        type="button"
+                      >
+                        Cancelar execução
+                      </button>
+                    )}
 
                     {(lastTarget || target.trim()) && (
                       <div className="analysis-filters">
@@ -1091,11 +1267,20 @@ export function App() {
                 )}
 
                 {lastTarget && checks.length > 0 && (
-                  <AnalysisInsights
-                    checks={checks}
-                    states={states}
-                    target={lastTarget}
-                  />
+                  <details className="analysis-insights-disclosure">
+                    <summary>
+                      <span>
+                        <span className="eyebrow">Leitura de risco</span>
+                        <strong>Panorama de segurança</strong>
+                      </span>
+                      <span>Ver leitura detalhada</span>
+                    </summary>
+                    <AnalysisInsights
+                      checks={checks}
+                      states={states}
+                      target={lastTarget}
+                    />
+                  </details>
                 )}
               </section>
 
@@ -1158,8 +1343,9 @@ export function App() {
                     </div>
                     <div className="section-heading__actions">
                       <span className="section-count">
-                        {successfulChecks.length} com dados · {checks.length}{' '}
-                        módulos
+                        {analysisSummary.success} com dados ·{' '}
+                        {analysisSummary.attention} atenção · {checks.length}{' '}
+                        fontes
                       </span>
                       <button
                         className="button button--secondary export-button"
@@ -1229,35 +1415,68 @@ export function App() {
                       <p>
                         {analysisSummary.attention}{' '}
                         {analysisSummary.attention === 1
-                          ? 'fonte não retornou dados e foi ocultada.'
-                          : 'fontes não retornaram dados e foram ocultadas.'}{' '}
-                        O panorama acima mantém esse detalhe para você revisar.
+                          ? 'fonte precisa de revisão.'
+                          : 'fontes precisam de revisão.'}{' '}
+                        Nada foi ocultado: use os filtros abaixo para priorizar
+                        a leitura.
                       </p>
                     </div>
                   )}
+                  <div
+                    className="results-toolbar"
+                    aria-label="Filtro de resultados"
+                  >
+                    <div className="results-filter-group" role="tablist">
+                      {(['all', 'success', 'attention'] as ResultFilter[]).map(
+                        (filter) => {
+                          const count =
+                            filter === 'all'
+                              ? checks.length
+                              : filter === 'success'
+                                ? analysisSummary.success
+                                : analysisSummary.attention;
+                          return (
+                            <button
+                              aria-selected={resultFilter === filter}
+                              className={
+                                resultFilter === filter
+                                  ? 'results-filter results-filter--active'
+                                  : 'results-filter'
+                              }
+                              key={filter}
+                              onClick={() => setResultFilter(filter)}
+                              role="tab"
+                              type="button"
+                            >
+                              {getResultFilterLabel(filter)}
+                              <span>{count}</span>
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                    {analysisCanceled && (
+                      <span className="results-cancelled" role="status">
+                        Execução interrompida pelo usuário.
+                      </span>
+                    )}
+                  </div>
                   {lastTarget &&
                     analysisSummary.loading === 0 &&
                     analysisSummary.resolved === checks.length &&
                     checks.length > 0 &&
-                    successfulChecks.length === 0 && (
+                    visibleResultChecks.length === 0 && (
                       <div className="empty-state results-filter-empty">
                         <span>00</span>
-                        <h3>Nenhuma fonte retornou dados</h3>
+                        <h3>Nenhum resultado neste filtro</h3>
                         <p>
-                          As respostas desta rodada foram ocultadas porque não
-                          concluíram com sucesso. Revise o panorama de atenção e
-                          tente novamente.
+                          Troque o filtro para Todos para revisar cada resposta
+                          desta rodada.
                         </p>
                       </div>
                     )}
-                  <div className="results-ledger__header" aria-hidden="true">
-                    <span>Fonte / check</span>
-                    <span>Dados observados</span>
-                    <span>Fonte</span>
-                    <span>Status</span>
-                  </div>
                   <div className="results-grid">
-                    {successfulChecks
+                    {visibleResultChecks
                       .filter((check) => check.id !== 'nuclei')
                       .map((check) => (
                         <ResultCard
@@ -1303,6 +1522,57 @@ export function App() {
                   nome ou username.
                 </p>
               </div>
+              <div
+                className="toolbox-toolbar"
+                aria-label="Filtros da caixa de ferramentas"
+              >
+                <label className="toolbox-search">
+                  <span className="sr-only">Buscar ferramenta</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="6.5" />
+                    <path d="m16 16 5 5" />
+                  </svg>
+                  <input
+                    onChange={(event) => setToolSearch(event.target.value)}
+                    placeholder="Buscar por ferramenta ou função"
+                    type="search"
+                    value={toolSearch}
+                  />
+                </label>
+                <div className="tool-category-filters" role="tablist">
+                  <button
+                    aria-selected={toolCategoryFilter === 'all'}
+                    className={
+                      toolCategoryFilter === 'all'
+                        ? 'tool-category-filter tool-category-filter--active'
+                        : 'tool-category-filter'
+                    }
+                    onClick={() => setToolCategoryFilter('all')}
+                    role="tab"
+                    type="button"
+                  >
+                    Todas
+                  </button>
+                  {(Object.keys(toolCategoryMeta) as ToolCategory[]).map(
+                    (category) => (
+                      <button
+                        aria-selected={toolCategoryFilter === category}
+                        className={
+                          toolCategoryFilter === category
+                            ? 'tool-category-filter tool-category-filter--active'
+                            : 'tool-category-filter'
+                        }
+                        key={category}
+                        onClick={() => setToolCategoryFilter(category)}
+                        role="tab"
+                        type="button"
+                      >
+                        {toolCategoryMeta[category].label}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
               <div className="toolbox-layout">
                 <aside
                   className="tool-category-nav"
@@ -1336,7 +1606,7 @@ export function App() {
                         (check) =>
                           (toolCategories[check.id] ?? 'web') === category,
                       );
-                      const categoryPlanned = plannedTools.filter(
+                      const categoryPlanned = visiblePlannedTools.filter(
                         (tool) => tool.category === category,
                       );
                       if (
@@ -1377,7 +1647,7 @@ export function App() {
                                       <span className="eyebrow">
                                         {check.configured
                                           ? 'Disponível'
-                                          : 'Chave pendente'}
+                                          : 'Indisponível · credencial pendente'}
                                       </span>
                                       <h3>{check.label}</h3>
                                     </div>
@@ -1392,6 +1662,7 @@ export function App() {
                                     className="button tool-card__run"
                                     disabled={
                                       !toolTarget.trim() ||
+                                      !check.configured ||
                                       state.status === 'loading'
                                     }
                                     onClick={() => void executeTool(check.id)}
@@ -1399,7 +1670,9 @@ export function App() {
                                   >
                                     {state.status === 'loading'
                                       ? 'Executando…'
-                                      : 'Executar ferramenta'}
+                                      : check.configured
+                                        ? 'Executar ferramenta'
+                                        : 'Indisponível'}
                                   </button>
                                   {state.status !== 'idle' && (
                                     <div className="tool-card__result">

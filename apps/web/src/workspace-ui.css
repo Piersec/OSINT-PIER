@@ -1,6 +1,349 @@
 /* Tailgrids-inspired workspace: shared surfaces, controls and readable data.
    Uses the existing PierSec palette and font families; no vendor runtime required. */
 
+html[data-theme] .auth-shell::before {
+  display: none;
+  content: none;
+}
+
+/* UX pass: stable reading order, visible outcomes and compact investigation controls. */
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-count: initial;
+  column-gap: initial;
+  gap: 20px;
+  align-items: start;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-grid
+  .result-card {
+  margin: 0;
+  break-inside: auto;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-filter-group,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .tool-category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-filter,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .tool-category-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font:
+    600 11px/1 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.04em;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-filter:hover,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .tool-category-filter:hover,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-filter--active,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .tool-category-filter--active {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-filter
+  span {
+  min-width: 18px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-align: center;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-cancelled {
+  color: var(--warning);
+  font-size: 12px;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .target-preflight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .target-preflight
+  label {
+  color: var(--text);
+  font:
+    600 10px/1.2 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .target-preflight
+  select {
+  min-height: 30px;
+  padding: 0 28px 0 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .target-preflight
+  span {
+  color: var(--muted);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-cancel-button {
+  margin-top: 10px;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .toolbox-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 24px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .toolbox-search {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .toolbox-search
+  svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-linecap: round;
+  stroke-width: 1.7;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .toolbox-search
+  input {
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+
+@media (max-width: 1120px) {
+  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-theme] .auth-shell .auth-spotlight {
+    max-width: none;
+    padding: 0 0 18px;
+    border-right: 0;
+    border-bottom: 3px solid var(--accent);
+    border-left: 0;
+  }
+
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+html[data-theme] .auth-shell .auth-spotlight {
+  display: grid;
+  max-width: 520px;
+  gap: 14px;
+  padding-left: 24px;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
+html[data-theme] .auth-shell .auth-spotlight__eyebrow {
+  color: var(--accent);
+  font:
+    600 11px/1.4 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.14em;
+}
+
+html[data-theme] .auth-shell .auth-spotlight h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(28px, 4vw, 56px);
+  letter-spacing: -0.065em;
+  line-height: 1.04;
+}
+
+html[data-theme] .auth-shell .auth-spotlight p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+html[data-theme] .user-avatar__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure {
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  summary::-webkit-details-marker {
+  display: none;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  summary
+  > span:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  summary
+  strong {
+  font-size: 16px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  summary
+  > span:last-child {
+  color: var(--accent);
+  font:
+    600 10px/1.2 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure[open]
+  summary {
+  border-bottom: 1px solid var(--border);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .analysis-insights-disclosure
+  .analysis-insights {
+  margin-top: 0;
+  border: 0;
+  border-radius: 0;
+}
+
 html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .analysis-form {
   width: 100%;
   max-width: none;

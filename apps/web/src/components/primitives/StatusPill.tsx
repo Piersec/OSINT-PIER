@@ -5,9 +5,9 @@ const statusLabels: Record<StatusPillStatus, string> = {
   idle: 'Aguardando',
   loading: 'Carregando',
   success: 'Sucesso',
-  error: 'Atenção',
-  skipped: 'Atenção',
-  'request-error': 'Atenção',
+  error: 'Erro da fonte',
+  skipped: 'Credencial ausente',
+  'request-error': 'Falha de rede',
 };
 
 export function StatusPill({

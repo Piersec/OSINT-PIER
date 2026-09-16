@@ -53,6 +53,9 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   try {
     response = await fetch(`${apiBaseUrl}${path}`, requestInit);
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
     // A stale NEXT_PUBLIC_API_URL should not make a hosted deployment look
     // offline. Retry only transport failures; HTTP errors remain explicit.
     if (!apiBaseUrl || typeof window === 'undefined') throw error;
@@ -125,11 +128,13 @@ export async function runCheck(
   id: string,
   target: string,
   targetKind?: TargetKind,
+  signal?: AbortSignal,
 ): Promise<CheckResult> {
   return CheckResultSchema.parse(
     await request(`/api/checks/${encodeURIComponent(id)}`, {
       method: 'POST',
       body: JSON.stringify({ target, ...(targetKind ? { targetKind } : {}) }),
+      signal,
     }),
   );
 }

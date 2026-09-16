@@ -148,6 +148,14 @@ Cada nova integração deve:
 - [x] Ação explícita de Nova análise para trocar o alvo restaurado sem apagar o histórico
 - [x] Reforçar a densidade visual dos cards, ampliando a tipografia e usando toda a largura
       útil para linhas, tabelas e valores curados
+- [x] Exibir todos os estados terminais da análise (sucesso, erro, credencial ausente e
+      falha de rede), com filtros de leitura e orientação de próximo passo
+- [x] Tornar a execução cancelável e protegida contra respostas atrasadas de uma análise
+      anterior repopularem um relatório novo
+- [x] Confirmar visualmente o tipo de alvo antes da execução, mantendo detecção automática
+      como padrão
+- [x] Organizar a grade de resultados em ordem previsível e adicionar busca/filtros rápidos
+      à caixa de ferramentas
 
 ---
 

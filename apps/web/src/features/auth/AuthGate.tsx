@@ -86,6 +86,17 @@ function LoginForm({
 
   return (
     <main className="auth-shell">
+      <section
+        className="auth-spotlight"
+        aria-label="Sobre a central OSINT Pier"
+      >
+        <span className="auth-spotlight__eyebrow">
+          PIERSEC / OSINT OPERATIONS
+        </span>
+        <h2>Investigation workspace</h2>
+        <p>Mapeie sinais. Valide fontes.</p>
+        <p>Conserve contexto para a próxima decisão.</p>
+      </section>
       <section className="auth-card" aria-labelledby="login-title">
         <div className="auth-brand">
           <img src="/piersec-logo.svg" alt="" />

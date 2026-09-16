@@ -14,3 +14,7 @@ infra/phoneinfoga/.env
 
 .vercel
 .next/
+
+# Local Impeccable critique snapshots and engine cache
+.impeccable/
+.codex/
