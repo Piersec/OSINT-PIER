@@ -297,6 +297,9 @@ produzir `skipped`, sem interromper os outros plugins.
 
 ## Fase 8 — Navegação e identidade do OSINT Pier
 
+- [x] Aplicar padrões visuais inspirados no Tailgrids: navegação, entrada de alvo,
+      atalhos, superfícies e resultados preenchidos, preservando cores e fontes PierSec
+
 - [x] Separar a barra lateral em páginas de Análise, Ferramentas, Histórico e Credenciais
 - [x] Criar caixa de ferramentas para executar plugins individualmente, com descrição e
       filtro de tipo de alvo
@@ -684,3 +687,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
 - `2026-09-11` — GAB-116: os cards de resultado ganharam tipografia mais legível e linhas
   chave/valor que ocupam toda a largura disponível. Tabelas, listas, chips e valores
   aninhados agora têm escala e espaçamento próprios, mantendo a leitura responsiva.
+- `2026-09-16` — Redesign inspirado no Tailgrids com superfícies consistentes,
+  navegação agrupada, atalhos na central e dados ocupando a largura dos cards.
+  Escopo exclusivamente visual; APIs, autenticação e Supabase preservados.
+  Linear dispensado explicitamente pelo usuário para esta entrega.

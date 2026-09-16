@@ -8,7 +8,11 @@ export function AppShell({
   className?: string;
 }) {
   return (
-    <div className={('app-shell app-shell--piersec ' + className).trim()}>
+    <div
+      className={(
+        'app-shell app-shell--piersec app-shell--ui ' + className
+      ).trim()}
+    >
       {children}
     </div>
   );

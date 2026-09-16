@@ -322,7 +322,10 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
   return (
     <div className="result-data">
       {Object.entries(curated).map(([key, value]) => (
-        <section className="result-block" key={key}>
+        <section
+          className={`result-block${isRecord(value) || (Array.isArray(value) && value.length > 0) ? ' result-block--collection' : ''}`}
+          key={key}
+        >
           <h4>{labelForKey(key)}</h4>
           <div className="result-block__value">
             <DataValue depth={0} field={key} value={value} />

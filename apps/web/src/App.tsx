@@ -98,7 +98,7 @@ type SidebarIcon = 'analysis' | 'results' | 'history' | 'credentials';
 
 const sidebarGroups = [
   {
-    label: 'Operations',
+    label: 'Investigação',
     items: [
       ['analysis', 'Análise', 'analysis'],
       ['results', 'Ferramentas', 'results'],
@@ -106,7 +106,7 @@ const sidebarGroups = [
     ] as const,
   },
   {
-    label: 'Compliance',
+    label: 'Administração',
     items: [['credentials', 'Credenciais', 'credentials']] as const,
   },
 ] as const;
@@ -781,8 +781,8 @@ export function App() {
           <span>OSINT Pier</span>
         </a>
         <div className="sidebar__brand-meta">
-          <span>PIERSEC / 01</span>
-          <small>Investigation workspace</small>
+          <span>INTELLIGENCE PLATFORM</span>
+          <small>Seu espaço de investigação</small>
         </div>
         <nav>
           {sidebarGroups.map((group) => (
@@ -803,13 +803,25 @@ export function App() {
             </div>
           ))}
         </nav>
+        <a
+          className="sidebar__settings sidebar__link"
+          href="#settings"
+          onClick={() => navigateAccountTab('settings')}
+          aria-current={page === 'settings' ? 'page' : undefined}
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 7h16M4 17h16" />
+            <circle cx="9" cy="7" r="3" />
+            <circle cx="15" cy="17" r="3" />
+          </svg>
+          <span>Configurações</span>
+        </a>
         <div className="sidebar__status" title="Sessão autenticada">
           <span />
           <div>
-            <small>Workspace online</small>
+            <small>OSINT Pier</small>
             <strong>Sessão autenticada</strong>
           </div>
-          <code>LIVE</code>
         </div>
       </aside>
 
@@ -847,12 +859,12 @@ export function App() {
                   className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
                 >
                   <div className="analysis-card__topline">
-                    <span>CASO / NOVA CONSULTA</span>
-                    <span>COLETA PARALELA</span>
+                    <span>INVESTIGAÇÃO</span>
+                    <span>Consulta em múltiplas fontes</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
-                      <span className="eyebrow">Nova investigação</span>
+                      <span className="eyebrow">Comece por um alvo</span>
                       <h2>O que você quer investigar?</h2>
                     </div>
                     {lastTarget && (
@@ -875,7 +887,12 @@ export function App() {
                   <form className="analysis-form" onSubmit={analyze}>
                     <label htmlFor="target">Alvo da análise</label>
                     <div className="target-control">
-                      <span className="target-prefix">›</span>
+                      <span className="target-prefix" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                          <circle cx="10.5" cy="10.5" r="6.5" />
+                          <path d="m16 16 5 5" />
+                        </svg>
+                      </span>
                       <input
                         id="target"
                         ref={targetInputRef}
@@ -1081,6 +1098,56 @@ export function App() {
                   />
                 )}
               </section>
+
+              {!lastTarget && (
+                <section
+                  className="investigation-start"
+                  aria-label="Recursos de investigação"
+                >
+                  <a href="#results" onClick={() => navigate('results')}>
+                    <span className="investigation-start__icon">
+                      <SidebarNavIcon icon="results" />
+                    </span>
+                    <h3>Ferramentas especializadas</h3>
+                    <p>
+                      Escolha uma fonte e consulte dados de rede, reputação ou
+                      identidade.
+                    </p>
+                    <span className="investigation-start__action">
+                      Explorar ferramentas <span aria-hidden="true">↗</span>
+                    </span>
+                  </a>
+                  <a href="#history" onClick={() => navigate('history')}>
+                    <span className="investigation-start__icon">
+                      <SidebarNavIcon icon="history" />
+                    </span>
+                    <h3>Retome uma investigação</h3>
+                    <p>
+                      Encontre consultas anteriores e use novamente os alvos
+                      analisados.
+                    </p>
+                    <span className="investigation-start__action">
+                      Ver histórico <span aria-hidden="true">↗</span>
+                    </span>
+                  </a>
+                  <a
+                    href="#credentials"
+                    onClick={() => navigate('credentials')}
+                  >
+                    <span className="investigation-start__icon">
+                      <SidebarNavIcon icon="credentials" />
+                    </span>
+                    <h3>Conecte suas fontes</h3>
+                    <p>
+                      Gerencie as integrações e acompanhe a disponibilidade das
+                      ferramentas.
+                    </p>
+                    <span className="investigation-start__action">
+                      Gerenciar integrações <span aria-hidden="true">↗</span>
+                    </span>
+                  </a>
+                </section>
+              )}
 
               {lastTarget && (
                 <section className="results-section" id="results" data-reveal>
