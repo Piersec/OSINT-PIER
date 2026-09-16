@@ -47,9 +47,9 @@ function applyStoredTheme() {
     document.documentElement.dataset.theme =
       window.localStorage.getItem('osint-pier-theme') === 'dark'
         ? 'dark'
-        : 'white';
+        : 'dark';
   } catch {
-    document.documentElement.dataset.theme = 'white';
+    document.documentElement.dataset.theme = 'dark';
   }
 }
 

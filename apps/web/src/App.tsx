@@ -146,6 +146,49 @@ function SidebarNavIcon({ icon }: { icon: SidebarIcon }) {
   );
 }
 
+function InvestigationConstellation() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="investigation-constellation"
+      viewBox="0 0 680 360"
+    >
+      <defs>
+        <radialGradient id="constellation-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="#67e8f9" stopOpacity="0.65" />
+          <stop offset="1" stopColor="#0e7490" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <g className="investigation-constellation__lines">
+        <path d="M92 254 205 146 340 206 485 88 596 158" />
+        <path d="M205 146 246 288 340 206 444 292 596 158" />
+        <path d="M92 254 246 288 444 292" />
+      </g>
+      <g className="investigation-constellation__nodes">
+        <circle cx="92" cy="254" r="5" />
+        <circle cx="205" cy="146" r="7" />
+        <circle cx="246" cy="288" r="4" />
+        <circle cx="340" cy="206" r="9" />
+        <circle cx="444" cy="292" r="5" />
+        <circle cx="485" cy="88" r="6" />
+        <circle cx="596" cy="158" r="8" />
+      </g>
+      <circle
+        className="investigation-constellation__halo"
+        cx="340"
+        cy="206"
+        r="72"
+      />
+      <circle
+        className="investigation-constellation__halo investigation-constellation__halo--wide"
+        cx="596"
+        cy="158"
+        r="50"
+      />
+    </svg>
+  );
+}
+
 type ToolCategory = 'web' | 'threat' | 'personal';
 
 const toolCategoryMeta: Record<
@@ -327,15 +370,15 @@ function readPage(hash: string): Page {
 }
 
 function readTheme(): Theme {
-  if (typeof window === 'undefined') return 'white';
+  if (typeof window === 'undefined') return 'dark';
   try {
     return window.localStorage.getItem('osint-pier-theme') === 'white'
       ? 'white'
       : window.localStorage.getItem('osint-pier-theme') === 'dark'
         ? 'dark'
-        : 'white';
+        : 'dark';
   } catch {
-    return 'white';
+    return 'dark';
   }
 }
 
@@ -421,7 +464,7 @@ export function App() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all');
   const [analysisCanceled, setAnalysisCanceled] = useState(false);
-  const [theme, setTheme] = useState<Theme>('white');
+  const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -1013,14 +1056,27 @@ export function App() {
                 <div
                   className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
                 >
+                  {!lastTarget && <InvestigationConstellation />}
                   <div className="analysis-card__topline">
-                    <span>INVESTIGAÇÃO</span>
-                    <span>Consulta em múltiplas fontes</span>
+                    <span>Inteligência de superfície</span>
+                    <span>Fontes conectadas · sob demanda</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
-                      <span className="eyebrow">Comece por um alvo</span>
-                      <h2>O que você quer investigar?</h2>
+                      <span className="eyebrow">
+                        {lastTarget
+                          ? 'Nova investigação'
+                          : 'Observe o invisível'}
+                      </span>
+                      <h2>
+                        {lastTarget ? (
+                          'O que você quer investigar?'
+                        ) : (
+                          <>
+                            Contexto para cada <em>superfície.</em>
+                          </>
+                        )}
+                      </h2>
                     </div>
                     {lastTarget && (
                       <button
@@ -1034,9 +1090,9 @@ export function App() {
                     )}
                   </div>
                   <p>
-                    Digite um domínio, IP, URL ou identidade. As fontes são
-                    consultadas em paralelo e o relatório é preenchido conforme
-                    cada resposta chega.
+                    {lastTarget
+                      ? 'Digite um domínio, IP, URL ou identidade. As fontes são consultadas em paralelo e o relatório é preenchido conforme cada resposta chega.'
+                      : 'Transforme sinais dispersos em uma visão clara de ativos, exposição e reputação.'}
                   </p>
 
                   <form className="analysis-form" onSubmit={analyze}>
@@ -1068,6 +1124,23 @@ export function App() {
                           : 'Analisar agora'}
                       </button>
                     </div>
+
+                    {!lastTarget && (
+                      <div
+                        className="hero-signal-summary"
+                        aria-label="Capacidades da plataforma"
+                      >
+                        <span>
+                          <b>{checks.length || '—'}</b> fontes disponíveis
+                        </span>
+                        <span>
+                          <b>7</b> tipos de alvo
+                        </span>
+                        <span>
+                          <b>∞</b> contexto sob demanda
+                        </span>
+                      </div>
+                    )}
 
                     <div className="target-preflight" aria-live="polite">
                       <label htmlFor="target-kind">Interpretar como</label>

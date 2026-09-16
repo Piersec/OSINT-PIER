@@ -156,6 +156,8 @@ Cada nova integração deve:
       como padrão
 - [x] Organizar a grade de resultados em ordem previsível e adicionar busca/filtros rápidos
       à caixa de ferramentas
+- [x] Rebranding editorial premium: tipografia Inter, hero com constelação de investigação,
+      bento grid assimétrico, superfícies com profundidade e interações refinadas
 
 ---
 
