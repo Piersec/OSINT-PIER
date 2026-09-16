@@ -528,6 +528,27 @@ export function App() {
           ),
     [compatibleChecks, selectedCheckIds],
   );
+  const reportChecks = useMemo(() => {
+    const reportTarget = lastTarget ?? target;
+    const reportKind = reportTarget
+      ? lastTarget
+        ? lastTargetKind === 'auto'
+          ? inferTargetKind(reportTarget)
+          : lastTargetKind
+        : analysisTargetKind
+      : null;
+    const compatible = getCompatibleChecks(activeChecks, reportKind);
+    return selectedCheckIds === null
+      ? compatible
+      : compatible.filter((check) => selectedCheckIds.includes(check.id));
+  }, [
+    activeChecks,
+    analysisTargetKind,
+    lastTarget,
+    lastTargetKind,
+    selectedCheckIds,
+    target,
+  ]);
   const normalizedToolSearch = toolSearch.trim().toLocaleLowerCase('pt-BR');
   const toolboxChecks = useMemo(
     () =>
@@ -576,7 +597,7 @@ export function App() {
   }, [history, historyQuery.data]);
 
   const analysisSummary = useMemo(() => {
-    const currentStates = checks
+    const currentStates = reportChecks
       .map((check) => states[check.id])
       .filter((state): state is CardState => Boolean(state));
     return {
@@ -594,11 +615,11 @@ export function App() {
       loading: currentStates.filter((state) => state.status === 'loading')
         .length,
     };
-  }, [checks, states]);
+  }, [reportChecks, states]);
 
   const visibleResultChecks = useMemo(
     () =>
-      checks.filter((check) => {
+      reportChecks.filter((check) => {
         const state = states[check.id];
         if (resultFilter === 'success') {
           return state?.status === 'done' && state.result.status === 'success';
@@ -606,12 +627,12 @@ export function App() {
         if (resultFilter === 'attention') return isAttentionState(state);
         return true;
       }),
-    [checks, resultFilter, states],
+    [reportChecks, resultFilter, states],
   );
 
   const topologyItems = useMemo<SignalTopologyItem[]>(
     () =>
-      checks.map((check) => {
+      reportChecks.map((check) => {
         const state = states[check.id];
         if (state?.status === 'loading') {
           return { id: check.id, label: check.label, status: 'loading' };
@@ -624,16 +645,16 @@ export function App() {
         }
         return { id: check.id, label: check.label, status: 'idle' };
       }),
-    [checks, states],
+    [reportChecks, states],
   );
 
   useGsapReveal(animationScopeRef, page);
 
   const canExport = Boolean(
     lastTarget &&
-    checks.length > 0 &&
+    reportChecks.length > 0 &&
     analysisSummary.loading === 0 &&
-    analysisSummary.resolved === checks.length,
+    analysisSummary.resolved === reportChecks.length,
   );
 
   function navigate(nextPage: Page) {
@@ -817,14 +838,14 @@ export function App() {
   function exportAnalysis() {
     if (!lastTarget || !canExport) return;
     downloadAnalysisExport(
-      buildAnalysisExport({ target: lastTarget, checks, states }),
+      buildAnalysisExport({ target: lastTarget, checks: reportChecks, states }),
     );
   }
 
   function exportPdf() {
     if (!lastTarget || !canExport) return;
     printAnalysisExport(
-      buildAnalysisExport({ target: lastTarget, checks, states }),
+      buildAnalysisExport({ target: lastTarget, checks: reportChecks, states }),
     );
   }
 
@@ -1243,7 +1264,7 @@ export function App() {
                   <div className="metrics-grid" aria-label="Resumo da análise">
                     <MetricCard
                       label="Plugins"
-                      value={checks.length}
+                      value={reportChecks.length}
                       detail="Fontes disponíveis"
                     />
                     <MetricCard
@@ -1266,7 +1287,7 @@ export function App() {
                   </div>
                 )}
 
-                {lastTarget && checks.length > 0 && (
+                {lastTarget && reportChecks.length > 0 && (
                   <details className="analysis-insights-disclosure">
                     <summary>
                       <span>
@@ -1276,7 +1297,7 @@ export function App() {
                       <span>Ver leitura detalhada</span>
                     </summary>
                     <AnalysisInsights
-                      checks={checks}
+                      checks={reportChecks}
                       states={states}
                       target={lastTarget}
                     />
@@ -1344,8 +1365,8 @@ export function App() {
                     <div className="section-heading__actions">
                       <span className="section-count">
                         {analysisSummary.success} com dados ·{' '}
-                        {analysisSummary.attention} atenção · {checks.length}{' '}
-                        fontes
+                        {analysisSummary.attention} atenção ·{' '}
+                        {reportChecks.length} fontes
                       </span>
                       <button
                         className="button button--secondary export-button"
@@ -1392,7 +1413,7 @@ export function App() {
                   )}
                   {!checksQuery.isLoading &&
                     !checksQuery.isError &&
-                    checks.length === 0 && (
+                    reportChecks.length === 0 && (
                       <div className="empty-state">
                         <span>00</span>
                         <h3>Nenhum check está habilitado</h3>
@@ -1402,9 +1423,11 @@ export function App() {
                         </p>
                       </div>
                     )}
-                  {checks.some((check) => check.id === 'nuclei') && (
+                  {reportChecks.some((check) => check.id === 'nuclei') && (
                     <VulnerabilitySummary
-                      check={checks.find((check) => check.id === 'nuclei')!}
+                      check={reportChecks.find(
+                        (check) => check.id === 'nuclei',
+                      )!}
                       onRetry={() => retryCheck('nuclei')}
                       state={states.nuclei ?? { status: 'idle' }}
                     />
@@ -1431,7 +1454,7 @@ export function App() {
                         (filter) => {
                           const count =
                             filter === 'all'
-                              ? checks.length
+                              ? reportChecks.length
                               : filter === 'success'
                                 ? analysisSummary.success
                                 : analysisSummary.attention;
@@ -1463,8 +1486,8 @@ export function App() {
                   </div>
                   {lastTarget &&
                     analysisSummary.loading === 0 &&
-                    analysisSummary.resolved === checks.length &&
-                    checks.length > 0 &&
+                    analysisSummary.resolved === reportChecks.length &&
+                    reportChecks.length > 0 &&
                     visibleResultChecks.length === 0 && (
                       <div className="empty-state results-filter-empty">
                         <span>00</span>
