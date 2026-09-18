@@ -319,19 +319,42 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
       </div>
     );
   }
+
+  const entries = Object.entries(curated).filter(
+    ([, value]) => value !== undefined,
+  );
+  const primaryEntries = entries.slice(0, 6);
+  const detailEntries = entries.slice(6);
+
+  function renderEntry([key, value]: [string, unknown]) {
+    return (
+      <section
+        className={`result-block${isRecord(value) || (Array.isArray(value) && value.length > 0) ? ' result-block--collection' : ''}`}
+        key={key}
+      >
+        <h4>{labelForKey(key)}</h4>
+        <div className="result-block__value">
+          <DataValue depth={0} field={key} value={value} />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div className="result-data">
-      {Object.entries(curated).map(([key, value]) => (
-        <section
-          className={`result-block${isRecord(value) || (Array.isArray(value) && value.length > 0) ? ' result-block--collection' : ''}`}
-          key={key}
-        >
-          <h4>{labelForKey(key)}</h4>
-          <div className="result-block__value">
-            <DataValue depth={0} field={key} value={value} />
-          </div>
-        </section>
-      ))}
+      <div className="result-data__primary">
+        {primaryEntries.map(renderEntry)}
+      </div>
+      {detailEntries.length > 0 && (
+        <details className="result-data__details">
+          <summary>
+            Ver {detailEntries.length} detalhe
+            {detailEntries.length === 1 ? '' : 's'} adicional
+            {detailEntries.length === 1 ? '' : 'is'}
+          </summary>
+          <div>{detailEntries.map(renderEntry)}</div>
+        </details>
+      )}
     </div>
   );
 }

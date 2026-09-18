@@ -774,45 +774,83 @@ html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .toolbox-layout {
 }
 
 /* Last layer: deliberately overrides legacy bento heuristics with evidence semantics. */
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card,
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card:nth-child(5n + 1) {
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-grid
+  .result-card,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-grid
+  .result-card:nth-child(5n + 1) {
   grid-column: span 4 !important;
 }
 
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--evidence,
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--inventory {
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-grid
+  .result-card--evidence,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .results-grid
+  .result-card--inventory {
   grid-column: span 6 !important;
 }
 
 html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card,
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card:nth-child(7n + 1) {
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .tool-card:nth-child(7n + 1) {
   grid-column: span 4 !important;
   min-height: 0 !important;
   box-shadow: none !important;
 }
 
 html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card:hover,
-html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .result-card:hover {
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-card:hover {
   box-shadow: none !important;
   transform: none !important;
 }
 
 @media (max-width: 1120px) {
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--evidence,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--inventory,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card--evidence,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card--inventory,
   html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card:nth-child(7n + 1) {
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .tool-card:nth-child(7n + 1) {
     grid-column: span 6 !important;
   }
 }
 
 @media (max-width: 760px) {
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--evidence,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .results-grid .result-card--inventory,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card--evidence,
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .results-grid
+    .result-card--inventory,
   html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card,
-  html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .tool-card:nth-child(7n + 1) {
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .tool-card:nth-child(7n + 1) {
     grid-column: 1 / -1 !important;
   }
 }
@@ -2885,6 +2923,157 @@ html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .empty-state p {
 }
 
 /* Final cascade for the editorial bento experience. */
+/* Control and evidence cleanup: consistent navigation controls and progressive detail. */
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .sidebar__nav-label {
+  display: none !important;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .sidebar__nav-group {
+  gap: 6px;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .filter-toggle,
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .filter-toggle b,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .filter-toggle
+  small,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .filter-toggle__state {
+  color: var(--accent) !important;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .filter-toggle__state
+  svg {
+  stroke: currentColor;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .button--secondary,
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .button--ghost,
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .account-page__tab,
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .avatar-upload {
+  border: 1px solid rgba(77, 221, 244, 0.28) !important;
+  border-radius: 8px !important;
+  background: rgba(77, 221, 244, 0.06) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
+  font-weight: 650;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .button--secondary:hover,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .button--ghost:hover,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .account-page__tab:hover,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .account-page__tab--active,
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .avatar-upload:hover {
+  border-color: var(--accent) !important;
+  background: rgba(77, 221, 244, 0.14) !important;
+  color: var(--accent) !important;
+  transform: none !important;
+}
+
+html[data-theme] .app-shell.app-shell--piersec.app-shell--ui .result-card {
+  overflow: hidden;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-card__header {
+  border-top: 3px solid rgba(77, 221, 244, 0.72);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data__primary {
+  display: grid;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data
+  .result-block {
+  grid-template-columns: minmax(118px, 31%) minmax(0, 1fr);
+  gap: 20px;
+  padding: 15px 0;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data
+  .result-block--collection {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding-block: 16px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data__details {
+  margin: 12px 0 18px;
+  border: 1px solid var(--investigation-line);
+  border-radius: 10px;
+  background: rgba(77, 221, 244, 0.035);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data__details
+  summary {
+  padding: 12px 14px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data__details
+  > div {
+  padding: 0 14px;
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-data__details[open]
+  summary {
+  border-bottom: 1px solid var(--investigation-line);
+}
+
+html[data-theme]
+  .app-shell.app-shell--piersec.app-shell--ui
+  .result-table__row {
+  border-color: var(--investigation-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+@media (max-width: 760px) {
+  html[data-theme]
+    .app-shell.app-shell--piersec.app-shell--ui
+    .result-data
+    .result-block {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
 html[data-theme] .app-shell.app-shell--piersec.app-shell--ui,
 html[data-theme] .app-shell.app-shell--piersec.app-shell--ui *,
 html[data-theme] .auth-shell,

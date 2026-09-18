@@ -1,11 +1,4 @@
-import {
-  type ChangeEvent,
-  type FormEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { User } from '@supabase/supabase-js';
 import {
@@ -260,59 +253,6 @@ function getAvatarUrl(user: User): string | undefined {
     : undefined;
 }
 
-const avatarCanvasSize = 256;
-const maxAvatarFileSize = 10 * 1024 * 1024;
-
-async function prepareAvatarFile(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Escolha um arquivo de imagem.');
-  }
-  if (file.size > maxAvatarFileSize) {
-    throw new Error('A foto precisa ter no máximo 10 MB.');
-  }
-
-  const objectUrl = URL.createObjectURL(file);
-  try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const loadedImage = new Image();
-      loadedImage.onload = () => resolve(loadedImage);
-      loadedImage.onerror = () =>
-        reject(new Error('Não foi possível ler a foto escolhida.'));
-      loadedImage.src = objectUrl;
-    });
-    const canvas = document.createElement('canvas');
-    canvas.width = avatarCanvasSize;
-    canvas.height = avatarCanvasSize;
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('Seu navegador não suporta este upload.');
-
-    const sourceWidth = image.naturalWidth || image.width;
-    const sourceHeight = image.naturalHeight || image.height;
-    const scale = Math.max(
-      avatarCanvasSize / sourceWidth,
-      avatarCanvasSize / sourceHeight,
-    );
-    const drawWidth = sourceWidth * scale;
-    const drawHeight = sourceHeight * scale;
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = 'high';
-    context.drawImage(
-      image,
-      (avatarCanvasSize - drawWidth) / 2,
-      (avatarCanvasSize - drawHeight) / 2,
-      drawWidth,
-      drawHeight,
-    );
-
-    const webp = canvas.toDataURL('image/webp', 0.85);
-    return webp.startsWith('data:image/webp')
-      ? webp
-      : canvas.toDataURL('image/jpeg', 0.85);
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
 function getUserInitials(email?: string | null): string {
   const value = email?.split('@')[0]?.trim() ?? '';
   const words = value.split(/[._-]+/).filter(Boolean);
@@ -433,7 +373,7 @@ function getResultFilterLabel(filter: ResultFilter): string {
 }
 
 export function App() {
-  const { user, signOut, updateAvatar, updateUser } = useAuth();
+  const { user, signOut, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const checksQuery = useQuery({ queryKey: ['checks'], queryFn: listChecks });
   const historyQuery = useQuery({
@@ -466,9 +406,6 @@ export function App() {
   const [analysisCanceled, setAnalysisCanceled] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
   const themeInitialized = useRef(false);
-  const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
-  const [avatarBusy, setAvatarBusy] = useState(false);
-  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const animationScopeRef = useRef<HTMLElement>(null);
   const targetInputRef = useRef<HTMLInputElement>(null);
   const [analysisSessionReady, setAnalysisSessionReady] = useState(false);
@@ -479,12 +416,6 @@ export function App() {
   const analysisAbortRef = useRef<AbortController | null>(null);
 
   const avatarUrl = getAvatarUrl(user);
-  const displayedAvatarUrl =
-    avatarDraft === null ? avatarUrl : avatarDraft || undefined;
-
-  useEffect(() => {
-    setAvatarDraft(null);
-  }, [avatarUrl]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -892,54 +823,6 @@ export function App() {
     );
   }
 
-  async function saveAvatar(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextAvatar = avatarDraft === null ? (avatarUrl ?? '') : avatarDraft;
-    setAvatarBusy(true);
-    setAvatarMessage(null);
-    try {
-      await updateAvatar(nextAvatar);
-      setAvatarDraft(null);
-      setAvatarMessage(
-        nextAvatar.trim()
-          ? 'Foto do perfil atualizada.'
-          : 'Foto removida; as iniciais serão exibidas.',
-      );
-    } catch (error) {
-      setAvatarMessage(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível atualizar a foto do perfil.',
-      );
-    } finally {
-      setAvatarBusy(false);
-    }
-  }
-
-  async function handleAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    setAvatarBusy(true);
-    setAvatarMessage(null);
-    try {
-      setAvatarDraft(await prepareAvatarFile(file));
-      setAvatarMessage(
-        'Arquivo selecionado. Clique em Salvar foto para aplicar.',
-      );
-    } catch (error) {
-      setAvatarMessage(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível preparar a foto escolhida.',
-      );
-    } finally {
-      input.value = '';
-      setAvatarBusy(false);
-    }
-  }
-
   function startNewAnalysis() {
     analysisRunRef.current += 1;
     analysisAbortRef.current?.abort();
@@ -985,7 +868,6 @@ export function App() {
         <nav>
           {sidebarGroups.map((group) => (
             <div className="sidebar__nav-group" key={group.label}>
-              <span className="sidebar__nav-label">{group.label}</span>
               {group.items.map(([itemPage, label, icon]) => (
                 <a
                   className={`sidebar__link ${page === itemPage ? 'sidebar__link--active' : ''}`}
@@ -1967,68 +1849,6 @@ export function App() {
                     Escolha como o OSINT Pier deve aparecer. A opção é aplicada
                     imediatamente e não altera os resultados das análises.
                   </p>
-                  <div className="settings-card settings-card--profile">
-                    <div className="profile-card__identity">
-                      <UserAvatar
-                        avatarUrl={displayedAvatarUrl}
-                        email={user.email}
-                        className="user-avatar--large"
-                      />
-                      <div>
-                        <span className="eyebrow">Identidade visual</span>
-                        <h3>Foto da conta</h3>
-                        <p>
-                          A mesma imagem aparece no cabeçalho e no menu da
-                          conta.
-                        </p>
-                      </div>
-                    </div>
-                    <form className="profile-form" onSubmit={saveAvatar}>
-                      <label htmlFor="profile-avatar-file">
-                        Arquivo da foto do perfil
-                        <input
-                          accept="image/*"
-                          id="profile-avatar-file"
-                          onChange={handleAvatarFileChange}
-                          type="file"
-                        />
-                      </label>
-                      <p className="profile-form__hint">
-                        Escolha uma imagem na sua máquina. Ela será ajustada
-                        para o formato do avatar.
-                      </p>
-                      <div className="profile-form__actions">
-                        <button
-                          className="button"
-                          disabled={avatarBusy || avatarDraft === null}
-                          type="submit"
-                        >
-                          {avatarBusy ? 'Salvando…' : 'Salvar foto'}
-                        </button>
-                        <button
-                          className="button button--ghost"
-                          disabled={
-                            avatarBusy ||
-                            (avatarDraft === null ? !avatarUrl : !avatarDraft)
-                          }
-                          onClick={() => {
-                            setAvatarDraft('');
-                            setAvatarMessage(
-                              'A foto será removida ao salvar as alterações.',
-                            );
-                          }}
-                          type="button"
-                        >
-                          Remover
-                        </button>
-                      </div>
-                      {avatarMessage && (
-                        <p className="inline-notice" role="status">
-                          {avatarMessage}
-                        </p>
-                      )}
-                    </form>
-                  </div>
                   <div className="settings-card">
                     <div>
                       <span className="eyebrow">Tema de cor</span>

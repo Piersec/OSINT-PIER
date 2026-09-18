@@ -160,6 +160,8 @@ Cada nova integração deve:
       bento grid assimétrico, superfícies com profundidade e interações refinadas
 - [x] Refinar a linguagem visual para investigação semântica: fontes locais em vez de favicons
       remotos, cards orientados por tipo de evidência, hierarquia editorial e superfícies reduzidas
+- [x] Simplificar controles e resultados: navegação sem rótulos redundantes, ações consistentes
+      e campos adicionais recolhidos progressivamente nos cards de evidência
 
 ---
 
