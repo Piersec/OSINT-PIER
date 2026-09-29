@@ -130,6 +130,39 @@ const hiddenFields: Record<string, Set<string>> = {
   'ssl-certificate': new Set(['chain']),
 };
 
+const essentialFields: Record<string, string[]> = {
+  'ip-info': ['ip', 'country', 'city', 'organization', 'asn'],
+  'dns-records': ['A', 'AAAA', 'MX', 'NS', 'CNAME'],
+  'whois-rdap': ['domain', 'registrar', 'createdAt', 'expiresAt', 'status'],
+  'ssl-certificate': [
+    'subject',
+    'issuer',
+    'daysRemaining',
+    'authorized',
+    'protocol',
+  ],
+  'http-headers': [
+    'finalUrl',
+    'finalStatus',
+    'securityScore',
+    'security',
+  ],
+  'server-location': ['ip', 'country', 'city', 'organization', 'asn'],
+  'redirect-chain': ['redirectCount', 'finalUrl', 'finalStatus'],
+  'tech-stack': ['finalUrl', 'contentType', 'technologies'],
+  cookies: ['finalUrl', 'count', 'security'],
+  'robots-sitemap': ['robots', 'sitemaps'],
+  'server-status': ['online', 'statusCode', 'responseTimeMs', 'finalUrl'],
+  'virus-total': ['reputation', 'malicious', 'suspicious', 'categories'],
+  shodan: ['ip', 'organization', 'ports', 'vulnerabilities', 'location'],
+  'hunter-io': ['domain', 'organization', 'pattern', 'emails'],
+  nuclei: ['total', 'critical', 'high', 'vulnerabilities'],
+  nmap: ['host', 'ports'],
+  katana: ['urls', 'total'],
+  gobuster: ['paths', 'total'],
+  subfinder: ['subdomains', 'total'],
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -204,10 +237,10 @@ function ScalarValue({ value, field }: { value: unknown; field?: string }) {
 }
 
 function ResultTable({ items }: { items: Array<Record<string, unknown>> }) {
-  const visibleItems = items.slice(0, 12);
+  const visibleItems = items.slice(0, 6);
   const keys = [...new Set(visibleItems.flatMap((item) => Object.keys(item)))]
     .filter((key) => key !== 'sources')
-    .slice(0, 5);
+    .slice(0, 4);
   return (
     <div className="result-table" role="table">
       {visibleItems.map((item, index) => (
@@ -255,7 +288,7 @@ function DataValue({
     }
     return (
       <div className="result-chips">
-        {value.slice(0, 24).map((item, index) => (
+        {value.slice(0, 8).map((item, index) => (
           <span className="result-chip" key={`${String(item)}-${index}`}>
             {typeof item === 'string' && isUrl(item) ? (
               <a href={item} rel="noreferrer" target="_blank">
@@ -266,9 +299,9 @@ function DataValue({
             )}
           </span>
         ))}
-        {value.length > 24 && (
+        {value.length > 8 && (
           <span className="result-chip result-chip--muted">
-            +{value.length - 24}
+            +{value.length - 8}
           </span>
         )}
       </div>
@@ -310,6 +343,26 @@ function curateData(checkId: string, data: unknown): unknown {
   return copy;
 }
 
+function selectEssentialEntries(
+  checkId: string,
+  entries: Array<[string, unknown]>,
+): Array<[string, unknown]> {
+  const selected: Array<[string, unknown]> = [];
+  const available = new Map(entries);
+
+  for (const field of essentialFields[checkId] ?? []) {
+    const value = available.get(field);
+    if (value !== undefined) selected.push([field, value]);
+  }
+
+  for (const entry of entries) {
+    if (selected.length >= 4) break;
+    if (!selected.some(([key]) => key === entry[0])) selected.push(entry);
+  }
+
+  return selected.slice(0, 4);
+}
+
 function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
   const curated = curateData(checkId, data);
   if (!isRecord(curated)) {
@@ -323,8 +376,7 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
   const entries = Object.entries(curated).filter(
     ([, value]) => value !== undefined,
   );
-  const primaryEntries = entries.slice(0, 6);
-  const detailEntries = entries.slice(6);
+  const primaryEntries = selectEssentialEntries(checkId, entries);
 
   function renderEntry([key, value]: [string, unknown]) {
     return (
@@ -345,16 +397,6 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
       <div className="result-data__primary">
         {primaryEntries.map(renderEntry)}
       </div>
-      {detailEntries.length > 0 && (
-        <details className="result-data__details">
-          <summary>
-            Ver {detailEntries.length} detalhe
-            {detailEntries.length === 1 ? '' : 's'} adicional
-            {detailEntries.length === 1 ? '' : 'is'}
-          </summary>
-          <div>{detailEntries.map(renderEntry)}</div>
-        </details>
-      )}
     </div>
   );
 }

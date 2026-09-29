@@ -48,7 +48,6 @@ type Page =
 type AccountTab = 'profile' | 'settings';
 type Theme = 'dark' | 'white';
 type ResultFilter = 'all' | 'success' | 'attention';
-type TargetKindSelection = TargetKind | 'auto';
 
 const pageMeta: Record<
   Page,
@@ -92,16 +91,13 @@ type SidebarIcon = 'analysis' | 'results' | 'history' | 'credentials';
 
 const sidebarGroups = [
   {
-    label: 'Investigação',
+    label: 'Navegação',
     items: [
       ['analysis', 'Análise', 'analysis'],
       ['results', 'Ferramentas', 'results'],
       ['history', 'Histórico', 'history'],
+      ['credentials', 'Credenciais', 'credentials'],
     ] as const,
-  },
-  {
-    label: 'Administração',
-    items: [['credentials', 'Credenciais', 'credentials']] as const,
   },
 ] as const;
 
@@ -387,8 +383,6 @@ export function App() {
   const [page, setPage] = useState<Page>('analysis');
   const [accountTab, setAccountTab] = useState<AccountTab>('profile');
   const [target, setTarget] = useState('');
-  const [targetKindSelection, setTargetKindSelection] =
-    useState<TargetKindSelection>('auto');
   const [lastTarget, setLastTarget] = useState<string | null>(null);
   const [lastTargetKind, setLastTargetKind] = useState<TargetKind | 'auto'>(
     'auto',
@@ -453,7 +447,6 @@ export function App() {
       setTarget(session.target ?? '');
       setLastTarget(session.target);
       setLastTargetKind(session.targetKind);
-      setTargetKindSelection(session.targetKind);
       setSelectedCheckIds(session.selectedCheckIds);
       setStates(session.states);
       setHistory(session.history);
@@ -484,11 +477,7 @@ export function App() {
     [checksQuery.data],
   );
   const inferredTargetKind = target.trim() ? inferTargetKind(target) : null;
-  const analysisTargetKind = target.trim()
-    ? targetKindSelection === 'auto'
-      ? inferredTargetKind
-      : targetKindSelection
-    : null;
+  const analysisTargetKind = target.trim() ? inferredTargetKind : null;
   const compatibleChecks = useMemo(
     () => getCompatibleChecks(activeChecks, analysisTargetKind),
     [activeChecks, analysisTargetKind],
@@ -720,10 +709,7 @@ export function App() {
     event.preventDefault();
     const submittedTarget = target.trim();
     if (!submittedTarget || checks.length === 0) return;
-    const submittedTargetKind =
-      targetKindSelection === 'auto'
-        ? inferTargetKind(submittedTarget)
-        : targetKindSelection;
+    const submittedTargetKind = inferTargetKind(submittedTarget);
 
     analysisAbortRef.current?.abort();
     const controller = new AbortController();
@@ -829,7 +815,6 @@ export function App() {
     analysisAbortRef.current = null;
     clearAnalysisSession();
     setTarget('');
-    setTargetKindSelection('auto');
     setLastTarget(null);
     setLastTargetKind('auto');
     setSelectedCheckIds(null);
@@ -842,7 +827,6 @@ export function App() {
 
   function reuseHistoryEntry(entry: AnalysisHistoryEntry) {
     setTarget(entry.target);
-    setTargetKindSelection(entry.targetKind);
     setSelectedCheckIds(null);
     navigate('analysis');
   }
@@ -1025,34 +1009,11 @@ export function App() {
                     )}
 
                     <div className="target-preflight" aria-live="polite">
-                      <label htmlFor="target-kind">Interpretar como</label>
-                      <select
-                        id="target-kind"
-                        onChange={(event) =>
-                          setTargetKindSelection(
-                            event.target.value as TargetKindSelection,
-                          )
-                        }
-                        value={targetKindSelection}
-                      >
-                        <option value="auto">
-                          Detecção automática
-                          {inferredTargetKind
-                            ? ` · ${formatTargetKind(inferredTargetKind)}`
-                            : ''}
-                        </option>
-                        <option value="domain">Domínio</option>
-                        <option value="ip">IP</option>
-                        <option value="url">URL</option>
-                        <option value="name">Nome</option>
-                        <option value="username">Username</option>
-                        <option value="email">E-mail</option>
-                        <option value="phone">Telefone</option>
-                      </select>
+                      <strong>Detecção automática</strong>
                       <span>
                         {target.trim()
                           ? `${formatTargetKind(analysisTargetKind ?? 'domain')} · ${checks.length} fonte${checks.length === 1 ? '' : 's'} compatível${checks.length === 1 ? '' : 'is'}`
-                          : 'A detecção automática será confirmada antes da execução.'}
+                          : 'O tipo do alvo será identificado ao iniciar a análise.'}
                       </span>
                     </div>
 

@@ -705,3 +705,9 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   navegação agrupada, atalhos na central e dados ocupando a largura dos cards.
   Escopo exclusivamente visual; APIs, autenticação e Supabase preservados.
   Linear dispensado explicitamente pelo usuário para esta entrega.
+- `2026-09-29` — Refinamento visual alinhado ao brand kit PierSec: controles de
+  acesso usam a paleta oficial ciano/azul, a central aproveita toda a largura
+  disponível, a navegação lateral foi regularizada e a tela de Fontes deixou
+  de usar o painel azul. A análise agora mantém somente detecção automática e
+  os cards exibem até quatro sinais prioritários. A documentação foi atualizada
+  e recebeu uma leitura editorial mais direta para desktop e mobile.

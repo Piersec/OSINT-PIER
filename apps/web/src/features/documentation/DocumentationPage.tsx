@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
-const documentationUpdatedAt = '25 de agosto de 2026';
+const documentationUpdatedAt = '29 de setembro de 2026';
 const documentationVersion = '1.6';
 
 const targetLabels: Record<TargetKind, string> = {
@@ -159,9 +159,7 @@ function DocumentationIcon({ name }: { name: string }) {
 }
 
 function DocumentationSection({
-  eyebrow,
   id,
-  number,
   title,
   intro,
   children,
@@ -176,9 +174,7 @@ function DocumentationSection({
   return (
     <section className="documentation-section" id={id}>
       <div className="documentation-section__heading">
-        <span className="documentation-section__number">{number}</span>
         <div>
-          <span className="documentation-section__eyebrow">{eyebrow}</span>
           <h2>{title}</h2>
           {intro && <p>{intro}</p>}
         </div>
@@ -617,17 +613,17 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                       <ol className="documentation-steps">
                         <DocumentationStep number="01" title="Informe o alvo">
                           Use um domínio, IP, URL, nome, username, e-mail ou
-                          telefone. O tipo é identificado automaticamente e pode
-                          ser revisado no formulário.
+                          telefone. O tipo é identificado automaticamente antes
+                          da consulta; não há seleção manual para evitar fontes
+                          incompatíveis.
                         </DocumentationStep>
                         <DocumentationStep
                           number="02"
-                          title="Acompanhe o mapa de sinais"
+                          title="Confirme a leitura automática"
                         >
-                          Ao iniciar a consulta, a entrada mostra uma cena 3D
-                          leve com o alvo e o estado da coleta. Ela acompanha a
-                          execução paralela sem substituir os dados do
-                          relatório.
+                          A interface informa o tipo reconhecido e quantas
+                          fontes são compatíveis. A plataforma filtra o que não
+                          se aplica ao alvo antes de iniciar a execução.
                         </DocumentationStep>
                         <DocumentationStep
                           number="03"
@@ -653,8 +649,10 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                         >
                           A grade exibe apenas os checks que retornaram com
                           sucesso; erros e integrações puladas ficam fora dos
-                          cards de resultado. O panorama é reservado para sinais
-                          de segurança, vulnerabilidades e criticidade.
+                          cards de resultado. Cada card prioriza poucos dados
+                          acionáveis, em vez de respostas técnicas extensas. O
+                          panorama é reservado para sinais de segurança,
+                          vulnerabilidades e criticidade.
                         </DocumentationStep>
                         <DocumentationStep
                           number="06"
@@ -679,16 +677,6 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           Quando uma rodada restaurada estiver aberta, clique em
                           Nova análise. O relatório ativo é limpo, o histórico
                           permanece intacto e o foco volta para o campo de alvo.
-                        </DocumentationStep>
-                        <DocumentationStep
-                          number="09"
-                          title="Acompanhe a execução em tela cheia"
-                        >
-                          A tela inicial já abre a cena 3D em todo o viewport,
-                          com o campo de alvo sobreposto. Enquanto os checks
-                          respondem, a mesma experiência destaca que a coleta
-                          está ativa. Ao finalizar, o overlay desaparece e o
-                          relatório completo fica disponível automaticamente.
                         </DocumentationStep>
                       </ol>
                       <div className="documentation-status-grid">
