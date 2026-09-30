@@ -28,6 +28,22 @@ Workers VPC está em beta. `workers.dev` não é recomendado pela Cloudflare par
 serviços business-critical; esta opção é a alternativa sem domínio próprio e
 deve ser reavaliada quando houver um domínio Cloudflare disponível.
 
+## Estado atual — 2026-09-30
+
+- Túnel `osint-pier-workers-vpc` criado e conectado em uma stack separada; o
+  túnel existente `Server Umbrel` não foi alterado.
+- Serviços VPC registrados nesse túnel: `command-tools`
+  (`01a0f2c6-a169-7552-95f3-059ec687f89d`), `phoneinfoga`
+  (`01a0f2c7-41f4-7582-8b91-fa7bf195c807`) e `ghunt`
+  (`01a0f2c7-dffb-7201-b358-882b541dafd9`).
+- O Worker `osint-pier-api-bridge` está protegido por uma política Worker-level
+  Service Auth, limitada ao token `osint-pier-api-bridge-vercel`, para produção
+  e prévias. O token expira após um ano; seu segredo não deve ser registrado
+  neste repositório.
+- Os três bindings VPC já estão configurados no ambiente de produção e nas
+  prévias. Falta configurar as URLs e credenciais de Access no projeto Vercel,
+  mediante autorização específica para transmitir o segredo ao destino.
+
 ## Provisionamento
 
 1. Na conta Cloudflare **Rhuan Marcos**, crie um túnel novo pela área Workers
@@ -37,27 +53,21 @@ deve ser reavaliada quando houver um domínio Cloudflare disponível.
    `infra/cloudflare-vpc`. As três stacks de API existentes já estão em execução:
    não as recrie nem as atualize nesta etapa. Confira nos logs que o novo
    conector está conectado e usando QUIC.
-3. Implante primeiro um Worker bootstrap sem `vpc_services`, usando
-   `wrangler.bootstrap.jsonc.template` como `wrangler.jsonc`. As rotas permitidas
-   responderão `503` por falta de bindings; nenhum gateway privado estará
-   conectado ainda.
-4. Crie uma aplicação Cloudflare Access para o hostname exato do Worker
-   `workers.dev`, com política **Service Auth** e um service token dedicado.
-   Não proteja todos os Workers da conta nem altere regras globais. Faça isso
-   antes de anexar os serviços VPC ao Worker.
-5. Crie três serviços VPC HTTP associados somente ao túnel novo:
+3. (Concluído) O Worker `osint-pier-api-bridge` foi implantado em `workers.dev`.
+4. (Concluído) A proteção foi aplicada somente ao Worker, com política
+   **Service Auth** usando o token dedicado acima, antes de anexar bindings.
+   Nenhuma política global ou do túnel antigo foi modificada.
+5. (Concluído) Três serviços VPC HTTP foram associados somente ao túnel novo:
    - `127.0.0.1:18080`, serviço `command-tools`;
    - `127.0.0.1:18082`, serviço `phoneinfoga`;
    - `127.0.0.1:18083`, serviço `ghunt`.
-6. Copie os IDs retornados para `wrangler.jsonc`, substituindo os três
-   marcadores de `wrangler.jsonc.template`; nunca coloque o token do túnel no
-   arquivo. Implante novamente `src/index.js`. O Access já estará ativo antes
-   de os bindings privados existirem.
+6. (Concluído) Os IDs dos serviços estão em `wrangler.jsonc.template` e os
+   bindings foram adicionados ao Worker. O token do túnel não está no arquivo.
 7. Configure no ambiente **Production** do projeto Vercel:
    - `CLOUDFLARE_ACCESS_CLIENT_ID` e `CLOUDFLARE_ACCESS_CLIENT_SECRET`;
-   - `COMMAND_TOOLS_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/command-tools`;
-   - `PHONEINFOGA_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/phoneinfoga`;
-   - `GHUNT_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/ghunt`.
+   - `COMMAND_TOOLS_API_URL=https://osint-pier-api-bridge.rhuanoliveira2004.workers.dev/command-tools`;
+   - `PHONEINFOGA_API_URL=https://osint-pier-api-bridge.rhuanoliveira2004.workers.dev/phoneinfoga`;
+   - `GHUNT_API_URL=https://osint-pier-api-bridge.rhuanoliveira2004.workers.dev/ghunt`.
 8. Faça novo deploy do Vercel. Os bearer tokens próprios dos gateways continuam
    no cofre criptografado existente e são enviados separadamente; o segredo do
    Cloudflare Access fica somente no ambiente server-side do Vercel.

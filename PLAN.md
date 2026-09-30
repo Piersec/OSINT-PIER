@@ -711,3 +711,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   de usar o painel azul. A análise agora mantém somente detecção automática e
   os cards exibem até quatro sinais prioritários. A documentação foi atualizada
   e recebeu uma leitura editorial mais direta para desktop e mobile.
+- `2026-09-30` — Provisionado o bridge Cloudflare Workers VPC em túnel separado,
+  com três serviços e bindings privados. O Worker tem política Service Auth
+  restrita ao token dedicado, em produção e prévias; o túnel global existente
+  não foi alterado. Configuração do segredo no Vercel permanece pendente de
+  autorização específica do usuário.
