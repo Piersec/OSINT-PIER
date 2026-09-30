@@ -1,5 +1,6 @@
 import type { CheckPlugin } from '../../core/checks/contract.js';
 import { failure, success } from '../../core/checks/results.js';
+import { cloudflareAccessServiceHeaders } from '../../core/network/cloudflare-access.js';
 
 const id = 'phoneinfoga';
 const source = 'PhoneInfoga REST API';
@@ -65,10 +66,14 @@ function endpoint(baseUrl: URL, path: string): URL {
   return new URL(path.replace(/^\//, ''), base);
 }
 
-function requestHeaders(token: string): HeadersInit {
+function requestHeaders(
+  token: string,
+  environment: Readonly<Record<string, string | undefined>> | undefined,
+): HeadersInit {
   return {
     accept: 'application/json',
     'content-type': 'application/json',
+    ...cloudflareAccessServiceHeaders(environment),
     authorization: `Bearer ${token}`,
   };
 }
@@ -78,10 +83,11 @@ async function postJson(
   body: unknown,
   token: string,
   signal: AbortSignal,
+  environment: Readonly<Record<string, string | undefined>> | undefined,
 ): Promise<{ response: Response; payload: ScannerResponse | PhoneNumber }> {
   const response = await fetch(url, {
     method: 'POST',
-    headers: requestHeaders(token),
+    headers: requestHeaders(token, environment),
     body: JSON.stringify(body),
     signal,
   });
@@ -205,6 +211,7 @@ async function runScanner(
   baseUrl: URL,
   token: string,
   signal: AbortSignal,
+  environment: Readonly<Record<string, string | undefined>> | undefined,
 ): Promise<ScannerOutcome> {
   try {
     const { response, payload } = await postJson(
@@ -212,6 +219,7 @@ async function runScanner(
       { number, options },
       token,
       signal,
+      environment,
     );
     if (!response.ok) {
       return { status: 'error', error: scannerError(response.status) };
@@ -263,6 +271,7 @@ const check: CheckPlugin = {
         { number: target.value },
         token,
         context.signal,
+        context.environment,
       );
       if (!response.ok)
         return failure(id, source, scannerError(response.status));
@@ -319,6 +328,7 @@ const check: CheckPlugin = {
                 baseUrl,
                 token,
                 context.signal,
+                context.environment,
               ),
             ] as const,
         ),

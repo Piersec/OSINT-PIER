@@ -1,0 +1,18 @@
+services:
+  cloudflared-workers-vpc:
+    image: cloudflare/cloudflared:2026.8.3
+    restart: unless-stopped
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --protocol
+      - quic
+      - run
+      - --token
+      - ${CLOUDFLARE_VPC_TUNNEL_TOKEN:?Configure CLOUDFLARE_VPC_TUNNEL_TOKEN in Portainer}
+    network_mode: host
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

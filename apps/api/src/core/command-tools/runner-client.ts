@@ -1,5 +1,6 @@
 import type { CheckContext } from '../checks/contract.js';
 import type { NormalizedTarget } from '../target/normalize-target.js';
+import { cloudflareAccessServiceHeaders } from '../network/cloudflare-access.js';
 
 export type CommandTool = 'nmap' | 'katana' | 'gobuster' | 'subfinder';
 
@@ -43,11 +44,13 @@ function responseError(status: number): string {
   if (status === 400) return 'O runner rejeitou o alvo ou perfil informado.';
   if (status === 401 || status === 403)
     return 'O token interno do runner foi rejeitado ou a ferramenta está desabilitada.';
-  if (status === 404) return 'A rota de command tools não está disponível no runner.';
+  if (status === 404)
+    return 'A rota de command tools não está disponível no runner.';
   if (status === 429)
     return 'O runner está ocupado. Tente novamente em instantes.';
   if (status === 504) return 'A ferramenta excedeu o limite de execução.';
-  if (status >= 500) return 'O runner de command tools está temporariamente indisponível.';
+  if (status >= 500)
+    return 'O runner de command tools está temporariamente indisponível.';
   return `O runner respondeu com HTTP ${status}.`;
 }
 
@@ -78,6 +81,7 @@ export async function callCommandTool(
       headers: {
         accept: 'application/json',
         'content-type': 'application/json',
+        ...cloudflareAccessServiceHeaders(context.environment),
         authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
@@ -89,7 +93,8 @@ export async function callCommandTool(
     });
     const payload: unknown = await response.json().catch(() => ({}));
 
-    if (!response.ok) return { status: 'error', error: responseError(response.status) };
+    if (!response.ok)
+      return { status: 'error', error: responseError(response.status) };
     if (!isRecord(payload) || payload.tool !== tool) {
       return {
         status: 'error',

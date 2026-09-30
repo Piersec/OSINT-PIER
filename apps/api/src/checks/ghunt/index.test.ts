@@ -9,7 +9,11 @@ const target: NormalizedTarget = {
   kind: 'email',
 };
 
-const environment = { GHUNT_API_URL: 'https://ghunt.internal' };
+const environment = {
+  GHUNT_API_URL: 'https://ghunt.internal',
+  CLOUDFLARE_ACCESS_CLIENT_ID: 'access-client-id',
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: 'access-client-secret',
+};
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -82,6 +86,12 @@ describe('plugin GHunt', () => {
     expect(JSON.parse(String(init.body))).toEqual({ email: target.value });
     expect(new Headers(init.headers).get('authorization')).toBe(
       'Bearer gateway-token',
+    );
+    expect(new Headers(init.headers).get('CF-Access-Client-Id')).toBe(
+      'access-client-id',
+    );
+    expect(new Headers(init.headers).get('CF-Access-Client-Secret')).toBe(
+      'access-client-secret',
     );
   });
 

@@ -23,7 +23,11 @@ const ipTarget: NormalizedTarget = {
   hostname: '8.8.8.8',
   kind: 'ip',
 };
-const environment = { COMMAND_TOOLS_API_URL: 'https://tools.internal' };
+const environment = {
+  COMMAND_TOOLS_API_URL: 'https://tools.internal',
+  CLOUDFLARE_ACCESS_CLIENT_ID: 'access-client-id',
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: 'access-client-secret',
+};
 const context = {
   signal: new AbortController().signal,
   credentials: { COMMAND_TOOLS_API_TOKEN: 'runner-secret' },
@@ -70,6 +74,12 @@ describe('plugins de command tools', () => {
     const [, request] = fetchMock.mock.calls[0] as [URL, RequestInit];
     expect(String(request.body)).toContain('"tool":"nmap"');
     expect(String(request.body)).toContain('"target":"8.8.8.8"');
+    expect(new Headers(request.headers).get('CF-Access-Client-Id')).toBe(
+      'access-client-id',
+    );
+    expect(new Headers(request.headers).get('CF-Access-Client-Secret')).toBe(
+      'access-client-secret',
+    );
     expect(result.data).toMatchObject({
       totalOpenPorts: 1,
       hosts: [{ ports: [{ port: 443, service: 'https' }] }],

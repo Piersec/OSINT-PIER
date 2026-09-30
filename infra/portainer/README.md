@@ -38,28 +38,29 @@ Repository reference: refs/heads/master
 Informe um diretório local diferente e gravável para cada stack. O caminho do
 compose e as variáveis principais são:
 
-| Stack | Compose path | Porta do gateway | Variáveis obrigatórias |
-| --- | --- | ---: | --- |
-| `osint-command-tools` | `infra/command-tools/docker-compose.yml` | `8080` | `COMMAND_TOOLS_API_TOKEN` |
-| `osint-phoneinfoga` | `infra/phoneinfoga/docker-compose.yml` | `8082` | `PHONEINFOGA_API_TOKEN` |
-| `osint-ghunt` | `infra/ghunt/docker-compose.yml` | `8083` | `GHUNT_API_TOKEN` |
+| Stack                    | Compose path                              | Porta do gateway | Variáveis obrigatórias        |
+| ------------------------ | ----------------------------------------- | ---------------: | ----------------------------- |
+| `osint-command-tools`    | `infra/command-tools/docker-compose.yml`  |          `18080` | `COMMAND_TOOLS_API_TOKEN`     |
+| `osint-phoneinfoga`      | `infra/phoneinfoga/docker-compose.yml`    |          `18082` | `PHONEINFOGA_API_TOKEN`       |
+| `osint-ghunt`            | `infra/ghunt/docker-compose.yml`          |          `18083` | `GHUNT_API_TOKEN`             |
+| `osint-pier-workers-vpc` | `infra/cloudflare-vpc/docker-compose.yml` |                — | `CLOUDFLARE_VPC_TUNNEL_TOKEN` |
 
 Para evitar conflito entre elas, informe também estas variáveis no formulário
 de cada stack:
 
 ```text
-COMMAND_TOOLS_GATEWAY_PORT=8080
+COMMAND_TOOLS_GATEWAY_PORT=18080
 COMMAND_TOOLS_GATEWAY_BIND_ADDRESS=127.0.0.1
 COMMAND_TOOLS_ENABLE_GOBUSTER=false
 ```
 
 ```text
-PHONEINFOGA_GATEWAY_PORT=8082
+PHONEINFOGA_GATEWAY_PORT=18082
 PHONEINFOGA_GATEWAY_BIND_ADDRESS=127.0.0.1
 ```
 
 ```text
-GHUNT_GATEWAY_PORT=8083
+GHUNT_GATEWAY_PORT=18083
 GHUNT_GATEWAY_BIND_ADDRESS=127.0.0.1
 GHUNT_TIMEOUT_SECONDS=105
 ```
@@ -72,26 +73,35 @@ podem ser adicionadas somente no ambiente da stack quando forem necessárias.
 Publique as stacks nesta ordem: Command Tools, PhoneInfoga e GHunt. Os runners
 ficam sem porta pública; somente os gateways recebem portas no host.
 
-## 3. Ativar no OSINT Pier
+## 3. Publicar acesso HTTPS sem domínio próprio
 
-Depois que cada stack estiver saudável, cadastre no cofre do OSINT Pier:
+Para o cenário sem domínio, use um túnel **Workers VPC separado** e um Worker
+em `workers.dev`; o procedimento detalhado está em
+[`infra/cloudflare-vpc/README.md`](../cloudflare-vpc/README.md). Não reutilize
+nem edite o túnel Cloudflare `Server Umbrel`.
+
+Se as três stacks de API já estiverem instaladas, não as recrie nem atualize.
+Neste Umbrel, os gateways ativos usam as portas `18080`, `18082` e `18083`,
+vinculadas a `127.0.0.1`. Adicione somente `osint-pier-workers-vpc`, após criar
+um túnel novo na área Workers VPC. Guarde o token apenas na variável de ambiente
+da nova stack Portainer. A stack usa `network_mode: host` para alcançar o loopback;
+ela não publica portas de entrada, mas o conector tem alcance de rede do host.
+
+Quando o Worker, os três serviços VPC e a política Cloudflare Access **Service
+Auth** estiverem ativos, configure no ambiente **Production** do Vercel:
 
 ```text
-COMMAND_TOOLS_API_URL=https://tools.seu-dominio-interno
-COMMAND_TOOLS_API_TOKEN=<mesmo token da stack>
-
-PHONEINFOGA_API_URL=https://phoneinfoga.seu-dominio-interno
-PHONEINFOGA_API_TOKEN=<mesmo token da stack>
-
-GHUNT_API_URL=https://ghunt.seu-dominio-interno
-GHUNT_API_TOKEN=<mesmo token da stack>
+COMMAND_TOOLS_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/command-tools
+PHONEINFOGA_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/phoneinfoga
+GHUNT_API_URL=https://osint-pier-api-bridge.<subdominio>.workers.dev/ghunt
+CLOUDFLARE_ACCESS_CLIENT_ID=<ID do Service Token>
+CLOUDFLARE_ACCESS_CLIENT_SECRET=<secret do Service Token>
 ```
 
-As URLs devem apontar para um proxy HTTPS ou túnel autenticado que encaminhe
-para `127.0.0.1:8080`, `127.0.0.1:8082` e `127.0.0.1:8083`. Uma URL `192.168.x.x`
-funciona apenas dentro da rede local; o backend hospedado na Vercel não consegue
-acessar diretamente esse endereço privado. Se o OSINT Pier continuar na Vercel,
-use um endpoint HTTPS privado publicado com firewall, autenticação e rate limit.
+Os bearer tokens próprios dos gateways continuam no cofre criptografado do
+OSINT Pier e não devem ser copiados para as variáveis do Vercel. As variáveis
+Cloudflare são server-side, nunca `NEXT_PUBLIC_`. Endereços `192.168.x.x` ou
+Tailscale não são diretamente acessíveis pelo backend hospedado na Vercel.
 
 Para o GHunt, inicialize a sessão apenas no host Docker com a conta autorizada
 da investigação. Nunca cole cookies, tokens ou senhas no Portainer ou no cofre

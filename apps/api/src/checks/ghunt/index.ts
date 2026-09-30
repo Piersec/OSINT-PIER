@@ -1,5 +1,6 @@
 import type { CheckPlugin } from '../../core/checks/contract.js';
 import { failure, success } from '../../core/checks/results.js';
+import { cloudflareAccessServiceHeaders } from '../../core/network/cloudflare-access.js';
 
 const id = 'ghunt';
 const source = 'GHunt runner';
@@ -64,7 +65,10 @@ function responseError(status: number): string {
   return `O runner GHunt respondeu com HTTP ${status}.`;
 }
 
-function compactPayload(payload: unknown, email: string): Record<string, unknown> {
+function compactPayload(
+  payload: unknown,
+  email: string,
+): Record<string, unknown> {
   const value = isRecord(payload) ? (payload as RunnerPayload) : {};
   const profile = isRecord(value.profile) ? value.profile : {};
   const signals = isRecord(value.signals) ? value.signals : {};
@@ -109,7 +113,8 @@ const check: CheckPlugin = {
       };
     }
 
-    if (!token) return failure(id, source, 'Token interno do GHunt não configurado.');
+    if (!token)
+      return failure(id, source, 'Token interno do GHunt não configurado.');
 
     try {
       const response = await fetch(endpoint(baseUrl, '/api/v2/email'), {
@@ -117,6 +122,7 @@ const check: CheckPlugin = {
         headers: {
           accept: 'application/json',
           'content-type': 'application/json',
+          ...cloudflareAccessServiceHeaders(context.environment),
           authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email: target.value }),
@@ -124,7 +130,8 @@ const check: CheckPlugin = {
       });
       const payload = await response.json().catch(() => ({}));
 
-      if (!response.ok) return failure(id, source, responseError(response.status));
+      if (!response.ok)
+        return failure(id, source, responseError(response.status));
 
       return success(id, source, compactPayload(payload, target.value));
     } catch {

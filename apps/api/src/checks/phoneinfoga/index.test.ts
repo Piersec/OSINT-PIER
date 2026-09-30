@@ -11,6 +11,8 @@ const target: NormalizedTarget = {
 
 const environment = {
   PHONEINFOGA_API_URL: 'https://phoneinfoga.internal',
+  CLOUDFLARE_ACCESS_CLIENT_ID: 'access-client-id',
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: 'access-client-secret',
 };
 
 afterEach(() => {
@@ -118,6 +120,12 @@ describe('plugin PhoneInfoga', () => {
     for (const [, init] of fetchMock.mock.calls) {
       expect(new Headers(init?.headers).get('authorization')).toBe(
         'Bearer gateway-token',
+      );
+      expect(new Headers(init?.headers).get('CF-Access-Client-Id')).toBe(
+        'access-client-id',
+      );
+      expect(new Headers(init?.headers).get('CF-Access-Client-Secret')).toBe(
+        'access-client-secret',
       );
     }
   });
