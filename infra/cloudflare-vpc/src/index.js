@@ -1,4 +1,6 @@
-/* global Headers, Request, Response, URL, console */
+/* global Headers, Request, Response, URL, Uint8Array, console */
+
+const MAX_BODY_BYTES = 32 * 1024;
 
 const routes = [
   {
@@ -54,6 +56,7 @@ function upstreamHeaders(requestHeaders) {
   headers.delete('cf-access-client-id');
   headers.delete('cf-access-client-secret');
   headers.delete('cf-access-token');
+  headers.delete('cf-access-jwt-assertion');
   headers.delete('cookie');
   headers.delete('host');
   headers.delete('content-length');
@@ -76,6 +79,38 @@ function noStore(response) {
     statusText: response.statusText,
     headers,
   });
+}
+
+async function fixedLengthBody(request) {
+  if (!request.body) return null;
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let length = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > MAX_BODY_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  if (length === 0) return null;
+  const body = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
 }
 
 export default {
@@ -103,11 +138,21 @@ export default {
       return jsonError(503, 'Serviço privado não configurado.');
     }
 
+    let body;
+    try {
+      body = await fixedLengthBody(request);
+    } catch {
+      return jsonError(400, 'Corpo JSON inválido.');
+    }
+    if (!body) return jsonError(413, 'Corpo JSON ausente ou muito grande.');
+
     const target = new URL(`http://127.0.0.1:${route.port}${upstreamPath}`);
     const forwarded = new Request(target, {
       method: request.method,
       headers: upstreamHeaders(request.headers),
-      body: request.body,
+      // A fixed-length body makes Workers set Content-Length. The Python
+      // gateways do not support chunked request bodies.
+      body,
       redirect: 'manual',
       signal: request.signal,
     });

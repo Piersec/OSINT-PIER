@@ -31,6 +31,11 @@ test('routes only the command-tools scan to its bound private service', async ()
         'cf-access-client-id': 'access-id',
         'cf-access-client-secret': 'access-secret',
       },
+      body: JSON.stringify({
+        tool: 'subfinder',
+        target: 'piersec.com.br',
+        profile: 'safe',
+      }),
     },
   );
 
@@ -44,6 +49,11 @@ test('routes only the command-tools scan to its bound private service', async ()
   );
   assert.equal(capture.request.headers.get('cf-access-client-id'), null);
   assert.equal(capture.request.headers.get('cf-access-client-secret'), null);
+  assert.deepEqual(await capture.request.json(), {
+    tool: 'subfinder',
+    target: 'piersec.com.br',
+    profile: 'safe',
+  });
   assert.equal(response.headers.get('cache-control'), 'no-store, private');
   assert.deepEqual(await response.json(), { tool: 'nmap' });
 });
@@ -58,7 +68,11 @@ test('routes PhoneInfoga and GHunt only to their fixed loopback ports', async ()
   const phone = await worker.fetch(
     new Request(
       'https://bridge.example.workers.dev/phoneinfoga/api/v2/scanners/local/run',
-      { method: 'POST', headers: { 'content-type': 'application/json' } },
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      },
     ),
     env,
   );
@@ -72,6 +86,7 @@ test('routes PhoneInfoga and GHunt only to their fixed loopback ports', async ()
     new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      body: '{}',
     }),
     env,
   );
@@ -89,6 +104,7 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
     new Request('https://bridge.example.workers.dev/ghunt/api/v2/profile', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      body: '{}',
     }),
     env,
   );
@@ -96,6 +112,7 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
     new Request('https://bridge.example.workers.dev/ghunt/api/v2/email?x=1', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      body: '{}',
     }),
     env,
   );
@@ -116,6 +133,7 @@ test('does not follow redirects and returns a generic error if the binding fails
     new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      body: '{}',
     }),
     {
       GHUNT: bindingWith(
@@ -134,6 +152,7 @@ test('does not follow redirects and returns a generic error if the binding fails
     new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      body: '{}',
     }),
     {
       GHUNT: {
@@ -163,4 +182,30 @@ test('refuses non-JSON payloads and missing VPC bindings', async () => {
 
   assert.equal(contentType.status, 415);
   assert.equal(unconfigured.status, 503);
+});
+
+test('rejects empty and oversized JSON bodies without forwarding them', async () => {
+  const capture = {};
+  const env = {
+    COMMAND_TOOLS: bindingWith(Response.json({ ok: true }), capture),
+  };
+  const url = 'https://bridge.example.workers.dev/command-tools/api/v1/scan';
+  const headers = { 'content-type': 'application/json' };
+
+  const empty = await worker.fetch(
+    new Request(url, { method: 'POST', headers }),
+    env,
+  );
+  const oversized = await worker.fetch(
+    new Request(url, {
+      method: 'POST',
+      headers,
+      body: 'x'.repeat(32 * 1024 + 1),
+    }),
+    env,
+  );
+
+  assert.equal(empty.status, 413);
+  assert.equal(oversized.status, 413);
+  assert.equal(capture.request, undefined);
 });
