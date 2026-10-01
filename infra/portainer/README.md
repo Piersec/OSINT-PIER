@@ -74,7 +74,7 @@ Publique as stacks nesta ordem: Command Tools, PhoneInfoga e GHunt. As APIs dos
 runners ficam sem porta pública; somente as APIs dos gateways são acessíveis
 pelo loopback do host.
 
-Nas stacks Command Tools e PhoneInfoga, gateway e serviço principal são
+Nas stacks Command Tools, PhoneInfoga e GHunt, gateway e serviço principal são
 contêineres separados, mas compartilham o namespace de rede (`network_mode:
 service:<serviço>`). O gateway acessa o serviço por `127.0.0.1`; o mapeamento
 de `8080` fica no serviço principal e continua vinculado a `127.0.0.1` do host.

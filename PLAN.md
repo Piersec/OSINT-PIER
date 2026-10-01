@@ -726,3 +726,6 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   gateway e o serviço oficial compartilham o namespace de rede e a API
   permanece vinculada a `127.0.0.1:18082`. A correção elimina o timeout da
   bridge Docker interna sem expor o serviço à rede local.
+- `2026-10-01` — Aplicada a mesma arquitetura de rede à stack GHunt ativa: o
+  gateway e o runner compartilham o namespace de rede, a API segue em
+  `127.0.0.1:18083` e o volume persistente de sessão foi preservado.
