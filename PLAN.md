@@ -722,3 +722,7 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   rede; a API permanece vinculada a `127.0.0.1:18080`. O gateway recebeu
   `200` do runner em `/healthz`, e a consulta passiva Subfinder no site recebeu
   resposta bem-sucedida para `example.com` em aproximadamente 13 segundos.
+- `2026-10-01` — Aplicada a mesma arquitetura de rede à stack PhoneInfoga: o
+  gateway e o serviço oficial compartilham o namespace de rede e a API
+  permanece vinculada a `127.0.0.1:18082`. A correção elimina o timeout da
+  bridge Docker interna sem expor o serviço à rede local.

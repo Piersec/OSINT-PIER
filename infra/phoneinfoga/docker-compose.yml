@@ -5,6 +5,8 @@ services:
     command: ['serve', '--no-client', '-p', '5000']
     expose:
       - '5000'
+    ports:
+      - '${PHONEINFOGA_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${PHONEINFOGA_GATEWAY_PORT:-8080}:8080'
     environment:
       NUMVERIFY_API_KEY: ${NUMVERIFY_API_KEY-}
       GOOGLECSE_CX: ${GOOGLECSE_CX-}
@@ -21,14 +23,11 @@ services:
     restart: unless-stopped
     environment:
       PHONEINFOGA_API_TOKEN: ${PHONEINFOGA_API_TOKEN:?Configure PHONEINFOGA_API_TOKEN}
-      PHONEINFOGA_UPSTREAM: http://phoneinfoga:5000
+      PHONEINFOGA_UPSTREAM: http://127.0.0.1:5000
       PORT: '8080'
     depends_on:
       - phoneinfoga
-    ports:
-      - '${PHONEINFOGA_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${PHONEINFOGA_GATEWAY_PORT:-8080}:8080'
-    networks:
-      - phoneinfoga
+    network_mode: service:phoneinfoga
     read_only: true
     security_opt:
       - no-new-privileges:true

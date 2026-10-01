@@ -74,11 +74,12 @@ Publique as stacks nesta ordem: Command Tools, PhoneInfoga e GHunt. As APIs dos
 runners ficam sem porta pública; somente as APIs dos gateways são acessíveis
 pelo loopback do host.
 
-Na stack Command Tools, gateway e runner são contêineres separados, mas
-compartilham o namespace de rede (`network_mode: service:runner`). O gateway
-acessa o runner por `127.0.0.1:8081`; o mapeamento de `8080` fica no serviço
-runner e continua vinculado a `127.0.0.1` do host. Isso evita depender de
-conectividade entre contêineres na bridge do Umbrel, sem expor a API na LAN.
+Nas stacks Command Tools e PhoneInfoga, gateway e serviço principal são
+contêineres separados, mas compartilham o namespace de rede (`network_mode:
+service:<serviço>`). O gateway acessa o serviço por `127.0.0.1`; o mapeamento
+de `8080` fica no serviço principal e continua vinculado a `127.0.0.1` do host.
+Isso evita depender de conectividade entre contêineres na bridge do Umbrel, sem
+expor a API na LAN.
 
 ## 3. Publicar acesso HTTPS sem domínio próprio
 
