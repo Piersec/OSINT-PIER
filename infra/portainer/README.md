@@ -70,8 +70,15 @@ caracteres. Não coloque esses valores no Git. As chaves opcionais do
 PhoneInfoga (`NUMVERIFY_API_KEY`, `GOOGLECSE_CX` e `GOOGLE_API_KEY`) também
 podem ser adicionadas somente no ambiente da stack quando forem necessárias.
 
-Publique as stacks nesta ordem: Command Tools, PhoneInfoga e GHunt. Os runners
-ficam sem porta pública; somente os gateways recebem portas no host.
+Publique as stacks nesta ordem: Command Tools, PhoneInfoga e GHunt. As APIs dos
+runners ficam sem porta pública; somente as APIs dos gateways são acessíveis
+pelo loopback do host.
+
+Na stack Command Tools, gateway e runner são contêineres separados, mas
+compartilham o namespace de rede (`network_mode: service:runner`). O gateway
+acessa o runner por `127.0.0.1:8081`; o mapeamento de `8080` fica no serviço
+runner e continua vinculado a `127.0.0.1` do host. Isso evita depender de
+conectividade entre contêineres na bridge do Umbrel, sem expor a API na LAN.
 
 ## 3. Publicar acesso HTTPS sem domínio próprio
 

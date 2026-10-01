@@ -299,7 +299,8 @@ produzir `skipped`, sem interromper os outros plugins.
 ### Command tools
 
 - Implementação registrada em [`docs/command-tools-integration.md`](docs/command-tools-integration.md)
-- Serviço: `infra/command-tools/docker-compose.yml`, com gateway HTTPS separado do runner
+- Serviço: `infra/command-tools/docker-compose.yml`, com gateway autenticado em
+  contêiner separado do runner e namespace de rede compartilhado no Docker
 - Credencial: `COMMAND_TOOLS_API_TOKEN`, armazenada no cofre; URL operacional em
   `COMMAND_TOOLS_API_URL`
 - Endpoint: `POST /api/v1/scan`, aceitando somente `tool`, `target` e `profile: safe`
@@ -716,3 +717,8 @@ Use esta seção para anotar brevemente o que foi feito em cada sessão de traba
   restrita ao token dedicado, em produção e prévias; o túnel global existente
   não foi alterado. Configuração do segredo no Vercel permanece pendente de
   autorização específica do usuário.
+- `2026-10-01` — Corrigida a comunicação entre gateway e runner da stack
+  Command Tools no Portainer. Os dois contêineres compartilham o namespace de
+  rede; a API permanece vinculada a `127.0.0.1:18080`. O gateway recebeu
+  `200` do runner em `/healthz`, e a consulta passiva Subfinder no site recebeu
+  resposta bem-sucedida para `example.com` em aproximadamente 13 segundos.

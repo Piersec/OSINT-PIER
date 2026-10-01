@@ -9,6 +9,8 @@ services:
       COMMAND_TOOLS_ENABLE_GOBUSTER: ${COMMAND_TOOLS_ENABLE_GOBUSTER:-false}
     expose:
       - '8081'
+    ports:
+      - '${COMMAND_TOOLS_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${COMMAND_TOOLS_GATEWAY_PORT:-8080}:8080'
     networks:
       - command-tools
     read_only: true
@@ -25,14 +27,11 @@ services:
     restart: unless-stopped
     environment:
       COMMAND_TOOLS_API_TOKEN: ${COMMAND_TOOLS_API_TOKEN:?Configure COMMAND_TOOLS_API_TOKEN}
-      COMMAND_TOOLS_UPSTREAM: http://runner:8081
+      COMMAND_TOOLS_UPSTREAM: http://127.0.0.1:8081
       PORT: '8080'
     depends_on:
       - runner
-    ports:
-      - '${COMMAND_TOOLS_GATEWAY_BIND_ADDRESS:-127.0.0.1}:${COMMAND_TOOLS_GATEWAY_PORT:-8080}:8080'
-    networks:
-      - command-tools
+    network_mode: service:runner
     read_only: true
     cap_drop:
       - ALL
