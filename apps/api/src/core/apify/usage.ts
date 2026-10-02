@@ -1,25 +1,4 @@
-import { z } from 'zod';
-
 const APIFY_API_URL = 'https://api.apify.com/v2';
-
-const UserResponseSchema = z.object({
-  data: z.object({
-    plan: z.object({
-      tier: z.string().optional(),
-      monthlyUsageCreditsUsd: z.number().finite().nonnegative().optional(),
-    }),
-  }),
-});
-
-const MonthlyUsageResponseSchema = z.object({
-  data: z.object({
-    usageCycle: z
-      .object({ endAt: z.string().datetime({ offset: true }).optional() })
-      .optional(),
-    totalUsageCreditsUsdAfterVolumeDiscount: z.number().finite().nonnegative().optional(),
-    totalUsageCreditsUsd: z.number().finite().nonnegative().optional(),
-  }),
-});
 
 export type ApifyUsageStatus = 'available' | 'unavailable' | 'not-configured';
 
@@ -37,7 +16,40 @@ export interface ApifyUsageSummary {
 }
 
 function numberOrUndefined(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function recordOrUndefined(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function stringOrUndefined(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function parseUsagePayloads(userPayload: unknown, monthlyUsagePayload: unknown): {
+  planTier?: string;
+  monthlyCreditUsd?: number;
+  usedUsd?: number;
+  cycleEndsAt?: string;
+} {
+  const userData = recordOrUndefined(userPayload)?.data;
+  const plan = recordOrUndefined(recordOrUndefined(userData)?.plan);
+  const usageData = recordOrUndefined(monthlyUsagePayload)?.data;
+  const cycle = recordOrUndefined(recordOrUndefined(usageData)?.usageCycle);
+
+  return {
+    planTier: stringOrUndefined(plan?.tier)?.toUpperCase(),
+    monthlyCreditUsd: numberOrUndefined(plan?.monthlyUsageCreditsUsd),
+    usedUsd:
+      numberOrUndefined(usageData?.totalUsageCreditsUsdAfterVolumeDiscount) ??
+      numberOrUndefined(usageData?.totalUsageCreditsUsd),
+    cycleEndsAt: stringOrUndefined(cycle?.endAt),
+  };
 }
 
 function clampPercent(value: number): number {
@@ -82,16 +94,8 @@ export async function getApifyUsageSummary(options: {
       getJson('/users/me', token, signal, fetchImpl),
       getJson('/users/me/usage/monthly', token, signal, fetchImpl),
     ]);
-    const user = UserResponseSchema.parse(userPayload);
-    const monthlyUsage = MonthlyUsageResponseSchema.parse(monthlyUsagePayload);
-    const planTier = user.data.plan.tier?.toUpperCase();
-    const monthlyCreditUsd = numberOrUndefined(
-      user.data.plan.monthlyUsageCreditsUsd,
-    );
-    const usedUsd =
-      numberOrUndefined(
-        monthlyUsage.data.totalUsageCreditsUsdAfterVolumeDiscount,
-      ) ?? numberOrUndefined(monthlyUsage.data.totalUsageCreditsUsd);
+    const { planTier, monthlyCreditUsd, usedUsd, cycleEndsAt } =
+      parseUsagePayloads(userPayload, monthlyUsagePayload);
 
     if (!monthlyCreditUsd || usedUsd === undefined) {
       return {
@@ -113,7 +117,7 @@ export async function getApifyUsageSummary(options: {
       usedUsd,
       remainingUsd: Math.max(0, monthlyCreditUsd - usedUsd),
       usagePercent,
-      cycleEndsAt: monthlyUsage.data.usageCycle?.endAt,
+      cycleEndsAt,
       guardThresholdPercent,
       guardActive,
       guardReason: guardActive
