@@ -101,3 +101,23 @@ export const CredentialStatusSchema = z.object({
   source: z.enum(['vault', 'environment']).nullable(),
 });
 export type CredentialStatus = z.infer<typeof CredentialStatusSchema>;
+
+export const ApifyUsageStatusSchema = z.enum([
+  'available',
+  'unavailable',
+  'not-configured',
+]);
+
+export const ApifyUsageSchema = z.object({
+  status: ApifyUsageStatusSchema,
+  planTier: z.string().optional(),
+  monthlyCreditUsd: z.number().nonnegative().optional(),
+  usedUsd: z.number().nonnegative().optional(),
+  remainingUsd: z.number().nonnegative().optional(),
+  usagePercent: z.number().min(0).max(100).optional(),
+  cycleEndsAt: z.string().datetime({ offset: true }).optional(),
+  guardThresholdPercent: z.number().int().min(50).max(99),
+  guardActive: z.boolean(),
+  guardReason: z.string().optional(),
+});
+export type ApifyUsage = z.infer<typeof ApifyUsageSchema>;

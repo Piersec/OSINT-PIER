@@ -31,6 +31,7 @@ import {
 } from './core/credentials/encrypted-store.js';
 import { SupabaseCredentialStore } from './core/credentials/supabase-credential-store.js';
 import { normalizeTarget } from './core/target/normalize-target.js';
+import { getApifyUsageSummary } from './core/apify/usage.js';
 
 export interface AppDependencies {
   config?: AppConfig;
@@ -270,6 +271,19 @@ export async function createApp(
       })),
     );
   });
+
+  app.get(
+    '/api/admin/apify/usage',
+    { preHandler: requireUser },
+    async (request, reply) => {
+      if (!authorizeAdmin(request, reply, config, vault)) return reply;
+      const token = await credentialProvider.get('APIFY_API_TOKEN');
+      return getApifyUsageSummary({
+        token,
+        guardThresholdPercent: config.apifyUsageGuardPercent,
+      });
+    },
+  );
 
   app.post(
     '/api/checks/:id',

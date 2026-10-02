@@ -84,6 +84,12 @@ const EnvironmentSchema = z.object({
     .min(1000)
     .max(86_400_000)
     .default(60_000),
+  APIFY_USAGE_GUARD_PERCENT: z.coerce
+    .number()
+    .int()
+    .min(50)
+    .max(99)
+    .default(80),
   // Retained as a future authentication seam; the current internal build does
   // not require a token for the credentials panel.
   ADMIN_TOKEN: optionalText,
@@ -104,6 +110,7 @@ export interface AppConfig {
   checkCacheMaxEntries: number;
   analysisRateLimitMax: number;
   analysisRateLimitWindowMs: number;
+  apifyUsageGuardPercent: number;
   adminToken?: string;
   encryptionKey?: string;
   credentialStorePath: string;
@@ -127,6 +134,7 @@ export function loadConfig(
     checkCacheMaxEntries: parsed.CHECK_CACHE_MAX_ENTRIES,
     analysisRateLimitMax: parsed.ANALYSIS_RATE_LIMIT_MAX,
     analysisRateLimitWindowMs: parsed.ANALYSIS_RATE_LIMIT_WINDOW_MS,
+    apifyUsageGuardPercent: parsed.APIFY_USAGE_GUARD_PERCENT,
     adminToken: parsed.ADMIN_TOKEN,
     encryptionKey: parsed.CREDENTIALS_ENCRYPTION_KEY,
     credentialStorePath: parsed.CREDENTIAL_STORE_PATH

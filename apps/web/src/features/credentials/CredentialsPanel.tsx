@@ -1,13 +1,28 @@
 import { type FormEvent, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { CheckCatalogItem, CredentialStatus } from '@osint-pier/contracts';
+import type {
+  ApifyUsage,
+  CheckCatalogItem,
+  CredentialStatus,
+} from '@osint-pier/contracts';
 import {
+  getApifyUsage,
   listCheckSettings,
   listCredentials,
   removeCredential,
   saveCredential,
   setCheckEnabled,
 } from '../../api/client';
+
+function unavailableApifyUsage(): ApifyUsage {
+  return {
+    status: 'unavailable',
+    guardThresholdPercent: 80,
+    guardActive: true,
+    guardReason:
+      'A cota não pôde ser verificada; as ferramentas Apify permanecem bloqueadas.',
+  };
+}
 
 export function CredentialsPanel() {
   const queryClient = useQueryClient();
@@ -17,6 +32,7 @@ export function CredentialsPanel() {
   const [checkSettings, setCheckSettings] = useState<CheckCatalogItem[] | null>(
     null,
   );
+  const [apifyUsage, setApifyUsage] = useState<ApifyUsage | null>(null);
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -29,14 +45,18 @@ export function CredentialsPanel() {
     setBusy(true);
     setMessage(null);
     try {
-      const [nextCredentials, nextCheckSettings] = await Promise.all([
-        listCredentials(),
-        listCheckSettings(),
-      ]);
+      const [nextCredentials, nextCheckSettings, nextApifyUsage] =
+        await Promise.all([
+          listCredentials(),
+          listCheckSettings(),
+          getApifyUsage().catch(unavailableApifyUsage),
+        ]);
       setCredentials(nextCredentials);
       setCheckSettings(nextCheckSettings);
+      setApifyUsage(nextApifyUsage);
     } catch (error) {
       setCredentials(null);
+      setApifyUsage(null);
       setMessage(
         error instanceof Error
           ? error.message
@@ -154,6 +174,24 @@ export function CredentialsPanel() {
     return credential.source === 'vault' ? 'cofre' : 'ambiente';
   }
 
+  function formatUsd(value: number | undefined) {
+    if (value === undefined) return '—';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  function formatCycleEnd(value: string | undefined) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? null
+      : new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(date);
+  }
+
   return (
     <section className="panel credentials-panel" id="credentials">
       <div className="section-heading">
@@ -184,6 +222,7 @@ export function CredentialsPanel() {
             onClick={() => {
               setCredentials(null);
               setCheckSettings(null);
+              setApifyUsage(null);
               setMessage(null);
             }}
             type="button"
@@ -254,6 +293,82 @@ export function CredentialsPanel() {
               </div>
             ))}
           </div>
+
+          <section className="apify-usage" aria-labelledby="apify-usage-title">
+            <div className="apify-usage__heading">
+              <div>
+                <h3 id="apify-usage-title">Cota Apify</h3>
+                <p className="muted">
+                  Consumo mensal real e proteção automática contra excedente.
+                </p>
+              </div>
+              <span
+                className={`integration-status integration-status--${
+                  !apifyUsage
+                    ? 'muted'
+                    : apifyUsage.guardActive
+                      ? 'warning'
+                      : 'success'
+                }`}
+              >
+                {!apifyUsage
+                  ? 'Aguardando consulta'
+                  : apifyUsage.guardActive
+                    ? 'Bloqueio preventivo'
+                    : 'Proteção ativa'}
+              </span>
+            </div>
+
+            {!apifyUsage && (
+              <p className="muted">
+                Atualize as credenciais para consultar a cota do Apify.
+              </p>
+            )}
+
+            {apifyUsage?.status === 'available' && (
+              <>
+                <div className="apify-usage__numbers">
+                  <span>
+                    <strong>{formatUsd(apifyUsage.remainingUsd)}</strong>
+                    disponível de {formatUsd(apifyUsage.monthlyCreditUsd)}
+                  </span>
+                  <span>{Math.round(apifyUsage.usagePercent ?? 0)}% utilizado</span>
+                </div>
+                <div
+                  aria-label={`${Math.round(apifyUsage.usagePercent ?? 0)}% da cota mensal Apify utilizada`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={Math.round(apifyUsage.usagePercent ?? 0)}
+                  className={`apify-usage__bar${apifyUsage.guardActive ? ' apify-usage__bar--blocked' : ''}`}
+                  role="progressbar"
+                >
+                  <span
+                    style={{ width: `${Math.min(100, apifyUsage.usagePercent ?? 0)}%` }}
+                  />
+                </div>
+                <p className="apify-usage__note">
+                  Plano {apifyUsage.planTier ?? 'desconhecido'} · bloqueio a partir de{' '}
+                  {apifyUsage.guardThresholdPercent}%
+                  {formatCycleEnd(apifyUsage.cycleEndsAt)
+                    ? ` · ciclo termina em ${formatCycleEnd(apifyUsage.cycleEndsAt)}`
+                    : ''}
+                </p>
+              </>
+            )}
+
+            {apifyUsage && apifyUsage.status !== 'available' && (
+              <p className="apify-usage__note apify-usage__note--warning">
+                {apifyUsage.guardReason ??
+                  'A cota não pôde ser verificada; as ferramentas Apify permanecem bloqueadas.'}
+              </p>
+            )}
+
+            {apifyUsage?.guardActive && apifyUsage.guardReason && (
+              <p className="apify-usage__note apify-usage__note--warning">
+                {apifyUsage.guardReason}
+              </p>
+            )}
+          </section>
 
           <div className="plugin-settings">
             <div className="plugin-settings__heading">

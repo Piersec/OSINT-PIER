@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from './app.js';
 import type { AppConfig } from './config.js';
 import { SupabaseAuth } from './core/auth/supabase-auth.js';
@@ -15,6 +15,7 @@ import {
 const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await Promise.all(
     temporaryDirectories
       .splice(0)
@@ -43,6 +44,7 @@ async function fixture(
     checkCacheMaxEntries: 100,
     analysisRateLimitMax: options.rateLimitMax ?? 100,
     analysisRateLimitWindowMs: 60_000,
+    apifyUsageGuardPercent: 80,
     adminToken: 'admin-token-with-more-than-24-characters',
     encryptionKey: encodedKey,
     credentialStorePath: path.join(directory, 'credentials.enc'),
@@ -140,6 +142,47 @@ describe('API', () => {
     await app.close();
 
     expect(response.statusCode).toBe(200);
+  });
+
+  it('expõe somente o resumo de uso Apify, sem vazar o token', async () => {
+    const { app, token } = await fixture();
+    const secret = 'apify-token-que-nao-pode-vazar';
+    await app.inject({
+      method: 'PUT',
+      url: '/api/admin/credentials/APIFY_API_TOKEN',
+      headers: { 'x-admin-token': token },
+      payload: { value: secret },
+    });
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: { totalUsageCreditsUsdAfterVolumeDiscount: 1 },
+          }),
+        ),
+      );
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/admin/apify/usage',
+    });
+    await app.close();
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      status: 'available',
+      monthlyCreditUsd: 5,
+      usedUsd: 1,
+      guardActive: false,
+    });
+    expect(response.body).not.toContain(secret);
   });
 
   it('retorna 503 acionável quando o cofre não está configurado', async () => {

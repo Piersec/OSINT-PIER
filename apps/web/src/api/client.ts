@@ -6,11 +6,13 @@ import {
   AnalysisHistorySaveResponseSchema,
   AnalysisHistoryWriteSchema,
   CredentialStatusSchema,
+  ApifyUsageSchema,
   type AnalysisHistoryEntry,
   type TargetKind,
   type CheckCatalogItem,
   type CheckResult,
   type CredentialStatus,
+  type ApifyUsage,
 } from '@osint-pier/contracts';
 import { z } from 'zod';
 import { getSupabaseAccessToken } from '../lib/supabase';
@@ -182,4 +184,8 @@ export async function removeCredential(name: string): Promise<void> {
   await request(`/api/admin/credentials/${encodeURIComponent(name)}`, {
     method: 'DELETE',
   });
+}
+
+export async function getApifyUsage(): Promise<ApifyUsage> {
+  return ApifyUsageSchema.parse(await request('/api/admin/apify/usage'));
 }

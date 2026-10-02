@@ -3251,6 +3251,74 @@ input::placeholder {
   line-height: 1.6;
 }
 
+.apify-usage {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  padding: 22px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.apify-usage__heading,
+.apify-usage__numbers {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.apify-usage__heading h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.025em;
+}
+
+.apify-usage__heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+}
+
+.apify-usage__numbers {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.apify-usage__numbers strong {
+  margin-right: 6px;
+  color: var(--text);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.apify-usage__bar {
+  height: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.apify-usage__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 180ms ease-out;
+}
+
+.apify-usage__bar--blocked > span {
+  background: #d49a3a;
+}
+
+.apify-usage__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.apify-usage__note--warning {
+  color: #b77828;
+}
+
 .plugin-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
