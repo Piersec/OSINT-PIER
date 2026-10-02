@@ -21,13 +21,6 @@ const routes = [
         path,
       ),
   },
-  {
-    prefix: '/ghunt',
-    binding: 'GHUNT',
-    service: 'ghunt',
-    port: 18083,
-    accepts: (path) => path === '/api/v2/email',
-  },
 ];
 
 function jsonError(status, error, extraHeaders = {}) {

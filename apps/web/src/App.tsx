@@ -203,7 +203,6 @@ const toolCategories: Record<string, ToolCategory> = {
   'abuse-ipdb': 'threat',
   cookies: 'web',
   'dns-records': 'web',
-  ghunt: 'personal',
   gobuster: 'web',
   'http-headers': 'web',
   'hunter-io': 'personal',

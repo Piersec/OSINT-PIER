@@ -4,8 +4,6 @@ const toolDescriptions: Record<string, string> = {
   'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',
   cookies: 'Inspeciona cookies HTTP e sinaliza flags de segurança.',
   'dns-records': 'Resolve registros A, AAAA, MX, NS, TXT e CNAME.',
-  ghunt:
-    'Consulta sinais públicos de um e-mail Google por um runner isolado e autorizado.',
   'http-headers': 'Lê headers HTTP e verifica políticas de segurança.',
   'hunter-io':
     'Busca e-mails profissionais de um domínio ou verifica um e-mail.',

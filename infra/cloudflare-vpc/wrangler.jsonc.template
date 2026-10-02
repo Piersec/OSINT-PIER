@@ -27,10 +27,5 @@
       "service_id": "01a0f2c7-41f4-7582-8b91-fa7bf195c807",
       "remote": true,
     },
-    {
-      "binding": "GHUNT",
-      "service_id": "01a0f2c7-dffb-7201-b358-882b541dafd9",
-      "remote": true,
-    },
   ],
 }
