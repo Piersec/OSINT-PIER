@@ -7,12 +7,23 @@
   preservada nos logs; o código sozinho não comprova falta de memória.
 - Nmap 7.95 instalado no runner; teste TCP local retornou XML válido.
 - Runner /healthz e gateway /healthz retornaram 200.
-- Nuclei ainda requer reconstrução da imagem e publicação do backend desta branch.
-  Não declarar integração de produção concluída antes do teste ponta a ponta.
-- Teste autorizado no site com piersec.com.br: Nmap retornou sucesso em 2035 ms.
+- Stack ativa reconstruída com Nuclei v3.11.1, templates v10.4.9 e Nmap 7.95.
+  Runner e gateway retornaram 200 em /healthz; gateway rejeitou POST sem token com 401.
+- Testes autorizados no site com piersec.com.br: Nmap retornou sucesso em 2255 ms
+  após a atualização; Nuclei concluiu com zero achados no perfil config-exposures.
+  Teste direto do runner também retornou HTTP 200, exitCode 0 e zero achados.
+- Backend publicado em produção na Vercel, commit a5e3271, deployment
+  dpl_E1UiRL9Kdm8LDvaFJgf3V9NakgYQ READY (alias osint-pier.vercel.app).
+- Validação local: 99 testes da API, typecheck, lint dos arquivos alterados e quatro
+  testes Python aprovados. Consulta de logs error/fatal desse deployment sem registros.
 - Primeira reconstrução ultrapassou o limite do Portainer (DeadlineExceeded),
   preservando os contêineres anteriores. O build foi ajustado para copiar Nuclei
   da imagem oficial versionada, sem compilar suas dependências no Umbrel.
+- A segunda tentativa completou as outras ferramentas, mas atingiu o timeout antes
+  dos templates; Portainer restaurou a versão anterior. Após terminar a restauração,
+  nova implantação aproveitou o cache e concluiu. Nenhum serviço pago foi ativado.
+- PLAN.md e demais documentos já modificados localmente foram preservados; o registro
+  desta entrega fica neste documento para não misturar alterações preexistentes.
 
 ## Integração preparada
 
