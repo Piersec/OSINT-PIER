@@ -4,11 +4,18 @@ import { z } from 'zod';
 
 const SettingsSchema = z.record(z.string(), z.boolean());
 
+export interface CheckSettings {
+  initialize(): Promise<void>;
+  isEnabled(id: string): Promise<boolean>;
+  list(ids: Iterable<string>): Promise<Record<string, boolean>>;
+  setEnabled(id: string, enabled: boolean): Promise<void>;
+}
+
 /**
  * Persists only explicit disabled flags. Missing entries are enabled by
  * default, so adding a new plugin never requires editing this file.
  */
-export class CheckSettingsStore {
+export class CheckSettingsStore implements CheckSettings {
   readonly #filePath: string;
   #settings: Record<string, boolean> = {};
   #loaded = false;

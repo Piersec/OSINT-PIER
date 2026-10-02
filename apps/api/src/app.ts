@@ -20,7 +20,11 @@ import { executeCheck } from './core/checks/executor.js';
 import { CheckResultCache } from './core/checks/cache.js';
 import { loadCheckRegistry } from './core/checks/registry.js';
 import type { CheckRegistry } from './core/checks/registry.js';
-import { CheckSettingsStore } from './core/checks/settings-store.js';
+import {
+  CheckSettingsStore,
+  type CheckSettings,
+} from './core/checks/settings-store.js';
+import { SupabaseCheckSettingsStore } from './core/checks/supabase-settings-store.js';
 import { SupabaseHistoryStore } from './core/history/supabase-history-store.js';
 import { SupabaseAuth } from './core/auth/supabase-auth.js';
 import { AppCredentialProvider } from './core/credentials/credential-provider.js';
@@ -41,7 +45,7 @@ export interface AppDependencies {
   environment?: NodeJS.ProcessEnv;
   logger?: boolean;
   cache?: CheckResultCache;
-  settings?: CheckSettingsStore;
+  settings?: CheckSettings;
   historyStore?: SupabaseHistoryStore;
   supabaseAuth?: SupabaseAuth;
 }
@@ -146,7 +150,13 @@ export async function createApp(
       maxEntries: config.checkCacheMaxEntries,
     });
   const settings =
-    dependencies.settings ?? new CheckSettingsStore(config.checkSettingsPath);
+    dependencies.settings ??
+    (config.supabaseUrl && config.supabaseServiceRoleKey
+      ? new SupabaseCheckSettingsStore({
+          url: config.supabaseUrl,
+          serviceRoleKey: config.supabaseServiceRoleKey,
+        })
+      : new CheckSettingsStore(config.checkSettingsPath));
   await settings.initialize();
   const historyStore =
     dependencies.historyStore ??
@@ -362,23 +372,30 @@ export async function createApp(
     { preHandler: requireUser },
     async (request, reply) => {
       if (!authorizeAdmin(request, reply, config, vault)) return reply;
-      const checks = registry.all();
-      const enabled = await settings.list(checks.map((check) => check.id));
+      try {
+        const checks = registry.all();
+        const enabled = await settings.list(checks.map((check) => check.id));
 
-      return Promise.all(
-        checks.map(async (check) => ({
-          id: check.id,
-          label: check.label,
-          enabled: enabled[check.id] ?? true,
-          requiredCredentials: [...check.requiredEnv],
-          supportedTargetKinds: [...(check.supportedTargetKinds ?? [])],
-          configured: (
-            await Promise.all(
-              check.requiredEnv.map((name) => credentialProvider.get(name)),
-            )
-          ).every(Boolean),
-        })),
-      );
+        return Promise.all(
+          checks.map(async (check) => ({
+            id: check.id,
+            label: check.label,
+            enabled: enabled[check.id] ?? true,
+            requiredCredentials: [...check.requiredEnv],
+            supportedTargetKinds: [...(check.supportedTargetKinds ?? [])],
+            configured: (
+              await Promise.all(
+                check.requiredEnv.map((name) => credentialProvider.get(name)),
+              )
+            ).every(Boolean),
+          })),
+        );
+      } catch (error) {
+        app.log.error(error);
+        return reply.code(503).send({
+          error: 'Configuração de plugins indisponível no momento.',
+        });
+      }
     },
   );
 
@@ -392,7 +409,14 @@ export async function createApp(
       if (!check)
         return reply.code(404).send({ error: 'Checagem não encontrada.' });
       const { enabled } = CheckEnabledWriteSchema.parse(request.body);
-      await settings.setEnabled(check.id, enabled);
+      try {
+        await settings.setEnabled(check.id, enabled);
+      } catch (error) {
+        app.log.error(error);
+        return reply.code(503).send({
+          error: 'Não foi possível atualizar a configuração do plugin.',
+        });
+      }
       cache.clear();
 
       return {
