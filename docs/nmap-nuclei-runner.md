@@ -9,6 +9,10 @@
 - Runner /healthz e gateway /healthz retornaram 200.
 - Nuclei ainda requer reconstrução da imagem e publicação do backend desta branch.
   Não declarar integração de produção concluída antes do teste ponta a ponta.
+- Teste autorizado no site com piersec.com.br: Nmap retornou sucesso em 2035 ms.
+- Primeira reconstrução ultrapassou o limite do Portainer (DeadlineExceeded),
+  preservando os contêineres anteriores. O build foi ajustado para copiar Nuclei
+  da imagem oficial versionada, sem compilar suas dependências no Umbrel.
 
 ## Integração preparada
 
