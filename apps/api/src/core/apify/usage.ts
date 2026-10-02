@@ -39,7 +39,9 @@ function parseUsagePayloads(userPayload: unknown, monthlyUsagePayload: unknown):
 } {
   const userData = recordOrUndefined(userPayload)?.data;
   const plan = recordOrUndefined(recordOrUndefined(userData)?.plan);
-  const usageData = recordOrUndefined(monthlyUsagePayload)?.data;
+  const usageData = recordOrUndefined(
+    recordOrUndefined(monthlyUsagePayload)?.data,
+  );
   const cycle = recordOrUndefined(recordOrUndefined(usageData)?.usageCycle);
 
   return {
