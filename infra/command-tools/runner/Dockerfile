@@ -3,6 +3,8 @@ FROM golang:1.26-bookworm AS tools
 ARG SUBFINDER_VERSION=v2.16.0
 ARG KATANA_VERSION=v1.7.0
 ARG GOBUSTER_VERSION=v3.8.2
+ARG NUCLEI_VERSION=v3.11.1
+ARG NUCLEI_TEMPLATES_VERSION=v10.4.9
 
 ENV GOTOOLCHAIN=local
 # Keep the build reproducible on small Docker Desktop installations.
@@ -11,13 +13,18 @@ ENV GOFLAGS=-p=1
 
 RUN CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/subfinder/v2/cmd/subfinder@${SUBFINDER_VERSION} \
     && CGO_ENABLED=1 go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/katana/cmd/katana@${KATANA_VERSION} \
-    && CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/OJ/gobuster/v3@${GOBUSTER_VERSION}
+    && CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/OJ/gobuster/v3@${GOBUSTER_VERSION} \
+    && CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' github.com/projectdiscovery/nuclei/v3/cmd/nuclei@${NUCLEI_VERSION}
+
+RUN git clone --depth 1 --branch ${NUCLEI_TEMPLATES_VERSION} https://github.com/projectdiscovery/nuclei-templates.git /templates \
+    && rm -rf /templates/.git
 
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV HOME=/tmp
+ENV DISABLE_NUCLEI_TEMPLATES_PUBLIC_DOWNLOAD=true
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y nmap ca-certificates \
@@ -29,6 +36,8 @@ RUN apt-get update \
 COPY --from=tools /go/bin/subfinder /usr/local/bin/subfinder
 COPY --from=tools /go/bin/katana /usr/local/bin/katana
 COPY --from=tools /go/bin/gobuster /usr/local/bin/gobuster
+COPY --from=tools /go/bin/nuclei /usr/local/bin/nuclei
+COPY --from=tools /templates /app/nuclei-templates
 COPY runner.py /app/runner.py
 COPY wordlists/common.txt /app/wordlists/common.txt
 

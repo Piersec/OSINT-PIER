@@ -2,7 +2,7 @@ import type { CheckContext } from '../checks/contract.js';
 import type { NormalizedTarget } from '../target/normalize-target.js';
 import { cloudflareAccessServiceHeaders } from '../network/cloudflare-access.js';
 
-export type CommandTool = 'nmap' | 'katana' | 'gobuster' | 'subfinder';
+export type CommandTool = 'nmap' | 'nuclei' | 'katana' | 'gobuster' | 'subfinder';
 
 type RunnerOutcome =
   | { status: 'success'; payload: Record<string, unknown> }

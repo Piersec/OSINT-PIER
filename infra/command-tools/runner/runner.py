@@ -14,6 +14,7 @@ PORT = int(os.environ.get('PORT', '8081'))
 MAX_BODY_BYTES = 32 * 1024
 MAX_OUTPUT_BYTES = 2 * 1024 * 1024
 MAX_RESULTS = 200
+NUCLEI_TEMPLATE_NAMES = ('git-config', 'laravel-env', 'phpinfo-files', 'docker-compose-config')
 MAX_CONCURRENT_SCANS = 2
 SCAN_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_SCANS)
 ENABLE_GOBUSTER = os.environ.get('COMMAND_TOOLS_ENABLE_GOBUSTER', '').lower() in {
@@ -22,9 +23,10 @@ ENABLE_GOBUSTER = os.environ.get('COMMAND_TOOLS_ENABLE_GOBUSTER', '').lower() in
     'yes',
 }
 
-TOOL_NAMES = {'nmap', 'katana', 'gobuster', 'subfinder'}
+TOOL_NAMES = {'nmap', 'nuclei', 'katana', 'gobuster', 'subfinder'}
 TOOL_TIMEOUTS = {
     'nmap': 75,
+    'nuclei': 70,
     'katana': 65,
     'gobuster': 55,
     'subfinder': 55,
@@ -328,6 +330,7 @@ def run_nmap(target: str) -> tuple[int, dict]:
         [
             'nmap',
             '-sT',
+            '--unprivileged',
             '-Pn',
             '-T3',
             '--top-ports',
@@ -391,8 +394,63 @@ def run_nmap(target: str) -> tuple[int, dict]:
         'target': target,
         'hosts': hosts,
         'totalOpenPorts': open_ports,
-        'note': 'TCP top 100, detecção leve de serviço e somente portas observáveis.',
+        'note': 'TCP connect top 100, nomes de serviço por porta; sem detecção de versão ou scripts.',
     }
+
+
+def run_nuclei(target: str) -> tuple[int, dict]:
+    returncode, output = run_command(
+        [
+            'nuclei', '-u', target, '-jsonl', '-silent', '-no-color',
+            '-omit-raw', '-omit-template', '-disable-update-check',
+            '-disable-unsigned-templates', '-no-interactsh',
+            '-restrict-local-network-access', '-type', 'http',
+            '-templates', ','.join(
+                f'/app/nuclei-templates/http/exposures/configs/{name}.yaml'
+                for name in NUCLEI_TEMPLATE_NAMES
+            ),
+            '-exclude-tags', 'dos,fuzz,bruteforce,headless,default-login,default-logins',
+            '-severity', 'low,medium,high,critical,unknown',
+            '-rate-limit', '20', '-concurrency', '3', '-bulk-size', '1',
+            '-timeout', '5', '-retries', '0',
+        ],
+        TOOL_TIMEOUTS['nuclei'],
+    )
+    if returncode != 0:
+        return 502, {'error': 'Nuclei não conseguiu concluir a varredura limitada.'}
+    findings = []
+    for item in json_lines(output):
+        info = mapping(item.get('info'))
+        template_id = string_value(item.get('template-id'), 128)
+        if not template_id or not info:
+            continue
+        classification = mapping(info.get('classification'))
+        def strings(value: object) -> list[str]:
+            values = value if isinstance(value, list) else [value]
+            return [text for entry in values[:8] if (text := string_value(entry, 1024))]
+        findings.append({
+            'template-id': template_id,
+            'matched-at': string_value(item.get('matched-at'), 2048),
+            'type': 'http',
+            'info': {
+                'name': string_value(info.get('name'), 256),
+                'severity': string_value(info.get('severity'), 16),
+                'description': string_value(info.get('description'), 1024),
+                'reference': strings(info.get('reference')),
+                'tags': strings(info.get('tags')),
+                'classification': {
+                    'cve-id': strings(classification.get('cve-id')),
+                    'cwe-id': strings(classification.get('cwe-id')),
+                    'cvss-score': classification.get('cvss-score')
+                    if isinstance(classification.get('cvss-score'), (int, float))
+                    and not isinstance(classification.get('cvss-score'), bool)
+                    and 0 <= classification.get('cvss-score') <= 10 else None,
+                },
+            },
+        })
+        if len(findings) >= 100:
+            break
+    return 200, {'tool': 'nuclei', 'profile': 'safe', 'scanScope': 'config-exposures', 'findings': findings, 'exitCode': 0}
 
 
 def run_gobuster(target: str) -> tuple[int, dict]:
@@ -454,6 +512,8 @@ def execute(tool: str, target: str) -> tuple[int, dict]:
         return run_subfinder(target)
     if tool == 'nmap':
         return run_nmap(target)
+    if tool == 'nuclei':
+        return run_nuclei(target)
     if tool == 'katana':
         return run_katana(target)
     if tool == 'gobuster':
@@ -509,4 +569,5 @@ class RunnerHandler(BaseHTTPRequestHandler):
             SCAN_SLOTS.release()
 
 
-ThreadingHTTPServer(('0.0.0.0', PORT), RunnerHandler).serve_forever()
+if __name__ == '__main__':
+    ThreadingHTTPServer(('0.0.0.0', PORT), RunnerHandler).serve_forever()

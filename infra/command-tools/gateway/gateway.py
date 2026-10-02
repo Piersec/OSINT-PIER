@@ -10,6 +10,7 @@ PORT = int(os.environ.get('PORT', '8080'))
 TOKEN = os.environ.get('COMMAND_TOOLS_API_TOKEN', '')
 UPSTREAM_VALUE = os.environ.get('COMMAND_TOOLS_UPSTREAM', 'http://runner:8081')
 MAX_BODY_BYTES = 32 * 1024
+MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 
 if len(TOKEN) < 32:
     raise RuntimeError('COMMAND_TOOLS_API_TOKEN precisa ter pelo menos 32 caracteres.')
@@ -66,7 +67,9 @@ def proxy(path: str, body: bytes) -> tuple[int, dict[str, str], bytes]:
             },
         )
         response = connection.getresponse()
-        response_body = response.read(MAX_BODY_BYTES)
+        response_body = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(response_body) > MAX_RESPONSE_BYTES:
+            raise OSError('response-too-large')
         headers = {
             'content-type': response.getheader('content-type', 'application/json'),
             'cache-control': 'no-store',

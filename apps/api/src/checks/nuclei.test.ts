@@ -43,6 +43,72 @@ afterEach(() => {
 });
 
 describe('plugin Nuclei', () => {
+  it('usa o runner remoto sem tentar iniciar um processo na Vercel', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        tool: 'nuclei',
+        exitCode: 0,
+        findings: [
+          {
+            'template-id': 'exposed-panel',
+            info: { name: 'Panel', severity: 'high' },
+            request: 'raw-secret',
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await nuclei.run(ipTarget, {
+      signal: new AbortController().signal,
+      credentials: { COMMAND_TOOLS_API_TOKEN: 'internal-token' },
+      environment: { COMMAND_TOOLS_API_URL: 'https://tools.internal' },
+    });
+    expect(result.status).toBe('success');
+    expect(result.data).toMatchObject({ total: 1 });
+    expect(spawn).not.toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain(
+      '"tool":"nuclei"',
+    );
+    expect(JSON.stringify(result)).not.toContain('raw-secret');
+    expect(JSON.stringify(result)).not.toContain('internal-token');
+  });
+
+  it('não cai para CLI local quando o runner remoto falha', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('{}', { status: 503 })),
+    );
+    const result = await nuclei.run(ipTarget, {
+      signal: new AbortController().signal,
+      credentials: { COMMAND_TOOLS_API_TOKEN: 'internal-token' },
+      environment: { COMMAND_TOOLS_API_URL: 'https://tools.internal' },
+    });
+    expect(result.status).toBe('error');
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it('pula execução remota sem token e rejeita resposta inválida', async () => {
+    const context = {
+      signal: new AbortController().signal,
+      credentials: {},
+      environment: { COMMAND_TOOLS_API_URL: 'https://tools.internal' },
+    };
+    expect((await nuclei.run(ipTarget, context)).status).toBe('skipped');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(Response.json({ tool: 'nuclei', exitCode: 0 })),
+    );
+    expect(
+      (
+        await nuclei.run(ipTarget, {
+          ...context,
+          credentials: { COMMAND_TOOLS_API_TOKEN: 'token' },
+        })
+      ).status,
+    ).toBe('error');
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
   it('interpreta JSONL curado sem preservar request/response brutos', () => {
     const findings = parseNucleiJsonl(
       [

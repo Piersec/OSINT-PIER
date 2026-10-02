@@ -3,6 +3,7 @@ import type { Readable } from 'node:stream';
 import type { CheckPlugin } from '../../core/checks/contract.js';
 import { isPublicAddress } from '../../core/network/ip.js';
 import { failure } from '../../core/checks/results.js';
+import { callCommandTool } from '../../core/command-tools/runner-client.js';
 
 const id = 'nuclei';
 const source = 'Nuclei + NVD + FIRST EPSS + CISA KEV';
@@ -114,6 +115,7 @@ interface EpssResponse {
 interface ServiceResult {
   findings: NucleiFinding[];
   exitCode: number | null;
+  scanScope?: string;
 }
 
 class ExternalSourceError extends Error {
@@ -536,8 +538,9 @@ const check: CheckPlugin = {
   id,
   label: 'Vulnerabilidades (Nuclei)',
   requiredEnv: [],
+  optionalEnv: ['COMMAND_TOOLS_API_TOKEN'],
   supportedTargetKinds: ['domain', 'ip', 'url'],
-  timeoutMs: 60_000,
+  timeoutMs: 90_000,
   async run(target, context) {
     try {
       if (target.kind === 'ip' && !isPublicAddress(target.hostname)) {
@@ -546,7 +549,38 @@ const check: CheckPlugin = {
         );
       }
 
-      const scan = await runNuclei(target.value, context.signal);
+      let scan: ServiceResult;
+      const runnerUrl =
+        context.environment?.COMMAND_TOOLS_API_URL ??
+        process.env.COMMAND_TOOLS_API_URL;
+      if (runnerUrl?.trim()) {
+        const outcome = await callCommandTool('nuclei', target, context);
+        if (outcome.status === 'skipped') return skipped(outcome.error);
+        if (outcome.status === 'error')
+          return failure(id, source, outcome.error);
+        if (
+          !Array.isArray(outcome.payload.findings) ||
+          outcome.payload.exitCode !== 0
+        ) {
+          return failure(
+            id,
+            source,
+            'O runner devolveu achados inválidos do Nuclei.',
+          );
+        }
+        scan = {
+          findings: parseNucleiJsonl(
+            outcome.payload.findings
+              .slice(0, MAX_FINDINGS)
+              .map((item) => JSON.stringify(item))
+              .join('\n'),
+          ),
+          exitCode: 0,
+          scanScope: 'config-exposures',
+        };
+      } else {
+        scan = await runNuclei(target.value, context.signal);
+      }
       const findings = scan.findings;
       const cveIds = findings
         .flatMap((finding) => finding.cveIds)
@@ -609,6 +643,7 @@ const check: CheckPlugin = {
             (vulnerability) => (vulnerability.epss.score ?? 0) >= 0.1,
           ).length,
           vulnerabilities,
+          ...(scan.scanScope ? { scanScope: scan.scanScope } : {}),
           sources: [
             { name: 'Nuclei', url: NUCLEI_REPOSITORY_URL },
             { name: 'Nuclei templates', url: NUCLEI_TEMPLATES_URL },
@@ -622,7 +657,7 @@ const check: CheckPlugin = {
               url: 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',
             },
           ],
-          note: 'O Nuclei executa templates comunitários em modo curado, sem templates de fuzzing, headless, brute force ou default-login. CVEs são enriquecidos com CVSS do NVD, probabilidade EPSS e presença no catálogo CISA KEV. Execute somente contra ativos autorizados; a ausência de achados não prova que o ativo esteja livre de vulnerabilidades.',
+          note: `${scan.scanScope ? 'Perfil remoto limitado a quatro verificações de exposição: Git, .env, phpinfo e Docker Compose. Não é uma varredura completa de CVEs. ' : ''}O Nuclei executa templates comunitários em modo curado, sem templates de fuzzing, headless, brute force ou default-login. CVEs são enriquecidos com CVSS do NVD, probabilidade EPSS e presença no catálogo CISA KEV. Execute somente contra ativos autorizados; a ausência de achados não prova que o ativo esteja livre de vulnerabilidades.`,
           ...(scan.exitCode !== 0
             ? {
                 warning:
