@@ -58,11 +58,10 @@ test('routes only the command-tools scan to its bound private service', async ()
   assert.deepEqual(await response.json(), { tool: 'nmap' });
 });
 
-test('routes PhoneInfoga and GHunt only to their fixed loopback ports', async () => {
+test('routes PhoneInfoga only to its fixed loopback port', async () => {
   const capture = {};
   const env = {
     PHONEINFOGA: bindingWith(new Response(null, { status: 204 }), capture),
-    GHUNT: bindingWith(new Response(null, { status: 204 }), capture),
   };
 
   const phone = await worker.fetch(
@@ -82,26 +81,14 @@ test('routes PhoneInfoga and GHunt only to their fixed loopback ports', async ()
     'http://127.0.0.1:18082/api/v2/scanners/local/run',
   );
 
-  const ghunt = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: '{}',
-    }),
-    env,
-  );
-  assert.equal(ghunt.status, 204);
-  assert.equal(capture.request.url, 'http://127.0.0.1:18083/api/v2/email');
 });
 
 test('rejects unknown paths, query strings, and unsupported methods without upstream calls', async () => {
   const capture = {};
-  const env = {
-    GHUNT: bindingWith(new Response(null, { status: 204 }), capture),
-  };
+  const env = {};
 
   const unknown = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/profile', {
+    new Request('https://bridge.example.workers.dev/unknown/api/v2/profile', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
@@ -109,7 +96,7 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
     env,
   );
   const query = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email?x=1', {
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers?x=1', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
@@ -117,7 +104,7 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
     env,
   );
   const unsupported = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email'),
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers'),
     env,
   );
 
@@ -130,13 +117,13 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
 test('does not follow redirects and returns a generic error if the binding fails', async () => {
   const redirectCapture = {};
   const redirect = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
     }),
     {
-      GHUNT: bindingWith(
+      PHONEINFOGA: bindingWith(
         new Response(null, {
           status: 302,
           headers: { location: 'https://example.com/' },
@@ -149,13 +136,13 @@ test('does not follow redirects and returns a generic error if the binding fails
   assert.equal(redirect.headers.get('location'), 'https://example.com/');
 
   const unavailable = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
     }),
     {
-      GHUNT: {
+      PHONEINFOGA: {
         fetch: async () => Promise.reject(new Error('private details')),
       },
     },
@@ -167,13 +154,13 @@ test('does not follow redirects and returns a generic error if the binding fails
 
 test('refuses non-JSON payloads and missing VPC bindings', async () => {
   const contentType = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
       method: 'POST',
     }),
-    { GHUNT: { fetch: async () => Response.json({}) } },
+    { PHONEINFOGA: { fetch: async () => Response.json({}) } },
   );
   const unconfigured = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/ghunt/api/v2/email', {
+    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
     }),

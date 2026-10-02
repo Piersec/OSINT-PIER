@@ -2,7 +2,6 @@ const glyphs: Record<string, string> = {
   'abuse-ipdb': '!',
   cookies: '◌',
   'dns-records': '⌘',
-  ghunt: '@',
   gobuster: '/',
   'http-headers': '↗',
   'hunter-io': '✦',
