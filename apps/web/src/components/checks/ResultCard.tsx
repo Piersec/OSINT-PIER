@@ -73,6 +73,8 @@ const keyLabels: Record<string, string> = {
   organization: 'Organização',
   pattern: 'Padrão de e-mail',
   ports: 'Portas abertas',
+  observedPorts: 'Portas observadas',
+  possibleCves: 'Possíveis CVEs (não confirmadas)',
   position: 'Cargo',
   profile: 'Perfil',
   profilePhotoCustom: 'Foto personalizada',
@@ -155,7 +157,7 @@ const essentialFields: Record<string, string[]> = {
   'robots-sitemap': ['robots', 'sitemaps'],
   'server-status': ['online', 'statusCode', 'responseTimeMs', 'finalUrl'],
   'virus-total': ['reputation', 'malicious', 'suspicious', 'categories'],
-  shodan: ['ip', 'organization', 'ports', 'vulnerabilities', 'location'],
+  shodan: ['selectedIp', 'found', 'observedPorts', 'hostnames', 'technologies', 'possibleCves', 'note'],
   'hunter-io': ['domain', 'organization', 'pattern', 'emails'],
   nuclei: ['total', 'critical', 'high', 'vulnerabilities'],
   nmap: ['host', 'ports'],
@@ -367,7 +369,8 @@ function selectEssentialEntries(
     if (!selected.some(([key]) => key === entry[0])) selected.push(entry);
   }
 
-  return selected.slice(0, 4);
+  // InternetDB must always show the caveat alongside its possible CVE associations.
+  return selected.slice(0, checkId === 'shodan' ? 7 : 4);
 }
 
 function ResultData({ checkId, data }: { checkId: string; data: unknown }) {

@@ -18,7 +18,7 @@ const toolDescriptions: Record<string, string> = {
   'server-status': 'Verifica disponibilidade e tempo de resposta do servidor.',
   nuclei:
     'Executa templates curados do Nuclei para encontrar vulnerabilidades e enriquecer CVEs com NVD, EPSS e CISA KEV.',
-  shodan: 'Consulta portas, serviços e exposição observada pelo Shodan.',
+  shodan: 'Consulta IPv4 no InternetDB gratuito: portas observadas, tecnologias e possíveis CVEs não confirmadas.',
   'ssl-certificate':
     'Inspeciona validade, emissor e subject do certificado TLS.',
   subfinder:
