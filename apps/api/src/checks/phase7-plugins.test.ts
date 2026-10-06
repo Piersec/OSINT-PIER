@@ -97,12 +97,13 @@ describe('plugins Hunter e Shodan', () => {
   it('Shodan consulta host público e retorna somente campos curados', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       Response.json({
-        ip_str: '8.8.8.8',
+        ip: '8.8.8.8',
         hostnames: ['dns.google'],
         country_code: 'US',
         org: 'Google',
         ports: [443, 53, 443],
-        vulns: { 'CVE-2024-0001': {} },
+        vulns: ['CVE-2024-0001'],
+        cpes: ['cpe:/a:example:example:1.0'],
         data: [
           {
             port: 443,
@@ -122,19 +123,19 @@ describe('plugins Hunter e Shodan', () => {
     });
 
     const [url] = fetchMock.mock.calls[0] as [URL];
-    expect(url.toString()).toContain('/shodan/host/8.8.8.8');
-    expect(url.toString()).toContain('minify=true');
+    expect(url.toString()).toBe('https://internetdb.shodan.io/8.8.8.8');
+    expect(shodan.requiredEnv).toEqual([]);
     expect(result.data).toMatchObject({
       selectedIp: '8.8.8.8',
-      ports: [53, 443],
-      vulnerabilities: ['CVE-2024-0001'],
-      services: [{ port: 443, product: 'Example' }],
+      observedPorts: [53, 443],
+      possibleCves: ['CVE-2024-0001'],
+      technologies: ['cpe:/a:example:example:1.0'],
     });
     expect(JSON.stringify(result.data)).not.toContain('raw banner');
     expect(JSON.stringify(result.data)).not.toContain('shodan-secret');
   });
 
-  it('Shodan diferencia chave inválida de restrição do plano', async () => {
+  it('InternetDB informa falha de serviço sem atribuir o erro a uma chave', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(new Response(null, { status: 403 })),
@@ -146,10 +147,11 @@ describe('plugins Hunter e Shodan', () => {
     });
 
     expect(result.status).toBe('error');
-    expect(result.error).toContain('plano não permite');
+    expect(result.error).toContain('InternetDB temporariamente indisponível');
   });
 
-  it('retorna skipped quando as credenciais não existem', async () => {
+  it('InternetDB funciona sem chave e Hunter continua exigindo a sua', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ip: '8.8.8.8', ports: [] })));
     const [hunterResult, shodanResult] = await Promise.all([
       hunter.run(domainTarget, {
         signal: new AbortController().signal,
@@ -162,6 +164,28 @@ describe('plugins Hunter e Shodan', () => {
     ]);
 
     expect(hunterResult.status).toBe('error');
-    expect(shodanResult.status).toBe('error');
+    expect(shodanResult.status).toBe('success');
+  });
+  it('InternetDB não transforma 404 em ausência de vulnerabilidades', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 404 })));
+    const result = await shodan.run(ipTarget, { signal: new AbortController().signal, credentials: {} });
+    expect(result.data).toMatchObject({ found: false });
+    expect(result.data).not.toHaveProperty('possibleCves');
+  });
+  it('InternetDB trata limite de uso e resposta incompleta', async () => {
+    const mock = vi.fn().mockResolvedValueOnce(new Response(null, { status: 429 }))
+      .mockResolvedValueOnce(Response.json({ ip: '8.8.8.8' }));
+    vi.stubGlobal('fetch', mock);
+    const context = { signal: new AbortController().signal, credentials: {} };
+    expect((await shodan.run(ipTarget, context)).error).toContain('Limite');
+    expect((await shodan.run(ipTarget, context)).status).toBe('error');
+  });
+  it('InternetDB não envia IP privado ao serviço', async () => {
+    const mock = vi.fn();
+    vi.stubGlobal('fetch', mock);
+    const result = await shodan.run({ ...ipTarget, value: '127.0.0.1', hostname: '127.0.0.1' },
+      { signal: new AbortController().signal, credentials: {} });
+    expect(result.status).toBe('skipped');
+    expect(mock).not.toHaveBeenCalled();
   });
 });
