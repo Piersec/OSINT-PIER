@@ -5,6 +5,7 @@ import re
 import signal
 import subprocess
 import threading
+import time
 import xml.etree.ElementTree as ElementTree
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, urlunsplit
@@ -17,6 +18,8 @@ MAX_RESULTS = 200
 NUCLEI_TEMPLATE_NAMES = ('git-config', 'laravel-env', 'phpinfo-files', 'docker-compose-config')
 MAX_CONCURRENT_SCANS = 2
 SCAN_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_SCANS)
+WAITING_SLOTS = threading.BoundedSemaphore(4)
+SCAN_WAIT_SECONDS = 10
 ENABLE_GOBUSTER = os.environ.get('COMMAND_TOOLS_ENABLE_GOBUSTER', '').lower() in {
     '1',
     'true',
@@ -29,7 +32,7 @@ TOOL_TIMEOUTS = {
     'nuclei': 70,
     'katana': 65,
     'gobuster': 55,
-    'subfinder': 55,
+    'subfinder': 70,
 }
 BLOCKED_HOSTS = {
     'localhost',
@@ -159,30 +162,72 @@ def validate_request(body: dict) -> tuple[str, str, str]:
     return tool, validate_url(target), profile
 
 
-def run_command(arguments: list[str], timeout_seconds: int) -> tuple[int, str]:
+def run_command(arguments: list[str], timeout_seconds: int, max_lines: int | None = None) -> tuple[int, str]:
     environment = os.environ.copy()
     environment.update({'HOME': '/tmp', 'XDG_CONFIG_HOME': '/tmp/config'})
+    started = time.monotonic()
+    tool = os.path.basename(arguments[0])
     process = subprocess.Popen(
         arguments,
         cwd='/tmp',
         env=environment,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL if max_lines else subprocess.PIPE,
         text=True,
         start_new_session=True,
     )
-    try:
-        stdout, _stderr = process.communicate(timeout=timeout_seconds)
-    except subprocess.TimeoutExpired as error:
+    capped = False
+    oversized = False
+    lines: list[str] = []
+
+    def stop_process() -> None:
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except OSError:
             process.kill()
-        process.communicate()
+
+    def collect_prefix() -> None:
+        nonlocal capped, oversized
+        size = 0
+        assert process.stdout is not None
+        while line := process.stdout.readline(MAX_OUTPUT_BYTES + 1):
+            size += len(line.encode('utf-8', errors='ignore'))
+            if size > MAX_OUTPUT_BYTES:
+                oversized = True
+                stop_process()
+                break
+            lines.append(line)
+            if len(lines) >= max_lines:
+                capped = True
+                stop_process()
+                break
+
+    try:
+        if max_lines:
+            reader = threading.Thread(target=collect_prefix, daemon=True)
+            reader.start()
+            process.wait(timeout=timeout_seconds)
+            reader.join(timeout=2)
+            stdout = ''.join(lines)
+            if process.stdout is not None:
+                process.stdout.close()
+        else:
+            stdout, _stderr = process.communicate(timeout=timeout_seconds)
+    except subprocess.TimeoutExpired as error:
+        stop_process()
+        if max_lines:
+            process.wait()
+            reader.join(timeout=2)
+            if process.stdout is not None:
+                process.stdout.close()
+        else:
+            process.communicate()
+        print(json.dumps({'event': 'command_timeout', 'tool': tool, 'durationMs': round((time.monotonic() - started) * 1000)}), flush=True)
         raise CommandTimeout from error
-    if len(stdout.encode('utf-8', errors='ignore')) > MAX_OUTPUT_BYTES:
+    print(json.dumps({'event': 'command_finished', 'tool': tool, 'exitCode': process.returncode, 'durationMs': round((time.monotonic() - started) * 1000), 'outputBytes': len(stdout.encode('utf-8', errors='ignore')), 'capped': capped}), flush=True)
+    if oversized or len(stdout.encode('utf-8', errors='ignore')) > MAX_OUTPUT_BYTES:
         raise OutputLimit
-    return process.returncode, stdout
+    return 0 if capped else process.returncode, stdout
 
 
 def string_value(value: object, limit: int = 512) -> str | None:
@@ -226,7 +271,7 @@ def json_lines(output: str) -> list[dict]:
 
 def run_subfinder(domain: str) -> tuple[int, dict]:
     returncode, output = run_command(
-        ['subfinder', '-d', domain, '-silent', '-oJ', '-duc', '-max-time', '1'],
+        ['subfinder', '-d', domain, '-silent', '-oJ', '-cs', '-duc', '-timeout', '5', '-max-time', '1'],
         TOOL_TIMEOUTS['subfinder'],
     )
     if returncode != 0 and not output.strip():
@@ -271,6 +316,7 @@ def run_katana(target: str) -> tuple[int, dict]:
             '-u',
             target,
             '-silent',
+            '-duc',
             '-jsonl',
             '-d',
             '2',
@@ -286,10 +332,15 @@ def run_katana(target: str) -> tuple[int, dict]:
             '5',
             '-retry',
             '0',
+            '-mrs',
+            '1048576',
+            '-fs',
+            'fqdn',
             '-or',
             '-ob',
         ],
         TOOL_TIMEOUTS['katana'],
+        max_lines=MAX_RESULTS,
     )
     if returncode != 0 and not output.strip():
         return 502, {'error': 'Katana não conseguiu concluir o crawl limitado.'}
@@ -321,7 +372,7 @@ def run_katana(target: str) -> tuple[int, dict]:
         'target': target,
         'urls': urls,
         'total': len(urls),
-        'truncated': len(urls) >= MAX_RESULTS,
+        'truncated': len(output.splitlines()) >= MAX_RESULTS,
     }
 
 
@@ -521,6 +572,16 @@ def execute(tool: str, target: str) -> tuple[int, dict]:
     raise InvalidRequest
 
 
+def acquire_scan_slot() -> bool:
+    # Bound both active processes and queued requests; do not increase scan load.
+    if not WAITING_SLOTS.acquire(blocking=False):
+        return False
+    try:
+        return SCAN_SLOTS.acquire(timeout=SCAN_WAIT_SECONDS)
+    finally:
+        WAITING_SLOTS.release()
+
+
 class RunnerHandler(BaseHTTPRequestHandler):
     server_version = 'OSINT-Command-Tools-Runner/1.0'
 
@@ -544,12 +605,20 @@ class RunnerHandler(BaseHTTPRequestHandler):
         if self.path != '/api/v1/scan':
             send_json(self, 404, {'error': 'Rota não encontrada.'})
             return
-        if not SCAN_SLOTS.acquire(blocking=False):
-            send_json(self, 429, {'error': 'O runner está ocupado. Tente novamente em instantes.'})
-            return
         try:
             body = read_body(self)
             tool, target, _profile = validate_request(body)
+        except PermissionError:
+            send_json(self, 403, {'error': 'Gobuster está desabilitado no runner.'})
+            return
+        except InvalidRequest:
+            send_json(self, 400, {'error': 'Alvo, ferramenta ou perfil inválido.'})
+            return
+        if not acquire_scan_slot():
+            print(json.dumps({'event': 'runner_busy', 'tool': tool}), flush=True)
+            send_json(self, 429, {'error': 'O runner está ocupado. Tente novamente em instantes.'})
+            return
+        try:
             try:
                 status, result = execute(tool, target)
                 send_json(self, status, result)

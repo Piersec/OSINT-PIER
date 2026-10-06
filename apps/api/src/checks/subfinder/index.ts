@@ -43,7 +43,7 @@ const check: CheckPlugin = {
   label: 'Subfinder',
   requiredEnv: ['COMMAND_TOOLS_API_TOKEN'],
   supportedTargetKinds: ['domain', 'url'],
-  timeoutMs: 75_000,
+  timeoutMs: 90_000,
   async run(target, context) {
     const outcome = await callCommandTool('subfinder', target, context);
     if (outcome.status === 'skipped')
