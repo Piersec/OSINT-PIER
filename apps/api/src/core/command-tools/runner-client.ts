@@ -4,6 +4,10 @@ import { cloudflareAccessServiceHeaders } from '../network/cloudflare-access.js'
 
 export type CommandTool = 'nmap' | 'nuclei' | 'katana' | 'gobuster' | 'subfinder';
 
+const MAX_CONCURRENT_COMMAND_TOOL_REQUESTS = 2;
+let activeCommandToolRequests = 0;
+const waitingCommandToolRequests: Array<() => void> = [];
+
 type RunnerOutcome =
   | { status: 'success'; payload: Record<string, unknown> }
   | { status: 'skipped'; error: string }
@@ -54,6 +58,22 @@ function responseError(status: number): string {
   return `O runner respondeu com HTTP ${status}.`;
 }
 
+async function withCommandToolSlot<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  if (activeCommandToolRequests >= MAX_CONCURRENT_COMMAND_TOOL_REQUESTS) {
+    await new Promise<void>((resolve) => waitingCommandToolRequests.push(resolve));
+  }
+
+  activeCommandToolRequests += 1;
+  try {
+    return await operation();
+  } finally {
+    activeCommandToolRequests -= 1;
+    waitingCommandToolRequests.shift()?.();
+  }
+}
+
 export async function callCommandTool(
   tool: CommandTool,
   target: NormalizedTarget,
@@ -76,21 +96,23 @@ export async function callCommandTool(
   }
 
   try {
-    const response = await fetch(endpoint(baseUrl), {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        ...cloudflareAccessServiceHeaders(context.environment),
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        tool,
-        target: runnerTarget(tool, target),
-        profile: 'safe',
+    const response = await withCommandToolSlot(() =>
+      fetch(endpoint(baseUrl), {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          ...cloudflareAccessServiceHeaders(context.environment),
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tool,
+          target: runnerTarget(tool, target),
+          profile: 'safe',
+        }),
+        signal: context.signal,
       }),
-      signal: context.signal,
-    });
+    );
     const payload: unknown = await response.json().catch(() => ({}));
 
     if (!response.ok)

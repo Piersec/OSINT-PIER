@@ -147,6 +147,48 @@ describe('plugins de command tools', () => {
     });
   });
 
+  it('limita duas chamadas simultâneas ao runner', async () => {
+    let releaseFirst: (() => void) | undefined;
+    let releaseSecond: (() => void) | undefined;
+    let active = 0;
+    let highestActive = 0;
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          active += 1;
+          highestActive = Math.max(highestActive, active);
+          const release = () => {
+            active -= 1;
+            resolve(
+              responseFor('subfinder', {
+                target: 'example.com',
+                subdomains: [],
+                total: 0,
+              }),
+            );
+          };
+          if (!releaseFirst) releaseFirst = release;
+          else if (!releaseSecond) releaseSecond = release;
+          else release();
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const requests = [
+      subfinder.run(domainTarget, context),
+      subfinder.run(domainTarget, context),
+      subfinder.run(domainTarget, context),
+    ];
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(highestActive).toBe(2);
+    releaseFirst?.();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    releaseSecond?.();
+    await Promise.all(requests);
+    expect(highestActive).toBe(2);
+  });
+
   it('retorna skipped quando o gateway não está configurado', async () => {
     const result = await subfinder.run(domainTarget, {
       ...context,
