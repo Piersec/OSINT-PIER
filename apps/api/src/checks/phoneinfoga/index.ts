@@ -216,7 +216,7 @@ async function runScanner(
   try {
     const { response, payload } = await postJson(
       endpoint(baseUrl, `/api/v2/scanners/${encodeURIComponent(name)}/run`),
-      { number, options },
+      { number: number.replace(/\D/g, ''), options },
       token,
       signal,
       environment,
@@ -268,7 +268,7 @@ const check: CheckPlugin = {
     try {
       const { response, payload } = await postJson(
         endpoint(baseUrl, '/api/v2/numbers'),
-        { number: target.value },
+        { number: target.value.replace(/\D/g, '') },
         token,
         context.signal,
         context.environment,

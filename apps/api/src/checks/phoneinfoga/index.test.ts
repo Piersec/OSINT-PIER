@@ -43,6 +43,7 @@ describe('plugin PhoneInfoga', () => {
         const body = init?.body ? JSON.parse(String(init.body)) : undefined;
 
         if (url.endsWith('/api/v2/numbers')) {
+          expect(body).toEqual({ number: '5511998765432' });
           return Response.json({
             e164: '+5511998765432',
             international: '+55 11 99876-5432',
@@ -56,7 +57,7 @@ describe('plugin PhoneInfoga', () => {
         }
 
         if (url.endsWith('/local/run')) {
-          expect(body).toEqual({ number: '+5511998765432', options: {} });
+          expect(body).toEqual({ number: '5511998765432', options: {} });
           return Response.json({
             result: {
               e164: '+5511998765432',
@@ -118,6 +119,7 @@ describe('plugin PhoneInfoga', () => {
     expect(JSON.stringify(result.data)).not.toContain('must not be returned');
 
     for (const [, init] of fetchMock.mock.calls) {
+      expect(JSON.parse(String(init?.body)).number).toMatch(/^[0-9]+$/);
       expect(new Headers(init?.headers).get('authorization')).toBe(
         'Bearer gateway-token',
       );
@@ -158,11 +160,11 @@ describe('plugin PhoneInfoga', () => {
       String(input).endsWith('/googlecse/run'),
     );
     expect(JSON.parse(String(numverifyCall?.[1]?.body))).toEqual({
-      number: '+5511998765432',
+      number: '5511998765432',
       options: { NUMVERIFY_API_KEY: 'numverify-secret' },
     });
     expect(JSON.parse(String(googlecseCall?.[1]?.body))).toEqual({
-      number: '+5511998765432',
+      number: '5511998765432',
       options: {
         GOOGLECSE_CX: 'google-cx',
         GOOGLE_API_KEY: 'google-secret',
