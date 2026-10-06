@@ -156,17 +156,6 @@ function compactScannerResult(name: string, result: unknown): unknown {
     };
   }
 
-  if (name === 'ovh') {
-    const payload = result as Record<string, unknown>;
-    return {
-      found: typeof payload.found === 'boolean' ? payload.found : null,
-      numberRange:
-        typeof payload.number_range === 'string' ? payload.number_range : null,
-      city: typeof payload.city === 'string' ? payload.city : null,
-      zipCode: typeof payload.zip_code === 'string' ? payload.zip_code : null,
-    };
-  }
-
   if (name === 'googlesearch') {
     const payload = result as Record<string, unknown>;
     return {
@@ -290,7 +279,6 @@ const check: CheckPlugin = {
       const scannerOptions: Record<string, Record<string, string>> = {
         local: {},
         googlesearch: {},
-        ovh: {},
       };
       const skippedScanners: Record<string, string> = {};
 

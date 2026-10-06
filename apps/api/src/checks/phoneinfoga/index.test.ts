@@ -83,17 +83,6 @@ describe('plugin PhoneInfoga', () => {
           });
         }
 
-        if (url.endsWith('/ovh/run')) {
-          return Response.json({
-            result: {
-              found: false,
-              number_range: '11xxxxxx',
-              city: 'São Paulo',
-              zip_code: '00000-000',
-            },
-          });
-        }
-
         throw new Error(`URL inesperada: ${url}`);
       },
     );
@@ -111,12 +100,13 @@ describe('plugin PhoneInfoga', () => {
       scanners: {
         local: { status: 'success' },
         googlesearch: { status: 'success' },
-        ovh: { status: 'success' },
         numverify: { status: 'skipped' },
         googlecse: { status: 'skipped' },
       },
     });
     expect(JSON.stringify(result.data)).not.toContain('must not be returned');
+    expect(JSON.stringify(result.data)).not.toContain('ovh');
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/ovh/'))).toBe(false);
 
     for (const [, init] of fetchMock.mock.calls) {
       expect(JSON.parse(String(init?.body)).number).toMatch(/^[0-9]+$/);
@@ -178,7 +168,7 @@ describe('plugin PhoneInfoga', () => {
       if (url.endsWith('/api/v2/numbers')) {
         return Response.json({ e164: '+5511998765432', valid: true });
       }
-      if (url.endsWith('/ovh/run')) return new Response(null, { status: 429 });
+      if (url.endsWith('/googlesearch/run')) return new Response(null, { status: 429 });
       return Response.json({ result: {} });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -193,8 +183,7 @@ describe('plugin PhoneInfoga', () => {
     expect(result.data).toMatchObject({
       scanners: {
         local: { status: 'success' },
-        googlesearch: { status: 'success' },
-        ovh: {
+        googlesearch: {
           status: 'error',
           error: 'O limite de uso do serviço PhoneInfoga foi atingido.',
         },
