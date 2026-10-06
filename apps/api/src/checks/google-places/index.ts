@@ -7,6 +7,9 @@ import { failure, success } from '../../core/checks/results.js';
 
 const id = 'google-places';
 const source = 'Apify · compass/crawler-google-places';
+// O ator exige esse teto mínimo desde sua migração para cobrança por evento.
+// Os add-ons permanecem desabilitados e a guarda mensal continua em vigor.
+const MAX_TOTAL_CHARGE_USD = '0.50';
 
 interface PlaceDatasetItem {
   title?: unknown;
@@ -70,7 +73,7 @@ const check: CheckPlugin = {
         'https://api.apify.com/v2/acts/compass~crawler-google-places/run-sync-get-dataset-items',
       );
       endpoint.searchParams.set('clean', 'true');
-      endpoint.searchParams.set('maxTotalChargeUsd', '0.05');
+      endpoint.searchParams.set('maxTotalChargeUsd', MAX_TOTAL_CHARGE_USD);
       const response = await fetch(endpoint, {
         method: 'POST',
         signal: context.signal,

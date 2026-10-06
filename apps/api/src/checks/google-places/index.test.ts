@@ -42,7 +42,7 @@ describe('google-places check', () => {
       data: { placesFound: 1, places: [{ name: 'Café', rating: 4.7 }] },
     });
     expect(fetchMock.mock.calls[2]?.[0].toString()).toContain(
-      'maxTotalChargeUsd=0.05',
+      'maxTotalChargeUsd=0.50',
     );
     expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toMatchObject({
       maxCrawledPlacesPerSearch: 10,

@@ -72,6 +72,29 @@ describe('ResultCard', () => {
     ).toBeNull();
   });
 
+  it('explica alvo incompatível sem direcionar para credenciais', () => {
+    render(
+      <ResultCard
+        check={{ ...check, configured: true }}
+        state={{
+          status: 'done',
+          result: {
+            id: check.id,
+            status: 'skipped',
+            error: 'Informe uma URL pública de perfil do LinkedIn (linkedin.com/in/...).',
+            source: 'Apify',
+            durationMs: 1,
+          },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText('Informe um alvo compatível com esta fonte para executá-la.'),
+    ).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Configurar credencial' })).toBeNull();
+  });
+
   it('permite repetir uma falha isolada de plugin', () => {
     const onRetry = vi.fn();
     render(

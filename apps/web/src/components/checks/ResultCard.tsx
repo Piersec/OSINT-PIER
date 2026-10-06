@@ -430,6 +430,30 @@ function getPresentation(
   return 'brief';
 }
 
+function skippedGuidance(result: CheckResult): string | null {
+  if (result.status !== 'skipped' || !result.error) return null;
+  const message = result.error.toLowerCase();
+  if (message.includes('credencial') || message.includes('cofre')) {
+    return 'Esta integração precisa da credencial obrigatória para ser executada.';
+  }
+  if (
+    message.includes('não se aplica') ||
+    message.includes('url pública de perfil') ||
+    message.includes('tipo de alvo')
+  ) {
+    return 'Informe um alvo compatível com esta fonte para executá-la.';
+  }
+  return 'Esta fonte foi pulada com segurança; revise a mensagem acima antes de tentar novamente.';
+}
+
+function requiresCredentialSetup(result: CheckResult): boolean {
+  return Boolean(
+    result.status === 'skipped' &&
+      result.error &&
+      /credencial|cofre/i.test(result.error),
+  );
+}
+
 export function ResultCard({
   check,
   state,
@@ -501,11 +525,8 @@ export function ResultCard({
           {state.result.error && (
             <div className="result-alert" role="alert">
               <p className="error-message">{state.result.error}</p>
-              {state.result.status === 'skipped' && (
-                <p className="result-guidance">
-                  Esta integração está desabilitada até a credencial obrigatória
-                  ser configurada.
-                </p>
+              {skippedGuidance(state.result) && (
+                <p className="result-guidance">{skippedGuidance(state.result)}</p>
               )}
             </div>
           )}
@@ -537,7 +558,7 @@ export function ResultCard({
             Tentar novamente
           </button>
         )}
-        {state.status === 'done' && state.result.status === 'skipped' && (
+        {state.status === 'done' && requiresCredentialSetup(state.result) && (
           <a className="result-action-link" href="#credentials">
             Configurar credencial
           </a>
