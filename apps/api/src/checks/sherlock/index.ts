@@ -7,6 +7,9 @@ import { failure, success } from '../../core/checks/results.js';
 
 const id = 'sherlock';
 const source = 'Apify · misceres/sherlock';
+// O ator é cobrado por uso. Este teto é deliberadamente baixo para preservar o
+// crédito gratuito e impedir uma execução isolada de consumir toda a cota.
+const MAX_TOTAL_CHARGE_USD = '0.05';
 
 interface SherlockDatasetItem {
   username?: unknown;
@@ -73,6 +76,7 @@ const check: CheckPlugin = {
         'https://api.apify.com/v2/acts/misceres~sherlock/run-sync-get-dataset-items',
       );
       endpoint.searchParams.set('clean', 'true');
+      endpoint.searchParams.set('maxTotalChargeUsd', MAX_TOTAL_CHARGE_USD);
       const response = await fetch(endpoint, {
         method: 'POST',
         signal: context.signal,

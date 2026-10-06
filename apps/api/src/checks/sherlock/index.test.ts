@@ -58,6 +58,9 @@ describe('sherlock check', () => {
     expect(fetchMock.mock.calls[2]?.[0].toString()).toContain(
       'misceres~sherlock/run-sync-get-dataset-items',
     );
+    expect(fetchMock.mock.calls[2]?.[0].toString()).toContain(
+      'maxTotalChargeUsd=0.05',
+    );
   });
 
   it('does not start an Actor when the credit guard is active', async () => {
