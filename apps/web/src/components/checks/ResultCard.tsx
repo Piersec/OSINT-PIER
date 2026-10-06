@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CheckCatalogItem, CheckResult } from '@osint-pier/contracts';
 import { StatusPill } from '../primitives/StatusPill';
 import { ToolLogo } from '../primitives/ToolLogo';
@@ -237,7 +238,9 @@ function ScalarValue({ value, field }: { value: unknown; field?: string }) {
 }
 
 function ResultTable({ items }: { items: Array<Record<string, unknown>> }) {
-  const visibleItems = items.slice(0, 6);
+  const [expanded, setExpanded] = useState(false);
+  const visibleItems = expanded ? items : items.slice(0, 6);
+  const hiddenItemCount = Math.max(0, items.length - visibleItems.length);
   const keys = [...new Set(visibleItems.flatMap((item) => Object.keys(item)))]
     .filter((key) => key !== 'sources')
     .slice(0, 4);
@@ -257,11 +260,15 @@ function ResultTable({ items }: { items: Array<Record<string, unknown>> }) {
           ))}
         </div>
       ))}
-      {items.length > visibleItems.length && (
-        <p className="result-table__more">
-          + {items.length - visibleItems.length} itens omitidos para manter a
-          leitura.
-        </p>
+      {items.length > 6 && (
+        <button
+          aria-expanded={expanded}
+          className="result-table__toggle"
+          onClick={() => setExpanded((current) => !current)}
+          type="button"
+        >
+          {expanded ? 'Ver menos' : `Ver + ${hiddenItemCount} itens`}
+        </button>
       )}
     </div>
   );

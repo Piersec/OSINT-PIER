@@ -142,4 +142,32 @@ describe('ResultCard', () => {
     expect(screen.getByText('private-or-reserved')).toBeTruthy();
     expect(screen.queryByText(/denúncias recentes/)).toBeNull();
   });
+
+  it('expande e recolhe listas de resultados longas', () => {
+    const profiles = Array.from({ length: 8 }, (_, index) => ({
+      url: `https://example.com/${index + 1}`,
+    }));
+    render(
+      <ResultCard
+        check={check}
+        state={{
+          status: 'done',
+          result: {
+            id: check.id,
+            status: 'success',
+            data: { profiles },
+            source: 'test',
+            durationMs: 1,
+          },
+        }}
+      />,
+    );
+
+    const expand = screen.getByRole('button', { name: 'Ver + 2 itens' });
+    expect(screen.queryByText('https://example.com/8')).toBeNull();
+    fireEvent.click(expand);
+    expect(screen.getByText('https://example.com/8')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Ver menos' }));
+    expect(screen.queryByText('https://example.com/8')).toBeNull();
+  });
 });
