@@ -13,3 +13,16 @@ operacional verificada; não considerar essa etapa como remoção completa.
 
 Não apagar chaves opcionais Google/Numverify sem confirmar outros consumidores.
 Osintgram permanece explicitamente planejado, não instalado.
+
+## Limpeza operacional confirmada
+
+- A stack `osint-phoneinfoga` e seus dois contêineres foram removidos do Portainer.
+- Removidos do cofre Supabase `PHONEINFOGA_API_TOKEN` e `SHODAN_API_KEY`.
+  Consulta posterior confirmou zero registros para essas duas chaves e
+  `PHONEINFOGA_API_URL` (esta última já não estava no cofre).
+- A remoção dos registros do cofre é permanente; novos tokens precisam ser
+  cadastrados caso essas integrações sejam reativadas.
+- A rota PhoneInfoga no bridge e seu binding de referência ainda estão presentes
+  no código. Sua limpeza e a verificação das variáveis na Vercel estão pendentes.
+- Nenhum segredo foi lido. Credenciais opcionais Google/Numverify e recursos
+  compartilhados foram preservados.
