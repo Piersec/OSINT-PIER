@@ -6,6 +6,8 @@ Substituir o plugin pago/restrito por Shodan InternetDB gratuito e sem chave,
 conforme pedido do proprietário. Mantido id `shodan` para preservar flags e
 compatibilidade do catálogo; novo label `Shodan InternetDB` e requiredEnv vazio.
 Sem Docker adicional, sem assinatura e sem alteração das outras integrações.
+Uso pessoal não comercial confirmado pelo proprietário em 2026-10-07.
+A fonte exige licença empresarial para uso comercial; não habilitar plano pago.
 
 ## Contrato
 
@@ -22,11 +24,10 @@ Referência: https://book.shodan.io/developer-apis/internetdb/
 
 ## Validação e entrega
 
-8 testes específicos aprovados, incluindo ausência de chave, 404, 429, payload
-incompleto e bloqueio de IP privado. Typecheck da API aprovado.
-Typecheck web e build API aprovados. Suíte completa: 102 testes aprovados no
-reteste; a primeira execução teve timeout no teste de autenticação já observado
-em etapas anteriores. Publicação e smoke pendentes.
+Integração sobre a master em 2026-10-07: 104/105 testes da API passaram na
+primeira execução; o teste de autenticação excedeu 5 segundos. Reteste isolado
+de autenticação e plugins Hunter/InternetDB: 20/20 aprovados.
+Publicação e smoke devem ser confirmados no deploy de produção.
 
 Credencial antiga identificada exclusivamente pelo nome SHODAN_API_KEY no cofre
 Supabase doqnyijzaogqiwkuygcs, sem leitura de ciphertext ou segredo.
