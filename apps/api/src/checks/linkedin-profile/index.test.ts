@@ -18,11 +18,57 @@ function response(body: unknown, status = 200): Response {
 afterEach(() => vi.restoreAllMocks());
 
 describe('linkedin-profile check', () => {
+  it.each([true, false])(
+    'mapeia o formato do actor sem tratar cargo anterior como atual (%s)',
+    async (current) => {
+      vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(
+          response({
+            data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } },
+          }),
+        )
+        .mockResolvedValueOnce(
+          response({ data: { totalUsageCreditsUsdAfterVolumeDiscount: 0.5 } }),
+        )
+        .mockResolvedValueOnce(
+          response([
+            {
+              firstName: 'Example',
+              lastName: 'Person',
+              location: { linkedinText: 'São Paulo, Brazil' },
+              experience: [
+                {
+                  position: 'Engineer',
+                  companyName: 'Example Co',
+                  endDate: { text: current ? 'Present' : 'Dec 2023' },
+                },
+              ],
+            },
+          ]),
+        );
+      const result = await check.run(target, {
+        signal: new AbortController().signal,
+        credentials: { APIFY_API_TOKEN: 'secret' },
+      });
+      expect(result).toMatchObject({
+        status: 'success',
+        data: {
+          name: 'Example Person',
+          location: 'São Paulo, Brazil',
+          currentTitle: current ? 'Engineer' : null,
+          company: current ? 'Example Co' : null,
+        },
+      });
+    },
+  );
+
   it('solicita um único perfil sem ativar busca de e-mail', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(
-        response({ data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } } }),
+        response({
+          data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } },
+        }),
       )
       .mockResolvedValueOnce(
         response({ data: { totalUsageCreditsUsdAfterVolumeDiscount: 0.5 } }),
@@ -61,7 +107,9 @@ describe('linkedin-profile check', () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(
-        response({ data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } } }),
+        response({
+          data: { plan: { tier: 'FREE', monthlyUsageCreditsUsd: 5 } },
+        }),
       )
       .mockResolvedValueOnce(
         response({ data: { totalUsageCreditsUsdAfterVolumeDiscount: 4.5 } }),

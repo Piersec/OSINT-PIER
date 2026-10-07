@@ -11,6 +11,10 @@ const source = 'Apify · harvestapi/linkedin-profile-scraper';
 interface LinkedInDatasetItem {
   name?: unknown;
   fullName?: unknown;
+  firstName?: unknown;
+  lastName?: unknown;
+  currentPosition?: unknown;
+  experience?: unknown;
   headline?: unknown;
   title?: unknown;
   companyName?: unknown;
@@ -22,6 +26,22 @@ interface LinkedInDatasetItem {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function currentExperience(value: unknown): Record<string, unknown> {
+  if (!Array.isArray(value)) return {};
+  return record(
+    value.find((entry) => {
+      const end = record(record(entry).endDate);
+      return stringOrNull(end.text)?.toLowerCase() === 'present';
+    }),
+  );
 }
 
 function apiFailure(status: number): string {
@@ -39,7 +59,8 @@ function isPublicLinkedInProfile(value: string): boolean {
   try {
     const url = new URL(value);
     return (
-      (url.hostname === 'linkedin.com' || url.hostname.endsWith('.linkedin.com')) &&
+      (url.hostname === 'linkedin.com' ||
+        url.hostname.endsWith('.linkedin.com')) &&
       url.pathname.startsWith('/in/')
     );
   } catch {
@@ -61,7 +82,8 @@ const check: CheckPlugin = {
       return {
         id,
         status: 'skipped',
-        error: 'Informe uma URL pública de perfil do LinkedIn (linkedin.com/in/...).',
+        error:
+          'Informe uma URL pública de perfil do LinkedIn (linkedin.com/in/...).',
         source,
         durationMs: 0,
       };
@@ -109,15 +131,46 @@ const check: CheckPlugin = {
         ? dataset.find((entry) => entry && typeof entry === 'object')
         : undefined;
       if (!item)
-        return failure(id, source, 'O Apify não encontrou um perfil público para essa URL.');
+        return failure(
+          id,
+          source,
+          'O Apify não encontrou um perfil público para essa URL.',
+        );
 
+      const experience = currentExperience(item.experience);
+      const position = Array.isArray(item.currentPosition)
+        ? record(item.currentPosition[0])
+        : record(item.currentPosition);
+      const location = record(item.location);
+      const composedName = [
+        stringOrNull(item.firstName),
+        stringOrNull(item.lastName),
+      ]
+        .filter(Boolean)
+        .join(' ');
       return success(id, source, {
-        profileUrl: stringOrNull(item.linkedinUrl) ?? stringOrNull(item.url) ?? target.value,
-        name: stringOrNull(item.fullName) ?? stringOrNull(item.name),
+        profileUrl:
+          stringOrNull(item.linkedinUrl) ??
+          stringOrNull(item.url) ??
+          target.value,
+        name:
+          stringOrNull(item.fullName) ??
+          stringOrNull(item.name) ??
+          stringOrNull(composedName),
         headline: stringOrNull(item.headline),
-        currentTitle: stringOrNull(item.title),
-        company: stringOrNull(item.companyName) ?? stringOrNull(item.company),
-        location: stringOrNull(item.location),
+        currentTitle:
+          stringOrNull(item.title) ??
+          stringOrNull(position.position) ??
+          stringOrNull(experience.position),
+        company:
+          stringOrNull(item.companyName) ??
+          stringOrNull(item.company) ??
+          stringOrNull(position.companyName) ??
+          stringOrNull(experience.companyName),
+        location:
+          stringOrNull(item.location) ??
+          stringOrNull(location.linkedinText) ??
+          stringOrNull(record(location.parsed).text),
         usage: {
           usedUsd: guard.usedUsd ?? null,
           remainingUsd: guard.remainingUsd ?? null,
@@ -125,7 +178,11 @@ const check: CheckPlugin = {
         },
       });
     } catch {
-      return failure(id, source, 'Não foi possível consultar o perfil LinkedIn no Apify.');
+      return failure(
+        id,
+        source,
+        'Não foi possível consultar o perfil LinkedIn no Apify.',
+      );
     }
   },
 };
