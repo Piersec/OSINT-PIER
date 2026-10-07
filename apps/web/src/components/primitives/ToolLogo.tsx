@@ -10,7 +10,6 @@ const glyphs: Record<string, string> = {
   nmap: '⌖',
   'osint-framework': '◫',
   osintgram: '◉',
-  phoneinfoga: '⌕',
   'redirect-chain': '→',
   'robots-sitemap': '⌘',
   'server-location': '◉',

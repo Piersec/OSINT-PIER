@@ -10,17 +10,6 @@ const routes = [
     port: 18080,
     accepts: (path) => path === '/api/v1/scan',
   },
-  {
-    prefix: '/phoneinfoga',
-    binding: 'PHONEINFOGA',
-    service: 'phoneinfoga',
-    port: 18082,
-    accepts: (path) =>
-      path === '/api/v2/numbers' ||
-      /^\/api\/v2\/scanners\/(local|googlesearch|ovh|numverify|googlecse)\/run$/.test(
-        path,
-      ),
-  },
 ];
 
 function jsonError(status, error, extraHeaders = {}) {

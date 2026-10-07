@@ -22,10 +22,5 @@
       "service_id": "01a0f2c6-a169-7552-95f3-059ec687f89d",
       "remote": true,
     },
-    {
-      "binding": "PHONEINFOGA",
-      "service_id": "01a0f2c7-41f4-7582-8b91-fa7bf195c807",
-      "remote": true,
-    },
   ],
 }

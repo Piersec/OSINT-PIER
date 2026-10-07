@@ -58,13 +58,13 @@ test('routes only the command-tools scan to its bound private service', async ()
   assert.deepEqual(await response.json(), { tool: 'nmap' });
 });
 
-test('routes PhoneInfoga only to its fixed loopback port', async () => {
+test('does not route the retired PhoneInfoga integration', async () => {
   const capture = {};
   const env = {
     PHONEINFOGA: bindingWith(new Response(null, { status: 204 }), capture),
   };
 
-  const phone = await worker.fetch(
+  const response = await worker.fetch(
     new Request(
       'https://bridge.example.workers.dev/phoneinfoga/api/v2/scanners/local/run',
       {
@@ -75,12 +75,8 @@ test('routes PhoneInfoga only to its fixed loopback port', async () => {
     ),
     env,
   );
-  assert.equal(phone.status, 204);
-  assert.equal(
-    capture.request.url,
-    'http://127.0.0.1:18082/api/v2/scanners/local/run',
-  );
-
+  assert.equal(response.status, 404);
+  assert.equal(capture.request, undefined);
 });
 
 test('rejects unknown paths, query strings, and unsupported methods without upstream calls', async () => {
@@ -96,15 +92,18 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
     env,
   );
   const query = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers?x=1', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: '{}',
-    }),
+    new Request(
+      'https://bridge.example.workers.dev/command-tools/api/v1/scan?x=1',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      },
+    ),
     env,
   );
   const unsupported = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers'),
+    new Request('https://bridge.example.workers.dev/command-tools/api/v1/scan'),
     env,
   );
 
@@ -117,13 +116,13 @@ test('rejects unknown paths, query strings, and unsupported methods without upst
 test('does not follow redirects and returns a generic error if the binding fails', async () => {
   const redirectCapture = {};
   const redirect = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
+    new Request('https://bridge.example.workers.dev/command-tools/api/v1/scan', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
     }),
     {
-      PHONEINFOGA: bindingWith(
+      COMMAND_TOOLS: bindingWith(
         new Response(null, {
           status: 302,
           headers: { location: 'https://example.com/' },
@@ -136,13 +135,13 @@ test('does not follow redirects and returns a generic error if the binding fails
   assert.equal(redirect.headers.get('location'), 'https://example.com/');
 
   const unavailable = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
+    new Request('https://bridge.example.workers.dev/command-tools/api/v1/scan', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
     }),
     {
-      PHONEINFOGA: {
+      COMMAND_TOOLS: {
         fetch: async () => Promise.reject(new Error('private details')),
       },
     },
@@ -154,13 +153,13 @@ test('does not follow redirects and returns a generic error if the binding fails
 
 test('refuses non-JSON payloads and missing VPC bindings', async () => {
   const contentType = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
+    new Request('https://bridge.example.workers.dev/command-tools/api/v1/scan', {
       method: 'POST',
     }),
-    { PHONEINFOGA: { fetch: async () => Response.json({}) } },
+    { COMMAND_TOOLS: { fetch: async () => Response.json({}) } },
   );
   const unconfigured = await worker.fetch(
-    new Request('https://bridge.example.workers.dev/phoneinfoga/api/v2/numbers', {
+    new Request('https://bridge.example.workers.dev/command-tools/api/v1/scan', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
     }),
