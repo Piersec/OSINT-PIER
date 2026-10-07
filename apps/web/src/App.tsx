@@ -210,7 +210,8 @@ const toolCategories: Record<string, ToolCategory> = {
   katana: 'web',
   nmap: 'web',
   'osint-framework': 'web',
-  phoneinfoga: 'personal',
+  sherlock: 'personal',
+  'linkedin-profile': 'personal',
   'redirect-chain': 'web',
   'robots-sitemap': 'web',
   'server-location': 'web',
@@ -230,13 +231,6 @@ const plannedTools = [
     label: 'Osintgram',
     category: 'personal' as const,
     description: 'Planejado: depende de autenticação autorizada do Instagram.',
-  },
-  {
-    id: 'sherlock',
-    label: 'Sherlock',
-    category: 'personal' as const,
-    description:
-      'Planejado: depende do binário local e execução controlada de username.',
   },
 ];
 

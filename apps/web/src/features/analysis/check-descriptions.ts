@@ -28,8 +28,6 @@ const toolDescriptions: Record<string, string> = {
   'whois-rdap': 'Consulta dados de registro via RDAP oficial.',
   'osint-framework':
     'Oferece referências curadas do OSINT Framework sem scraping automático.',
-  phoneinfoga:
-    'Analisa números com o PhoneInfoga oficial, scanners autorizados e resultados curados.',
 };
 
 export function getCheckDescription(
