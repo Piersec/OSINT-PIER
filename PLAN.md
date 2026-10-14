@@ -213,6 +213,8 @@ operacional; ela não deve ser registrada neste arquivo.
 - [x] Ampliar CNPJ com cadastro, contatos empresariais, tributação, atividades e
       quadro societário sem CPF; consultar menções do Querido Diário no card Brazuca,
       distinguindo resultados reais, ausência na cobertura e fontes manuais.
+- [x] Corrigir a consulta de CNPJ usando diretamente a Minha Receita, mesma origem
+      da BrasilAPI, com validação real do plugin e preservação da curadoria existente.
 
 Cada integração será analisada antes de implementação, com escopo curado, autorização
 explícita e tratamento de rate limit/credenciais. A ausência de chave ou sessão deve

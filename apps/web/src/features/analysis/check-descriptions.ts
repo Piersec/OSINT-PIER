@@ -2,7 +2,7 @@ import type { CheckCatalogItem } from '@osint-pier/contracts';
 
 const toolDescriptions: Record<string, string> = {
   cpf: 'Verifica formato e dígitos do CPF, sem consultar titular ou situação cadastral.',
-  cnpj: 'Consulta dados cadastrais de uma empresa na BrasilAPI, sem chave externa.',
+  cnpj: 'Consulta dados cadastrais de uma empresa na Minha Receita, sem chave externa.',
   'osint-brazuca':
     'Sugere fontes brasileiras por tipo de alvo, com links de consulta manual.',
   'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',

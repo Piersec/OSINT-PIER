@@ -10,13 +10,14 @@
   não são apresentadas como resultados coletados. Não preenche formulários.
   As classificações heurísticas do catálogo
   original foram revistas para este recorte. Licença em `osint-brazuca-LICENSE.txt`.
-- `cnpj`: consulta unitária server-side em
-  `https://brasilapi.com.br/api/cnpj/v1/{cnpj}`, sem chave e sem plano pago.
+- `cnpj`: consulta unitária server-side diretamente em
+  `https://minhareceita.org/{cnpj}`, sem chave e sem plano pago.
   Usa timeout de 10 segundos, cache/rate limit existentes e nenhum retry automático.
   Não faz enumeração de CNPJs. Trata 400, 401/403, 404, 429, 5xx e falhas de rede.
-  Identifica o cliente como `OSINT-Pier/1.0` no User-Agent; a consulta pública
-  retornou 403 com o identificador genérico do Node e 200 com a identificação
-  transparente da aplicação. Não usa cookies, autenticação ou simulação de navegador.
+  Identifica o cliente como `OSINT-Pier/1.0` no User-Agent. A Minha Receita é a
+  mesma origem usada pelo endpoint CNPJ da BrasilAPI; a consulta direta remove
+  o intermediário que falhou na validação de produção. Não usa cookies,
+  autenticação ou simulação de navegador.
 
 ## Alvo e resultado
 
@@ -48,10 +49,11 @@ existente, mas não recebe a resposta cadastral detalhada.
 - https://github.com/osintbrazuca/osint-brazuca/blob/c5596fd157bdbfecad8a9571245556cd3348b3df/data/sources.json
 - https://github.com/BrasilAPI/BrasilAPI/blob/main/pages/docs/doc/cnpj.json
 - https://github.com/BrasilAPI/BrasilAPI/blob/main/services/cnpj.js
+- https://docs.minhareceita.org/
 - https://github.com/BrasilAPI/BrasilAPI#termos-de-uso
 
-BrasilAPI documenta o endpoint aberto, mas não publica uma cota numérica garantida
-nesses documentos. O serviço pede que não sejam feitos crawling ou consultas em massa.
+Minha Receita documenta uma API pública sem garantia de disponibilidade. A consulta
+continua unitária, com cache, sem crawling ou consultas em massa.
 Nenhuma integração aqui exige Docker, Apify ou configuração de cobrança.
 
 Querido Diário: especificação pública verificada em
@@ -69,6 +71,11 @@ Receita Federal ou ReceitaWS, nem dependência entre resultados de plugins.
 
 ## Validação da entrega
 
+- Correção de 2026-10-14: consulta direta à mesma origem da BrasilAPI. O plugin
+  compilado retornou `success` em consulta autorizada, com situação e município
+  preenchidos. O identificador usado na validação não é registrado no repositório.
+  Os 13 testes do CNPJ e 12 testes das rotas da API passaram, assim como lint,
+  verificação de tipos e build completo do monorepo.
 - Contratos: 22 testes aprovados; API: 114; frontend: 33.
 - Após ajustar User-Agent, os dez testes do CNPJ passaram novamente e a chamada
   real do plugin compilado retornou `success` para o exemplo público da documentação.

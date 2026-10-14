@@ -67,7 +67,7 @@ describe('Consulta de CNPJ', () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://brasilapi.com.br/api/cnpj/v1/00000000000191',
+      'https://minhareceita.org/00000000000191',
       expect.objectContaining({
         redirect: 'error',
         signal: context.signal,
@@ -88,7 +88,7 @@ describe('Consulta de CNPJ', () => {
     });
   });
 
-  it.each([400, 401, 403, 429, 500])(
+  it.each([400, 401, 403, 429, 500, 502, 503])(
     'trata HTTP %s sem vazar a resposta',
     async (status) => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -96,6 +96,7 @@ describe('Consulta de CNPJ', () => {
       );
       const result = await check.run(target, context);
       expect(result.status).toBe('error');
+      expect(result.source).toBe('Minha Receita');
       expect(JSON.stringify(result)).not.toContain('private provider details');
       if (status === 429) expect(result.error).toContain('Limite');
     },

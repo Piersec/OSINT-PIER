@@ -2,7 +2,7 @@ import type { CheckPlugin } from '../../core/checks/contract.js';
 import { failure, success } from '../../core/checks/results.js';
 
 const id = 'cnpj';
-const source = 'BrasilAPI / Minha Receita';
+const source = 'Minha Receita';
 
 function details(input: Record<string, unknown>): Record<string, unknown> {
   // Explicit allowlists: never forward arbitrary provider fields or CPF values.
@@ -147,7 +147,7 @@ const check: CheckPlugin = {
     }
     try {
       const response = await fetch(
-        `https://brasilapi.com.br/api/cnpj/v1/${cnpj}`,
+        `https://minhareceita.org/${cnpj}`,
         {
           signal: context.signal,
           redirect: 'error',
@@ -169,11 +169,11 @@ const check: CheckPlugin = {
       if (!response.ok) {
         const error =
           response.status === 429
-            ? 'Limite da BrasilAPI atingido. Aguarde antes de tentar novamente.'
+            ? 'Limite da Minha Receita atingido. Aguarde antes de tentar novamente.'
             : response.status === 400
-              ? 'A BrasilAPI rejeitou o formato deste CNPJ.'
+              ? 'A Minha Receita rejeitou o formato deste CNPJ.'
               : response.status === 401 || response.status === 403
-                ? 'A BrasilAPI restringiu o acesso a esta consulta.'
+                ? 'A Minha Receita restringiu o acesso a esta consulta.'
                 : 'Consulta de CNPJ temporariamente indisponível.';
         return failure(id, source, error);
       }
@@ -209,7 +209,7 @@ const check: CheckPlugin = {
       return failure(
         id,
         source,
-        'Não foi possível consultar a BrasilAPI. Tente novamente mais tarde.',
+        'Não foi possível consultar a Minha Receita. Tente novamente mais tarde.',
       );
     }
   },
