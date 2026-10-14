@@ -34,6 +34,10 @@ de sócios ou representantes. Campos ausentes não são inventados; listas possu
 de 200 itens com contagem explícita de excedentes. Dados podem estar
 desatualizados; ausência na fonte não comprova inexistência da empresa.
 
+O resumo de quatro campos permanece. O botão `Ver mais detalhes` revela os demais
+campos retornados e `Ver menos detalhes` os recolhe, com estado acessível
+`aria-expanded`. A expansão de listas longas continua independente.
+
 A migração amplia somente a restrição de tipo do histórico; RLS e grants permanecem
 como estavam. O histórico pode guardar o CNPJ e contadores, seguindo o contrato
 existente, mas não recebe a resposta cadastral detalhada.

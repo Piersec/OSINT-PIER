@@ -17,6 +17,39 @@ const check: CheckCatalogItem = {
 afterEach(cleanup);
 
 describe('ResultCard', () => {
+  it('permite acessar e recolher os campos além do resumo', () => {
+    render(
+      <ResultCard
+        check={{ ...check, id: 'cnpj' }}
+        state={{
+          status: 'done',
+          result: {
+            id: 'cnpj',
+            status: 'success',
+            source: 'test',
+            durationMs: 1,
+            data: {
+              razao_social: 'Empresa',
+              cnpj: '19131243000197',
+              situacao_cadastral: 'ATIVA',
+              municipio_uf: 'SP',
+              'Dados cadastrais complementares': { 'capital social': 500 },
+            },
+          },
+        }}
+      />,
+    );
+    expect(screen.queryByText('Capital social')).toBeNull();
+    const button = screen.getByRole('button', {
+      name: 'Ver mais detalhes (1)',
+    });
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(button);
+    expect(screen.getByText('Capital social')).toBeTruthy();
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(button);
+    expect(screen.queryByText('Capital social')).toBeNull();
+  });
   it('direciona checks pulados ao painel de credenciais sem oferecer retry', () => {
     render(
       <ResultCard
@@ -81,7 +114,8 @@ describe('ResultCard', () => {
           result: {
             id: check.id,
             status: 'skipped',
-            error: 'Informe uma URL pública de perfil do LinkedIn (linkedin.com/in/...).',
+            error:
+              'Informe uma URL pública de perfil do LinkedIn (linkedin.com/in/...).',
             source: 'Apify',
             durationMs: 1,
           },
@@ -90,9 +124,13 @@ describe('ResultCard', () => {
     );
 
     expect(
-      screen.getByText('Informe um alvo compatível com esta fonte para executá-la.'),
+      screen.getByText(
+        'Informe um alvo compatível com esta fonte para executá-la.',
+      ),
     ).toBeTruthy();
-    expect(screen.queryByRole('link', { name: 'Configurar credencial' })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: 'Configurar credencial' }),
+    ).toBeNull();
   });
 
   it('permite repetir uma falha isolada de plugin', () => {

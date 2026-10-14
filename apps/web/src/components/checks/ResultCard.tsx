@@ -25,7 +25,7 @@ const keyLabels: Record<string, string> = {
   inicio_atividade: 'Início das atividades',
   atividade_principal: 'Atividade principal',
   natureza_juridica: 'Natureza jurídica',
-  referencias: 'Fontes para consulta manual',
+  referencias: 'Resultados por fonte',
   observacao: 'Observação',
   revisao: 'Revisão do catálogo',
   catalogo: 'Catálogo completo',
@@ -389,6 +389,7 @@ function selectEssentialEntries(
 }
 
 function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
+  const [expanded, setExpanded] = useState(false);
   const curated = curateData(checkId, data);
   if (!isRecord(curated)) {
     return (
@@ -402,6 +403,9 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
     ([, value]) => value !== undefined,
   );
   const primaryEntries = selectEssentialEntries(checkId, entries);
+  const additionalEntries = entries.filter(
+    ([key]) => !primaryEntries.some(([primaryKey]) => primaryKey === key),
+  );
 
   function renderEntry([key, value]: [string, unknown]) {
     return (
@@ -422,6 +426,21 @@ function ResultData({ checkId, data }: { checkId: string; data: unknown }) {
       <div className="result-data__primary">
         {primaryEntries.map(renderEntry)}
       </div>
+      {additionalEntries.length > 0 && (
+        <>
+          <button
+            className="button button--secondary button--small"
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            {expanded
+              ? 'Ver menos detalhes'
+              : `Ver mais detalhes (${additionalEntries.length})`}
+          </button>
+          {expanded && additionalEntries.map(renderEntry)}
+        </>
+      )}
     </div>
   );
 }
