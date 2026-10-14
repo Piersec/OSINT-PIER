@@ -1,4 +1,4 @@
-/* global Headers, Request, Response, URL, Uint8Array, console */
+/* global Headers, Request, Response, URL, console */
 
 const MAX_BODY_BYTES = 32 * 1024;
 
