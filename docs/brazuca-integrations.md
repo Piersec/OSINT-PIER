@@ -57,3 +57,10 @@ Nenhuma integração aqui exige Docker, Apify ou configuração de cobrança.
 - O advisor não apontou problema na tabela alterada. Retornou avisos existentes
   sobre `check_settings` sem política RLS e proteção de senhas vazadas desabilitada;
   essas configurações não foram alteradas nesta entrega.
+- A primeira publicação encontrou ausência de `zod` na fronteira de importação
+  dinâmica da Vercel. A produção anterior foi restaurada durante o reparo.
+  O plugin agora valida a resposta com código local, sem imports de pacotes em
+  runtime; a validação de CNPJ compartilhada continua no normalizador da API.
+- Verificação isolada: ambos os novos módulos carregaram e o CNPJ executou com
+  resposta simulada em diretório temporário sem `node_modules`; 13 testes dos
+  plugins/registro, compilação da API e lint passaram após o reparo.

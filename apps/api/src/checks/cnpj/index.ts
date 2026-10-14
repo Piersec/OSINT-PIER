@@ -1,23 +1,39 @@
-import { z } from 'zod';
-import { normalizeCnpj } from '@osint-pier/contracts';
 import type { CheckPlugin } from '../../core/checks/contract.js';
 import { failure, success } from '../../core/checks/results.js';
 
 const id = 'cnpj';
 const source = 'BrasilAPI / Minha Receita';
-const text = z.string().max(1000).nullable().optional();
-const CompanySchema = z.object({
-  cnpj: z.string(),
-  razao_social: z.string().trim().min(1).max(1000),
-  nome_fantasia: text,
-  descricao_situacao_cadastral: text,
-  data_inicio_atividade: text,
-  cnae_fiscal_descricao: text,
-  municipio: text,
-  uf: text,
-  porte: text,
-  natureza_juridica: text,
-});
+// Dynamic checks must load using only the compiled API files copied to Vercel.
+function companyData(
+  input: unknown,
+  cnpj: string,
+): Record<string, string> | null {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  const payload = input as Record<string, unknown>;
+  if (
+    typeof payload.cnpj !== 'string' ||
+    payload.cnpj.replace(/[./-]/g, '').toUpperCase() !== cnpj
+  )
+    return null;
+  const company: Record<string, string> = {};
+  for (const key of [
+    'razao_social',
+    'nome_fantasia',
+    'descricao_situacao_cadastral',
+    'data_inicio_atividade',
+    'cnae_fiscal_descricao',
+    'municipio',
+    'uf',
+    'porte',
+    'natureza_juridica',
+  ]) {
+    const value = payload[key];
+    if (value === null || value === undefined) continue;
+    if (typeof value !== 'string' || value.length > 1000) return null;
+    company[key] = value.trim();
+  }
+  return company.razao_social ? company : null;
+}
 
 const check: CheckPlugin = {
   id,
@@ -26,8 +42,16 @@ const check: CheckPlugin = {
   supportedTargetKinds: ['cnpj'],
   timeoutMs: 10_000,
   async run(target, context) {
-    const cnpj = target.kind === 'cnpj' ? normalizeCnpj(target.value) : null;
-    if (!cnpj) return failure(id, source, 'Informe um CNPJ válido.');
+    // The executor supplies a checksum-validated NormalizedTarget; keep a local
+    // shape guard without importing a package at the dynamic module boundary.
+    const cnpj = target.value;
+    if (
+      target.kind !== 'cnpj' ||
+      !/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj) ||
+      /^(\d)\1{13}$/.test(cnpj)
+    ) {
+      return failure(id, source, 'Informe um CNPJ válido.');
+    }
     try {
       const response = await fetch(
         `https://brasilapi.com.br/api/cnpj/v1/${cnpj}`,
@@ -60,15 +84,14 @@ const check: CheckPlugin = {
                 : 'Consulta de CNPJ temporariamente indisponível.';
         return failure(id, source, error);
       }
-      const parsed = CompanySchema.safeParse(await response.json());
-      if (!parsed.success || normalizeCnpj(parsed.data.cnpj) !== cnpj) {
+      const company = companyData(await response.json(), cnpj);
+      if (!company) {
         return failure(
           id,
           source,
           'A fonte retornou dados incompletos ou de outro CNPJ.',
         );
       }
-      const company = parsed.data;
       return success(id, source, {
         razao_social: company.razao_social,
         cnpj,

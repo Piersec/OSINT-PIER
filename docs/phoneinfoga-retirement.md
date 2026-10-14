@@ -23,6 +23,8 @@ Osintgram permanece explicitamente planejado, não instalado.
   Wrangler. Em 2026-10-14, a rota foi publicada no Cloudflare (versão de código
   `e8501830`) e os bindings residuais PHONEINFOGA e GHUNT foram retirados por
   novas implantações de configuração. Resta somente COMMAND_TOOLS no Worker.
+- A Base de Prévias também foi conferida e ficou somente com COMMAND_TOOLS;
+  os bindings residuais PHONEINFOGA e GHUNT foram removidos dessa configuração.
 - Os seis testes da ponte passaram. Consulta Subfinder pelo site para o domínio
   autorizado `piersec.com.br` retornou sucesso em 6.533 ms, com dois subdomínios,
   após a retirada dos bindings. A política Access continua protegendo a prévia.
