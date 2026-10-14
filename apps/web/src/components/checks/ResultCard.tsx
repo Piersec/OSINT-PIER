@@ -256,11 +256,13 @@ function ScalarValue({ value, field }: { value: unknown; field?: string }) {
 
 function ResultTable({ items }: { items: Array<Record<string, unknown>> }) {
   const [expanded, setExpanded] = useState(false);
+  const [fieldsExpanded, setFieldsExpanded] = useState(false);
   const visibleItems = expanded ? items : items.slice(0, 6);
   const hiddenItemCount = Math.max(0, items.length - visibleItems.length);
-  const keys = [...new Set(visibleItems.flatMap((item) => Object.keys(item)))]
-    .filter((key) => key !== 'sources')
-    .slice(0, 4);
+  const allKeys = [
+    ...new Set(visibleItems.flatMap((item) => Object.keys(item))),
+  ].filter((key) => key !== 'sources');
+  const keys = fieldsExpanded ? allKeys : allKeys.slice(0, 4);
   return (
     <div className="result-table" role="table">
       {visibleItems.map((item, index) => (
@@ -285,6 +287,16 @@ function ResultTable({ items }: { items: Array<Record<string, unknown>> }) {
           type="button"
         >
           {expanded ? 'Ver menos' : `Ver + ${hiddenItemCount} itens`}
+        </button>
+      )}
+      {allKeys.length > 4 && (
+        <button
+          type="button"
+          className="result-table__toggle"
+          aria-expanded={fieldsExpanded}
+          onClick={() => setFieldsExpanded((value) => !value)}
+        >
+          {fieldsExpanded ? 'Ver menos campos' : 'Ver mais campos'}
         </button>
       )}
     </div>

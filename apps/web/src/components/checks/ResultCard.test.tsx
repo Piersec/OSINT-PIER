@@ -17,6 +17,36 @@ const check: CheckCatalogItem = {
 afterEach(cleanup);
 
 describe('ResultCard', () => {
+  it('expande campos adicionais das tabelas sem perder resultados por fonte', () => {
+    render(
+      <ResultCard
+        check={check}
+        state={{
+          status: 'done',
+          result: {
+            id: check.id,
+            status: 'success',
+            source: 'test',
+            durationMs: 1,
+            data: {
+              referencias: [
+                {
+                  nome: 'Querido Diário',
+                  finalidade: 'Pesquisa',
+                  url: 'https://example.com',
+                  consulta: 'Consultada',
+                  publicacoes: [{ trecho: 'Menção pública' }],
+                },
+              ],
+            },
+          },
+        }}
+      />,
+    );
+    expect(screen.queryByText('Menção pública')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Ver mais campos' }));
+    expect(screen.getByText('Menção pública')).toBeTruthy();
+  });
   it('permite acessar e recolher os campos além do resumo', () => {
     render(
       <ResultCard
