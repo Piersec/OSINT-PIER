@@ -17,6 +17,18 @@ export type CardState =
     };
 
 const keyLabels: Record<string, string> = {
+  cnpj: 'CNPJ',
+  razao_social: 'Razão social',
+  nome_fantasia: 'Nome fantasia',
+  situacao_cadastral: 'Situação cadastral',
+  municipio_uf: 'Município / UF',
+  inicio_atividade: 'Início das atividades',
+  atividade_principal: 'Atividade principal',
+  natureza_juridica: 'Natureza jurídica',
+  referencias: 'Fontes para consulta manual',
+  observacao: 'Observação',
+  revisao: 'Revisão do catálogo',
+  catalogo: 'Catálogo completo',
   A: 'IPv4',
   AAAA: 'IPv6',
   MX: 'Servidores de e-mail',
@@ -144,12 +156,7 @@ const essentialFields: Record<string, string[]> = {
     'authorized',
     'protocol',
   ],
-  'http-headers': [
-    'finalUrl',
-    'finalStatus',
-    'securityScore',
-    'security',
-  ],
+  'http-headers': ['finalUrl', 'finalStatus', 'securityScore', 'security'],
   'server-location': ['ip', 'country', 'city', 'organization', 'asn'],
   'redirect-chain': ['redirectCount', 'finalUrl', 'finalStatus'],
   'tech-stack': ['finalUrl', 'contentType', 'technologies'],
@@ -157,7 +164,15 @@ const essentialFields: Record<string, string[]> = {
   'robots-sitemap': ['robots', 'sitemaps'],
   'server-status': ['online', 'statusCode', 'responseTimeMs', 'finalUrl'],
   'virus-total': ['reputation', 'malicious', 'suspicious', 'categories'],
-  shodan: ['selectedIp', 'found', 'observedPorts', 'hostnames', 'technologies', 'possibleCves', 'note'],
+  shodan: [
+    'selectedIp',
+    'found',
+    'observedPorts',
+    'hostnames',
+    'technologies',
+    'possibleCves',
+    'note',
+  ],
   'hunter-io': ['domain', 'organization', 'pattern', 'emails'],
   nuclei: ['total', 'critical', 'high', 'vulnerabilities'],
   nmap: ['host', 'ports'],
@@ -459,8 +474,8 @@ function skippedGuidance(result: CheckResult): string | null {
 function requiresCredentialSetup(result: CheckResult): boolean {
   return Boolean(
     result.status === 'skipped' &&
-      result.error &&
-      /credencial|cofre/i.test(result.error),
+    result.error &&
+    /credencial|cofre/i.test(result.error),
   );
 }
 
@@ -536,7 +551,9 @@ export function ResultCard({
             <div className="result-alert" role="alert">
               <p className="error-message">{state.result.error}</p>
               {skippedGuidance(state.result) && (
-                <p className="result-guidance">{skippedGuidance(state.result)}</p>
+                <p className="result-guidance">
+                  {skippedGuidance(state.result)}
+                </p>
               )}
             </div>
           )}

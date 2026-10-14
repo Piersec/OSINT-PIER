@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { normalizeTarget } from './normalize-target.js';
 
 describe('normalizeTarget', () => {
+  it('detecta CNPJ numérico e alfanumérico antes de telefone ou username', () => {
+    expect(normalizeTarget('00.000.000/0001-91')).toMatchObject({
+      kind: 'cnpj',
+      value: '00000000000191',
+    });
+    expect(normalizeTarget('12ABC34501DE35')).toMatchObject({
+      kind: 'cnpj',
+      value: '12ABC34501DE35',
+    });
+    expect(() => normalizeTarget('00000000000190')).toThrow('CNPJ inválido');
+    expect(normalizeTarget('+5513997221735').kind).toBe('phone');
+  });
   it('detecta automaticamente e-mail, telefone, username e nome', () => {
     expect(normalizeTarget('Analyst@Example.COM').kind).toBe('email');
     expect(normalizeTarget('8.8.8.8').kind).toBe('ip');

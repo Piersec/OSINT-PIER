@@ -203,6 +203,11 @@ operacional; ela não deve ser registrada neste arquivo.
 
 ## Fase 7 — Integrações OSINT adicionais
 
+- [x] Fontes brasileiras — seleção local curada do OSINT Brazuca, com atribuição MIT,
+      filtrada pelo tipo de alvo e consulta manual nos portais.
+- [x] Consulta de CNPJ — BrasilAPI sem chave, validação numérica/alfanumérica,
+      campos cadastrais curados e tratamento de indisponibilidade/cota.
+
 Cada integração será analisada antes de implementação, com escopo curado, autorização
 explícita e tratamento de rate limit/credenciais. A ausência de chave ou sessão deve
 produzir `skipped`, sem interromper os outros plugins.

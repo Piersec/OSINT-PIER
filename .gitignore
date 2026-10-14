@@ -18,3 +18,4 @@ infra/phoneinfoga/.env
 # Local Impeccable critique snapshots and engine cache
 .impeccable/
 .codex/
+supabase/.temp/

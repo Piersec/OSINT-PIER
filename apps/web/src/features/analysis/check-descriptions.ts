@@ -1,6 +1,9 @@
 import type { CheckCatalogItem } from '@osint-pier/contracts';
 
 const toolDescriptions: Record<string, string> = {
+  cnpj: 'Consulta dados cadastrais de uma empresa na BrasilAPI, sem chave externa.',
+  'osint-brazuca':
+    'Sugere fontes brasileiras por tipo de alvo, com links de consulta manual.',
   'abuse-ipdb': 'Consulta histórico de abuso e reputação de um IP público.',
   cookies: 'Inspeciona cookies HTTP e sinaliza flags de segurança.',
   'dns-records': 'Resolve registros A, AAAA, MX, NS, TXT e CNAME.',
@@ -18,7 +21,8 @@ const toolDescriptions: Record<string, string> = {
   'server-status': 'Verifica disponibilidade e tempo de resposta do servidor.',
   nuclei:
     'Executa templates curados do Nuclei para encontrar vulnerabilidades e enriquecer CVEs com NVD, EPSS e CISA KEV.',
-  shodan: 'Consulta IPv4 no InternetDB gratuito: portas observadas, tecnologias e possíveis CVEs não confirmadas.',
+  shodan:
+    'Consulta IPv4 no InternetDB gratuito: portas observadas, tecnologias e possíveis CVEs não confirmadas.',
   'ssl-certificate':
     'Inspeciona validade, emissor e subject do certificado TLS.',
   subfinder:

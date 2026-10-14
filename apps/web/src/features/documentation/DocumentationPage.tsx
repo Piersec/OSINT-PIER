@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
-const documentationUpdatedAt = '29 de setembro de 2026';
-const documentationVersion = '1.6';
+const documentationUpdatedAt = '14 de outubro de 2026';
+const documentationVersion = '1.7';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -12,6 +12,7 @@ const targetLabels: Record<TargetKind, string> = {
   username: 'username',
   email: 'e-mail',
   phone: 'telefone',
+  cnpj: 'CNPJ',
 };
 
 const plannedTools = [
@@ -70,14 +71,14 @@ const documentationNav: DocumentationNavGroup[] = [
         label: 'Analisar um alvo',
         description: 'Consultas, criticidade e postura de segurança.',
         keywords:
-          'análise alvo domínio ip url nome username email telefone abuseipdb gráficos sucesso erro vulnerabilidades cve kev falhas segurança sessão',
+          'análise alvo domínio ip url nome username email telefone cnpj abuseipdb gráficos sucesso erro vulnerabilidades cve kev falhas segurança sessão',
       },
       {
         id: 'docs-tools',
         label: 'Catálogo de ferramentas',
         description: 'Checks disponíveis e planejados.',
         keywords:
-          'ferramentas plugins checks shodan virustotal hunter phoneinfoga ghunt nmap katana gobuster subfinder runner',
+          'ferramentas plugins checks cnpj brazuca fontes brasileiras shodan virustotal hunter phoneinfoga ghunt nmap katana gobuster subfinder runner',
       },
       {
         id: 'docs-history',
@@ -613,9 +614,9 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                       <ol className="documentation-steps">
                         <DocumentationStep number="01" title="Informe o alvo">
                           Use um domínio, IP, URL, nome, username, e-mail ou
-                          telefone. O tipo é identificado automaticamente antes
-                          da consulta; não há seleção manual para evitar fontes
-                          incompatíveis.
+                          telefone ou CNPJ. O tipo é identificado
+                          automaticamente antes da consulta; não há seleção
+                          manual para evitar fontes incompatíveis.
                         </DocumentationStep>
                         <DocumentationStep
                           number="02"
@@ -673,7 +674,10 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           perder os resultados curados; uma requisição que ainda
                           estava carregando volta para Aguardando.
                         </DocumentationStep>
-                        <DocumentationStep number="08" title="Comece outra análise">
+                        <DocumentationStep
+                          number="08"
+                          title="Comece outra análise"
+                        >
                           Quando uma rodada restaurada estiver aberta, clique em
                           Nova análise. O relatório ativo é limpo, o histórico
                           permanece intacto e o foco volta para o campo de alvo.
@@ -757,6 +761,14 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                           quando fizer sentido.
                         </DocumentationStep>
                       </ol>
+                      <p className="muted">
+                        Consulta de CNPJ aceita formatos numérico e
+                        alfanumérico, com ou sem pontuação, e apresenta dados
+                        cadastrais básicos sem exigir chave. Fontes brasileiras
+                        — OSINT Brazuca sugere portais conforme o tipo de alvo,
+                        com links para consulta manual. Confira a situação atual
+                        da empresa na Receita Federal.
+                      </p>
                       <div className="documentation-catalog-heading">
                         <div>
                           <span className="documentation-section__eyebrow">

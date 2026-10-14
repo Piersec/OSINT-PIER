@@ -1,5 +1,6 @@
 import { isIP } from 'node:net';
 import type { TargetKind } from '@osint-pier/contracts';
+import { looksLikeCnpj, normalizeCnpj } from '@osint-pier/contracts';
 
 export type { TargetKind } from '@osint-pier/contracts';
 
@@ -19,7 +20,7 @@ const phonePattern = /^(?:\+?[0-9]|\([0-9]{2,3}\))[0-9\s().-]{5,28}$/;
 
 function invalidTarget(): Error {
   return new Error(
-    'Informe uma URL HTTP(S), domínio, IP, nome, username, e-mail ou telefone válido.',
+    'Informe uma URL HTTP(S), domínio, IP, nome, username, e-mail, telefone ou CNPJ válido.',
   );
 }
 
@@ -91,6 +92,15 @@ function normalizeIdentityTarget(
     throw invalidTarget();
   }
 
+  if (kind === 'cnpj') {
+    const cnpj = normalizeCnpj(input);
+    if (!cnpj)
+      throw new Error(
+        'CNPJ inválido. Confira o formato e os dígitos verificadores.',
+      );
+    return { original: rawTarget, value: cnpj, hostname: cnpj, kind };
+  }
+
   if (kind === 'name') {
     if (input.length > 200) throw invalidTarget();
     return { original: rawTarget, value: input, hostname: input, kind };
@@ -121,6 +131,7 @@ export function normalizeTarget(
 ): NormalizedTarget {
   if (!requestedKind) {
     const input = rawTarget.trim();
+    if (looksLikeCnpj(input)) return normalizeIdentityTarget(rawTarget, 'cnpj');
     if (emailPattern.test(input))
       return normalizeIdentityTarget(rawTarget, 'email');
     if (isIP(input)) return normalizeWebTarget(rawTarget);

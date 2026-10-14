@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export { looksLikeCnpj, normalizeCnpj } from './cnpj.js';
+
 export const TargetKindSchema = z.enum([
   'domain',
   'ip',
@@ -8,6 +10,7 @@ export const TargetKindSchema = z.enum([
   'username',
   'email',
   'phone',
+  'cnpj',
 ]);
 export type TargetKind = z.infer<typeof TargetKindSchema>;
 

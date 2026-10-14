@@ -110,7 +110,7 @@ const check: CheckPlugin = {
       target: target.value,
       targetKind: target.kind,
       catalogUrl: 'https://osintframework.com/',
-      references: catalog[target.kind],
+      references: catalog[target.kind as keyof typeof catalog] ?? [],
       note: 'Catálogo de referências para investigação autorizada. Nenhuma fonte é consultada ou raspada automaticamente.',
     });
   },

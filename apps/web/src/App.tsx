@@ -21,6 +21,7 @@ import { AppShell } from './components/shell/AppShell';
 import { PageHeader } from './components/shell/PageHeader';
 import { VulnerabilitySummary } from './components/vulnerabilities/VulnerabilitySummary';
 import type { TargetKind } from '@osint-pier/contracts';
+import { looksLikeCnpj } from '@osint-pier/contracts';
 import { getCompatibleChecks } from './features/analysis/compatible-checks';
 import {
   clearAnalysisSession,
@@ -200,6 +201,8 @@ const toolCategoryMeta: Record<
 };
 
 const toolCategories: Record<string, ToolCategory> = {
+  cnpj: 'personal',
+  'osint-brazuca': 'personal',
   'abuse-ipdb': 'threat',
   cookies: 'web',
   'dns-records': 'web',
@@ -327,11 +330,13 @@ function formatTargetKind(kind: TargetKind): string {
     username: 'Username',
     email: 'E-mail',
     phone: 'Telefone',
+    cnpj: 'CNPJ',
   }[kind];
 }
 
 function inferTargetKind(value: string): TargetKind {
   const input = value.trim();
+  if (looksLikeCnpj(input)) return 'cnpj';
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)) return 'email';
   if (/^https?:\/\//i.test(input)) return 'url';
   if (/^[0-9a-f:]+$/i.test(input) && input.includes(':')) return 'ip';
@@ -967,7 +972,7 @@ export function App() {
                         id="target"
                         ref={targetInputRef}
                         onChange={(event) => setTarget(event.target.value)}
-                        placeholder="example.com, 8.8.8.8, username ou e-mail"
+                        placeholder="Domínio, IP, username, e-mail ou CNPJ"
                         required
                         value={target}
                       />
@@ -1445,13 +1450,13 @@ export function App() {
                   <input
                     id="tool-target"
                     onChange={(event) => setToolTarget(event.target.value)}
-                    placeholder="example.com, 8.8.8.8 ou analyst@example.com"
+                    placeholder="Domínio, IP, e-mail, nome ou CNPJ"
                     value={toolTarget}
                   />
                 </div>
                 <p className="target-auto-hint">
                   Detecção automática para domínio, IP, URL, e-mail, telefone,
-                  nome ou username.
+                  CNPJ, nome ou username.
                 </p>
               </div>
               <div
