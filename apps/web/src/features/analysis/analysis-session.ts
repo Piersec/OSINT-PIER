@@ -110,6 +110,10 @@ export function readAnalysisSession(): AnalysisSession | null {
 
 export function writeAnalysisSession(session: AnalysisSession): void {
   if (!canUseStorage()) return;
+  if (session.targetKind === 'cpf') {
+    clearAnalysisSession();
+    return;
+  }
   try {
     window.sessionStorage.setItem(storageKey, JSON.stringify(session));
   } catch {

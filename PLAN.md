@@ -203,6 +203,9 @@ operacional; ela não deve ser registrada neste arquivo.
 
 ## Fase 7 — Integrações OSINT adicionais
 
+- [x] CPF — validação matemática local, detecção automática, orientação oficial e
+      resultado mascarado; sem provedor externo, cache ou histórico persistente.
+
 - [x] Fontes brasileiras — seleção local curada do OSINT Brazuca, com atribuição MIT,
       filtrada pelo tipo de alvo e consulta manual nos portais.
 - [x] Consulta de CNPJ — BrasilAPI sem chave, validação numérica/alfanumérica,

@@ -1,6 +1,10 @@
 import { isIP } from 'node:net';
 import type { TargetKind } from '@osint-pier/contracts';
-import { looksLikeCnpj, normalizeCnpj } from '@osint-pier/contracts';
+import {
+  looksLikeCnpj,
+  normalizeCnpj,
+  looksLikeCpf,
+} from '@osint-pier/contracts';
 
 export type { TargetKind } from '@osint-pier/contracts';
 
@@ -20,7 +24,7 @@ const phonePattern = /^(?:\+?[0-9]|\([0-9]{2,3}\))[0-9\s().-]{5,28}$/;
 
 function invalidTarget(): Error {
   return new Error(
-    'Informe uma URL HTTP(S), domínio, IP, nome, username, e-mail, telefone ou CNPJ válido.',
+    'Informe uma URL HTTP(S), domínio, IP, nome, username, e-mail, telefone, CPF ou CNPJ válido.',
   );
 }
 
@@ -101,6 +105,13 @@ function normalizeIdentityTarget(
     return { original: rawTarget, value: cnpj, hostname: cnpj, kind };
   }
 
+  if (kind === 'cpf') {
+    if (!looksLikeCpf(input))
+      throw new Error('Informe um CPF com 11 dígitos, com ou sem pontuação.');
+    const cpf = input.replace(/[.-]/g, '');
+    return { original: rawTarget, value: cpf, hostname: cpf, kind };
+  }
+
   if (kind === 'name') {
     if (input.length > 200) throw invalidTarget();
     return { original: rawTarget, value: input, hostname: input, kind };
@@ -132,6 +143,7 @@ export function normalizeTarget(
   if (!requestedKind) {
     const input = rawTarget.trim();
     if (looksLikeCnpj(input)) return normalizeIdentityTarget(rawTarget, 'cnpj');
+    if (looksLikeCpf(input)) return normalizeIdentityTarget(rawTarget, 'cpf');
     if (emailPattern.test(input))
       return normalizeIdentityTarget(rawTarget, 'email');
     if (isIP(input)) return normalizeWebTarget(rawTarget);

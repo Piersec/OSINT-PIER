@@ -12,6 +12,16 @@ import {
 afterEach(() => window.sessionStorage.clear());
 
 describe('analysis session storage', () => {
+  it('não grava alvo ou resultado de CPF no armazenamento da sessão', () => {
+    writeAnalysisSession({
+      target: '12345678909',
+      targetKind: 'cpf',
+      selectedCheckIds: ['cpf'],
+      states: {},
+      history: [],
+    });
+    expect(window.sessionStorage.getItem(analysisSessionStorageKey)).toBeNull();
+  });
   it('restaura resultados curados e converte requests em andamento para idle', () => {
     const states: Record<string, CardState> = {
       'shodan-vulnerabilities': {
@@ -61,8 +71,6 @@ describe('analysis session storage', () => {
 
     clearAnalysisSession();
 
-    expect(
-      window.sessionStorage.getItem(analysisSessionStorageKey),
-    ).toBeNull();
+    expect(window.sessionStorage.getItem(analysisSessionStorageKey)).toBeNull();
   });
 });

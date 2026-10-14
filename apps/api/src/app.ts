@@ -327,15 +327,18 @@ export async function createApp(
       }
 
       const cacheKey = `${check.id}\u0000${normalizedTarget.kind}\u0000${normalizedTarget.value}`;
-      const execution = await cache.execute(cacheKey, () =>
+      const run = () =>
         executeCheck({
           check,
           target: normalizedTarget,
           credentialProvider,
           defaultTimeoutMs: config.checkTimeoutMs,
           environment: dependencies.environment ?? process.env,
-        }),
-      );
+        });
+      const execution =
+        normalizedTarget.kind === 'cpf'
+          ? { result: await run(), cacheStatus: 'BYPASS' }
+          : await cache.execute(cacheKey, run);
       void reply.header('x-osint-cache', execution.cacheStatus);
       return execution.result;
     },

@@ -39,7 +39,7 @@ describe('loadCheckRegistry', () => {
     );
     const registry = await loadCheckRegistry(checksDirectory);
 
-    expect(registry.all()).toHaveLength(26);
+    expect(registry.all()).toHaveLength(27);
     expect(registry.all().some((check) => check.id === 'phoneinfoga')).toBe(
       false,
     );

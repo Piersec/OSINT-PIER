@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 export { looksLikeCnpj, normalizeCnpj } from './cnpj.js';
 
+export function looksLikeCpf(input: string): boolean {
+  return /^(?:\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$/.test(input.trim());
+}
+
 export const TargetKindSchema = z.enum([
   'domain',
   'ip',
@@ -11,6 +15,7 @@ export const TargetKindSchema = z.enum([
   'email',
   'phone',
   'cnpj',
+  'cpf',
 ]);
 export type TargetKind = z.infer<typeof TargetKindSchema>;
 
@@ -68,13 +73,18 @@ export const AnalysisHistoryEntrySchema = z.object({
 });
 export type AnalysisHistoryEntry = z.infer<typeof AnalysisHistoryEntrySchema>;
 
-export const AnalysisHistoryWriteSchema = z.object({
-  target: z.string().trim().min(1).max(2048),
-  targetKind: TargetKindSchema,
-  total: z.number().int().min(0).max(100),
-  success: z.number().int().min(0).max(100),
-  attention: z.number().int().min(0).max(100),
-});
+export const AnalysisHistoryWriteSchema = z
+  .object({
+    target: z.string().trim().min(1).max(2048),
+    targetKind: TargetKindSchema,
+    total: z.number().int().min(0).max(100),
+    success: z.number().int().min(0).max(100),
+    attention: z.number().int().min(0).max(100),
+  })
+  .refine((input) => input.targetKind !== 'cpf', {
+    message: 'Consultas de CPF não são gravadas no histórico.',
+    path: ['targetKind'],
+  });
 
 export const AnalysisHistoryResponseSchema = z.object({
   enabled: z.boolean(),

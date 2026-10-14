@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
 
 const documentationUpdatedAt = '14 de outubro de 2026';
-const documentationVersion = '1.7';
+const documentationVersion = '1.8';
 
 const targetLabels: Record<TargetKind, string> = {
   domain: 'domínio',
@@ -13,6 +13,7 @@ const targetLabels: Record<TargetKind, string> = {
   email: 'e-mail',
   phone: 'telefone',
   cnpj: 'CNPJ',
+  cpf: 'CPF (validação local)',
 };
 
 const plannedTools = [
