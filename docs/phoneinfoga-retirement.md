@@ -20,8 +20,12 @@ Osintgram permanece explicitamente planejado, não instalado.
 - A remoção dos registros do cofre é permanente; novos tokens precisam ser
   cadastrados caso essas integrações sejam reativadas.
 - A rota e o binding do PhoneInfoga foram removidos do código e do template
-  Wrangler. A publicação do Worker continua pendente, pois a sessão Cloudflare
-  está desconectada.
+  Wrangler. Em 2026-10-14, a rota foi publicada no Cloudflare (versão de código
+  `e8501830`) e os bindings residuais PHONEINFOGA e GHUNT foram retirados por
+  novas implantações de configuração. Resta somente COMMAND_TOOLS no Worker.
+- Os seis testes da ponte passaram. Consulta Subfinder pelo site para o domínio
+  autorizado `piersec.com.br` retornou sucesso em 6.533 ms, com dois subdomínios,
+  após a retirada dos bindings. A política Access continua protegendo a prévia.
 - `PHONEINFOGA_API_URL` e `PHONEINFOGA_API_TOKEN` foram removidas das variáveis
   Production na Vercel. O filtro do painel ficou sem resultados e a nova produção
   `dpl_DKeYw42771or1NjZiAgGFobWruqh` ficou `READY` no commit atual da master.
