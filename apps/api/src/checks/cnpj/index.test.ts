@@ -7,6 +7,38 @@ const context = { signal: new AbortController().signal, credentials: {} };
 afterEach(() => vi.restoreAllMocks());
 
 describe('Consulta de CNPJ', () => {
+  it('expõe quadro societário sem CPF e limita listas explicitamente', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({
+        cnpj: target.value,
+        razao_social: 'Empresa',
+        qsa: [
+          {
+            nome_socio: 'Sócio de exemplo',
+            qualificacao_socio: 'Administrador',
+            cpf_representante_legal: '12345678909',
+            cnpj_cpf_do_socio: '12345678909',
+          },
+        ],
+        cnaes_secundarios: Array.from({ length: 201 }, () => ({
+          codigo: 1,
+          descricao: 'Atividade',
+        })),
+      }),
+    );
+    const result = await check.run(target, context);
+    const data = result.data as Record<string, Record<string, unknown>>;
+    const extra = data['Dados cadastrais complementares'];
+    expect(extra['Sócios e administradores']).toEqual([
+      {
+        'nome socio': 'Sócio de exemplo',
+        'qualificacao socio': 'Administrador',
+      },
+    ]);
+    expect(extra['cnaes secundarios']).toHaveLength(200);
+    expect(extra['cnaes_secundarios itens adicionais não exibidos']).toBe(1);
+    expect(JSON.stringify(result)).not.toContain('12345678909');
+  });
   it('consulta uma vez o endpoint fixo e devolve somente campos curados', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       Response.json({
@@ -16,7 +48,16 @@ describe('Consulta de CNPJ', () => {
         municipio: 'SANTOS',
         uf: 'SP',
         qsa: [{ cpf_representante_legal: 'não exportar' }],
-        email: 'não exportar',
+        email: 'contato@example.com',
+        capital_social: 0,
+        opcao_pelo_simples: false,
+        cnaes_secundarios: [
+          {
+            codigo: 6204000,
+            descricao: 'Consultoria',
+            segredo: 'não exportar',
+          },
+        ],
       }),
     );
     const result = await check.run(target, context);
@@ -37,6 +78,14 @@ describe('Consulta de CNPJ', () => {
       }),
     );
     expect(JSON.stringify(result)).not.toContain('não exportar');
+    expect(result.data).toMatchObject({
+      'Dados cadastrais complementares': {
+        email: 'contato@example.com',
+        'capital social': 0,
+        'opcao pelo simples': false,
+        'cnaes secundarios': [{ codigo: 6204000, descricao: 'Consultoria' }],
+      },
+    });
   });
 
   it.each([400, 401, 403, 429, 500])(

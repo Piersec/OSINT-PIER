@@ -207,6 +207,9 @@ operacional; ela não deve ser registrada neste arquivo.
       filtrada pelo tipo de alvo e consulta manual nos portais.
 - [x] Consulta de CNPJ — BrasilAPI sem chave, validação numérica/alfanumérica,
       campos cadastrais curados e tratamento de indisponibilidade/cota.
+- [x] Ampliar CNPJ com cadastro, contatos empresariais, tributação, atividades e
+      quadro societário sem CPF; consultar menções do Querido Diário no card Brazuca,
+      distinguindo resultados reais, ausência na cobertura e fontes manuais.
 
 Cada integração será analisada antes de implementação, com escopo curado, autorização
 explícita e tratamento de rate limit/credenciais. A ausência de chave ou sessão deve

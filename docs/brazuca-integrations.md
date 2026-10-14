@@ -4,8 +4,11 @@
 
 - `osint-brazuca`: catálogo inicial de nove referências, selecionadas do OSINT
   Brazuca na revisão `c5596fd157bdbfecad8a9571245556cd3348b3df`. Filtra por tipo
-  de alvo e entrega links estáticos para consulta manual. Não acessa portais,
-  preenche formulários nem envia o alvo. As classificações heurísticas do catálogo
+  de alvo e mantém referências separadas. Querido Diário recebe nome/CNPJ para
+  consulta pública unitária (até cinco publicações, um trecho de 350 caracteres).
+  As demais fontes estão identificadas como manuais ou disponíveis em outro plugin;
+  não são apresentadas como resultados coletados. Não preenche formulários.
+  As classificações heurísticas do catálogo
   original foram revistas para este recorte. Licença em `osint-brazuca-LICENSE.txt`.
 - `cnpj`: consulta unitária server-side em
   `https://brasilapi.com.br/api/cnpj/v1/{cnpj}`, sem chave e sem plano pago.
@@ -24,8 +27,11 @@ devem usar `+`. Um identificador alfanumérico compacto só é inferido como CNP
 dígitos verificadores forem válidos, preservando usernames comuns.
 
 O card mostra razão social, CNPJ, situação cadastral e município/UF primeiro;
-os demais campos cadastrais ficam na expansão genérica. Não exporta CPF, quadro de
-sócios, representantes, telefone ou e-mail da resposta original. Dados podem estar
+os demais campos cadastrais ficam na expansão genérica: endereço, contatos cadastrados,
+capital social (não faturamento), CNAEs, situação, matriz/filial, Simples/MEI,
+regime tributário e nomes/qualificações/datas do quadro societário. Não exporta CPF
+de sócios ou representantes. Campos ausentes não são inventados; listas possuem teto
+de 200 itens com contagem explícita de excedentes. Dados podem estar
 desatualizados; ausência na fonte não comprova inexistência da empresa.
 
 A migração amplia somente a restrição de tipo do histórico; RLS e grants permanecem
@@ -43,6 +49,19 @@ existente, mas não recebe a resposta cadastral detalhada.
 BrasilAPI documenta o endpoint aberto, mas não publica uma cota numérica garantida
 nesses documentos. O serviço pede que não sejam feitos crawling ou consultas em massa.
 Nenhuma integração aqui exige Docker, Apify ou configuração de cobrança.
+
+Querido Diário: especificação pública verificada em
+`https://api.queridodiario.org.br/openapi.json`; o endereço legado
+`queridodiario.ok.org.br/api` redireciona para esse host. A integração usa o host
+canônico com `redirect: error`, timeout do plugin, cache existente e nenhum retry.
+Consulta CNPJ pontuado e sem pontuação; nomes são tratados como frases literais.
+Falhas/cota da fonte são exibidas separadamente sem apagar as referências manuais.
+Até cinco documentos são exibidos; menção não confirma identidade/vínculo e ausência
+não comprova inexistência. Não baixa documentos nem realiza consultas em massa.
+Referência de uso: https://docs.queridodiario.ok.org.br/pt-br/latest/utilizando/api-publica.html
+
+Escopo desta ampliação: não adiciona consulta de CPF, planos pagos, scraping do INPI,
+Receita Federal ou ReceitaWS, nem dependência entre resultados de plugins.
 
 ## Validação da entrega
 

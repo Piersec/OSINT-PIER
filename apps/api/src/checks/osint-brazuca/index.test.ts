@@ -4,8 +4,23 @@ import { normalizeTarget } from '../../core/target/normalize-target.js';
 
 afterEach(() => vi.restoreAllMocks());
 
-it('seleciona fontes CNPJ sem consultar os portais nem enviar o alvo nos links', async () => {
-  const fetchMock = vi.spyOn(globalThis, 'fetch');
+it('consulta somente Querido Diário e distingue as fontes manuais', async () => {
+  const fetchMock = vi
+    .spyOn(globalThis, 'fetch')
+    .mockResolvedValue(
+      Response.json({
+        total_gazettes: 1,
+        gazettes: [
+          {
+            date: '2026-10-14',
+            territory_name: 'Santos',
+            state_code: 'SP',
+            excerpts: ['<b>Empresa</b> mencionada'],
+            url: 'https://example.com/diario.pdf',
+          },
+        ],
+      }),
+    );
   const target = normalizeTarget('00000000000191');
   const result = await check.run(target, {
     signal: new AbortController().signal,
@@ -20,8 +35,26 @@ it('seleciona fontes CNPJ sem consultar os portais nem enviar o alvo nos links',
   expect(data.referencias.some((item) => item.nome.includes('WHOIS'))).toBe(
     false,
   );
-  expect(JSON.stringify(data)).not.toContain(target.value);
-  expect(fetchMock).not.toHaveBeenCalled();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(String(fetchMock.mock.calls[0][0])).toContain(
+    'https://api.queridodiario.org.br/gazettes?',
+  );
+  expect(JSON.stringify(data)).toContain('Empresa mencionada');
+  expect(JSON.stringify(data)).not.toContain('<b>');
+  expect(JSON.stringify(data)).toContain('Consulta manual');
+});
+
+it('mantém as referências quando a consulta automática falha', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    new Response('private failure', { status: 429 }),
+  );
+  const result = await check.run(normalizeTarget('00000000000191'), {
+    signal: new AbortController().signal,
+    credentials: {},
+  });
+  expect(result.status).toBe('success');
+  expect(JSON.stringify(result.data)).toContain('Limite da fonte');
+  expect(JSON.stringify(result)).not.toContain('private failure');
 });
 
 it('mostra referências de domínio para uma URL e mantém os links HTTPS', async () => {

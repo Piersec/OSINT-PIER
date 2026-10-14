@@ -3,6 +3,99 @@ import { failure, success } from '../../core/checks/results.js';
 
 const id = 'cnpj';
 const source = 'BrasilAPI / Minha Receita';
+
+function details(input: Record<string, unknown>): Record<string, unknown> {
+  // Explicit allowlists: never forward arbitrary provider fields or CPF values.
+  const strings = [
+    'descricao_identificador_matriz_filial',
+    'data_situacao_cadastral',
+    'descricao_motivo_situacao_cadastral',
+    'situacao_especial',
+    'data_situacao_especial',
+    'descricao_tipo_de_logradouro',
+    'logradouro',
+    'numero',
+    'complemento',
+    'bairro',
+    'cep',
+    'pais',
+    'nome_cidade_no_exterior',
+    'email',
+    'ddd_telefone_1',
+    'ddd_telefone_2',
+    'ddd_fax',
+    'data_opcao_pelo_simples',
+    'data_exclusao_do_simples',
+    'data_opcao_pelo_mei',
+    'data_exclusao_do_mei',
+    'ente_federativo_responsavel',
+  ];
+  const numbers = [
+    'capital_social',
+    'cnae_fiscal',
+    'codigo_municipio_ibge',
+    'codigo_natureza_juridica',
+    'identificador_matriz_filial',
+  ];
+  const output: Record<string, unknown> = {};
+  for (const key of strings) {
+    const value = input[key];
+    if (typeof value === 'string' && value.trim() && value.length <= 1000)
+      output[key.replaceAll('_', ' ')] = value.trim();
+  }
+  for (const key of numbers) {
+    const value = input[key];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0)
+      output[key.replaceAll('_', ' ')] = value;
+  }
+  for (const key of ['opcao_pelo_simples', 'opcao_pelo_mei']) {
+    const value = input[key];
+    if (typeof value === 'boolean') output[key.replaceAll('_', ' ')] = value;
+  }
+  const lists: Record<string, string[]> = {
+    cnaes_secundarios: ['codigo', 'descricao'],
+    qsa: [
+      'nome_socio',
+      'qualificacao_socio',
+      'data_entrada_sociedade',
+      'pais',
+      'nome_representante_legal',
+      'qualificacao_representante_legal',
+    ],
+    regime_tributario: [
+      'ano',
+      'cnpj_da_scp',
+      'forma_de_tributacao',
+      'quantidade_de_escrituracoes',
+    ],
+  };
+  for (const [key, fields] of Object.entries(lists)) {
+    const list = input[key];
+    if (!Array.isArray(list)) continue;
+    const limit = 200;
+    output[
+      key === 'qsa' ? 'Sócios e administradores' : key.replaceAll('_', ' ')
+    ] = list.slice(0, limit).flatMap((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return [];
+      const row: Record<string, string | number> = {};
+      for (const field of fields) {
+        const value = (item as Record<string, unknown>)[field];
+        if (typeof value === 'string' && value.trim() && value.length <= 1000)
+          row[field.replaceAll('_', ' ')] = value.trim();
+        else if (
+          typeof value === 'number' &&
+          Number.isFinite(value) &&
+          value >= 0
+        )
+          row[field.replaceAll('_', ' ')] = value;
+      }
+      return Object.keys(row).length ? [row] : [];
+    });
+    if (list.length > limit)
+      output[`${key} itens adicionais não exibidos`] = list.length - limit;
+  }
+  return output;
+}
 // Dynamic checks must load using only the compiled API files copied to Vercel.
 function companyData(
   input: unknown,
@@ -84,7 +177,8 @@ const check: CheckPlugin = {
                 : 'Consulta de CNPJ temporariamente indisponível.';
         return failure(id, source, error);
       }
-      const company = companyData(await response.json(), cnpj);
+      const payload: unknown = await response.json();
+      const company = companyData(payload, cnpj);
       if (!company) {
         return failure(
           id,
@@ -105,8 +199,11 @@ const check: CheckPlugin = {
         atividade_principal: company.cnae_fiscal_descricao || 'Não informada',
         porte: company.porte || 'Não informado',
         natureza_juridica: company.natureza_juridica || 'Não informada',
+        'Dados cadastrais complementares': details(
+          payload as Record<string, unknown>,
+        ),
         observacao:
-          'Dados cadastrais da base consultada; podem estar desatualizados. Confirme a situação atual na Receita Federal.',
+          'Dados cadastrais públicos da base consultada; podem estar desatualizados. Contatos e endereço são os cadastrados pela empresa, não confirmação de contato atual. Capital social não é faturamento. CPFs não são exibidos. Confirme a situação atual na Receita Federal.',
       });
     } catch {
       return failure(
