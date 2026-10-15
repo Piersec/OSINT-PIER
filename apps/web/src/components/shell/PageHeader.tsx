@@ -12,13 +12,15 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="topbar">
-      <div className="topbar__identity">
+    <header className="workbench-page-heading">
+      <div className="workbench-page-heading__identity">
         <span className="sr-only">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
-      {actions && <div className="topbar__actions">{actions}</div>}
+      {actions && (
+        <div className="workbench-page-heading__actions">{actions}</div>
+      )}
     </header>
   );
 }

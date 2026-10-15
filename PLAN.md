@@ -7,6 +7,11 @@ as fases avançam — marque os checkboxes conforme cada item for concluído.
 
 ## Visão geral
 
+- [x] Redesign direção C (15/10/2026): substituição do shell anterior por navegação
+      horizontal sem sidebar, bancada bento com dados do catálogo/histórico, novo
+      sistema visual em todas as áreas e documentação sem navegação lateral.
+      QA responsivo, 36 testes, lint e build aprovados; detalhes em design-qa.md.
+
 - [x] Redesign PierSec (15/10/2026): sistema visual compartilhado, entrada de
       investigação, login, navegação, catálogo, resultados, cofre e documentação.
       Marca documentada em DESIGN.md; layout responsivo e fluxos existentes preservados.

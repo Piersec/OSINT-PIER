@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CheckCatalogItem, TargetKind } from '@osint-pier/contracts';
+import { PierMark } from '../../components/primitives/PierMark';
 
 const documentationUpdatedAt = '14 de outubro de 2026';
 const documentationVersion = '1.8';
@@ -290,7 +291,7 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
     <section className="documentation-page">
       <header className="documentation-topbar">
         <a className="documentation-brand" href="/#analysis">
-          <img src="/piersec-logo.svg" alt="" />
+          <PierMark />
           <span>OSINT Pier</span>
         </a>
         <div
@@ -343,65 +344,29 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
       </div>
 
       <div className="documentation-layout">
-        <aside
-          className="documentation-sidebar"
-          aria-label="Navegação da documentação"
+        <nav
+          className="documentation-topics"
+          aria-label="Assuntos da documentação"
         >
-          <div className="documentation-sidebar__heading">
-            <span className="documentation-sidebar__mark">P</span>
-            <div>
-              <strong>Documentação</strong>
-              <span>OSINT Pier / v{documentationVersion}</span>
-            </div>
-          </div>
-
-          <nav className="documentation-nav">
-            {visibleGroups.length > 0 ? (
-              visibleGroups.map((group) => (
-                <div className="documentation-nav__group" key={group.label}>
-                  <span>{group.label}</span>
-                  {group.items.map((item) => (
-                    <a
-                      aria-current={
-                        activeSection === item.id ? 'page' : undefined
-                      }
-                      className={
-                        activeSection === item.id
-                          ? 'documentation-nav__link documentation-nav__link--active'
-                          : 'documentation-nav__link'
-                      }
-                      href={`#${item.id}`}
-                      key={item.id}
-                      onClick={() => setActiveSection(item.id)}
-                    >
-                      <i aria-hidden="true" />
-                      <span>
-                        <strong>{item.label}</strong>
-                        <small>{item.description}</small>
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              ))
-            ) : (
-              <p className="documentation-nav__empty">
-                Nenhuma seção encontrada.
-              </p>
-            )}
-          </nav>
-
-          <div className="documentation-sidebar__footer">
-            <span className="documentation-live-dot" aria-hidden="true" />
-            <div>
-              <strong>Conteúdo operacional</strong>
-              <span>Atualizado em {documentationUpdatedAt}</span>
-            </div>
-          </div>
-        </aside>
+          {visibleGroups
+            .flatMap((group) => group.items)
+            .map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                aria-current={
+                  activeSection === item.id ? 'location' : undefined
+                }
+                onClick={() => setActiveSection(item.id)}
+              >
+                {item.label}
+              </a>
+            ))}
+        </nav>
 
         <main className="documentation-main">
           <div className="documentation-main__eyebrow">
-            <span>OSINT Pier / Docs</span>
+            <span>OSINT Pier / Docs · v{documentationVersion}</span>
             <span>Atualizado em {documentationUpdatedAt}</span>
           </div>
 
@@ -1116,57 +1081,6 @@ export function DocumentationPage({ checks }: DocumentationPageProps) {
                     </DocumentationSection>
                   )}
                 </div>
-
-                <aside
-                  className="documentation-rail"
-                  aria-label="Informações da documentação"
-                >
-                  <div className="documentation-rail__block">
-                    <span className="documentation-rail__label">
-                      Nesta página
-                    </span>
-                    <nav>
-                      {allDocumentationItems
-                        .filter(
-                          (item) => !normalizedQuery || visibleIds.has(item.id),
-                        )
-                        .slice(0, 8)
-                        .map((item) => (
-                          <a
-                            href={`#${item.id}`}
-                            key={item.id}
-                            onClick={() => setActiveSection(item.id)}
-                          >
-                            {item.label}
-                          </a>
-                        ))}
-                    </nav>
-                  </div>
-                  <div className="documentation-rail__block documentation-rail__block--status">
-                    <span className="documentation-rail__label">
-                      Status do conteúdo
-                    </span>
-                    <strong>
-                      <i aria-hidden="true" /> Operacional
-                    </strong>
-                    <p>Esta página acompanha o fluxo atual do produto.</p>
-                    <span className="documentation-rail__updated">
-                      Última revisão · {documentationUpdatedAt}
-                    </span>
-                  </div>
-                  <div className="documentation-rail__block documentation-rail__block--help">
-                    <span className="documentation-rail__label">
-                      Precisa de ajuda?
-                    </span>
-                    <p>
-                      Comece por Resolver problemas ou fale com o responsável
-                      interno.
-                    </p>
-                    <a href="#docs-help">
-                      Abrir diagnóstico <span aria-hidden="true">↗</span>
-                    </a>
-                  </div>
-                </aside>
               </div>
             </>
           )}

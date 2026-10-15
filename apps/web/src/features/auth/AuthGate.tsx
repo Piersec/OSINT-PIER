@@ -17,6 +17,7 @@ import {
 } from './MfaChallenge';
 import { PasswordRotationModal } from '../profile/ProfilePage';
 import { analyzePassword } from './password-strength';
+import { PierMark } from '../../components/primitives/PierMark';
 
 interface AuthContextValue {
   user: User;
@@ -45,8 +46,8 @@ function authErrorMessage(message: string): string {
 function applyStoredTheme() {
   try {
     document.documentElement.dataset.theme =
-      window.localStorage.getItem('osint-pier-theme') === 'dark'
-        ? 'dark'
+      window.localStorage.getItem('osint-pier-workbench-theme') === 'white'
+        ? 'white'
         : 'dark';
   } catch {
     document.documentElement.dataset.theme = 'dark';
@@ -91,7 +92,7 @@ function LoginForm({
         aria-label="Sobre a central OSINT Pier"
       >
         <div className="auth-identity">
-          <img src="/piersec-logo.svg" alt="PierSec" />
+          <PierMark />
           <span>OSINT Pier</span>
         </div>
         <h2>
@@ -110,7 +111,7 @@ function LoginForm({
       </section>
       <section className="auth-card" aria-labelledby="login-title">
         <div className="auth-brand">
-          <img src="/piersec-logo.svg" alt="" />
+          <PierMark />
           <span>OSINT Pier</span>
         </div>
         <h1 id="login-title">Entrar na central</h1>

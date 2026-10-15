@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { PierMark } from '../../components/primitives/PierMark';
 
 function mfaErrorMessage(message: string): string {
   const normalized = message.toLowerCase();
@@ -75,7 +76,7 @@ export function MfaChallengeScreen({
     <main className="mfa-challenge-shell">
       <section className="mfa-challenge-card" aria-labelledby="mfa-title">
         <div className="auth-brand">
-          <img src="/piersec-logo.svg" alt="" />
+          <PierMark />
           <span>OSINT Pier</span>
         </div>
         <span className="eyebrow">Segundo fator</span>
@@ -153,7 +154,7 @@ export function MfaCheckErrorScreen({
     <main className="mfa-challenge-shell">
       <section className="mfa-challenge-card" aria-labelledby="mfa-error-title">
         <div className="auth-brand">
-          <img src="/piersec-logo.svg" alt="" />
+          <PierMark />
           <span>OSINT Pier</span>
         </div>
         <span className="eyebrow">Segurança da sessão</span>

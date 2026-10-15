@@ -8,12 +8,6 @@ export function AppShell({
   className?: string;
 }) {
   return (
-    <div
-      className={(
-        'app-shell app-shell--piersec app-shell--ui ' + className
-      ).trim()}
-    >
-      {children}
-    </div>
+    <div className={('workbench-shell ' + className).trim()}>{children}</div>
   );
 }

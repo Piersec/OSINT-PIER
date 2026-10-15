@@ -10,12 +10,17 @@ import {
 } from './api/client';
 import { AnalysisInsights } from './components/analysis/AnalysisInsights';
 import {
+  InvestigationBento,
+  SourceReadiness,
+} from './components/analysis/InvestigationBento';
+import {
   SignalTopologyCanvas,
   type SignalTopologyItem,
 } from './components/analysis/SignalTopologyCanvas';
 import { ResultCard, type CardState } from './components/checks/ResultCard';
 import { MetricCard } from './components/primitives/MetricCard';
 import { ToolLogo } from './components/primitives/ToolLogo';
+import { WorkspaceNavigation } from './components/shell/WorkspaceNavigation';
 import { MotionSurface } from './components/motion/MotionSurface';
 import { AppShell } from './components/shell/AppShell';
 import { PageHeader } from './components/shell/PageHeader';
@@ -56,12 +61,12 @@ const pageMeta: Record<
 > = {
   analysis: {
     eyebrow: 'OSINT Pier / investigação',
-    title: 'Central de análise',
-    description: 'Execute verificações paralelas sobre ativos e identidades.',
+    title: 'Bancada de investigação',
+    description: 'Fontes abertas. Evidências conectadas.',
   },
   results: {
     eyebrow: 'OSINT Pier / ferramentas',
-    title: 'Registro de fontes',
+    title: 'Biblioteca de ferramentas',
     description:
       'Escolha uma fonte, entenda seu escopo e execute uma consulta isolada.',
   },
@@ -87,97 +92,6 @@ const pageMeta: Record<
     description: 'Ajuste a aparência do painel para o seu fluxo de trabalho.',
   },
 };
-
-type SidebarIcon = 'analysis' | 'results' | 'history' | 'credentials';
-
-const sidebarGroups = [
-  {
-    label: 'Navegação',
-    items: [
-      ['analysis', 'Análise', 'analysis'],
-      ['results', 'Ferramentas', 'results'],
-      ['history', 'Histórico', 'history'],
-      ['credentials', 'Credenciais', 'credentials'],
-    ] as const,
-  },
-] as const;
-
-function SidebarNavIcon({ icon }: { icon: SidebarIcon }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      {icon === 'analysis' && (
-        <>
-          <circle cx="12" cy="12" r="3" />
-          <circle cx="12" cy="12" r="8" />
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-        </>
-      )}
-      {icon === 'results' && (
-        <>
-          <rect height="7" rx="2" width="7" x="3" y="3" />
-          <rect height="7" rx="2" width="7" x="14" y="3" />
-          <rect height="7" rx="2" width="7" x="3" y="14" />
-          <rect height="7" rx="2" width="7" x="14" y="14" />
-        </>
-      )}
-      {icon === 'history' && (
-        <>
-          <circle cx="12" cy="12" r="8" />
-          <path d="M12 7v5l3 2M4 5l-2 2 2 2" />
-        </>
-      )}
-      {icon === 'credentials' && (
-        <>
-          <rect height="11" rx="3" width="16" x="4" y="10" />
-          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-        </>
-      )}
-    </svg>
-  );
-}
-
-function InvestigationConstellation() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="investigation-constellation"
-      viewBox="0 0 680 360"
-    >
-      <defs>
-        <radialGradient id="constellation-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#67e8f9" stopOpacity="0.65" />
-          <stop offset="1" stopColor="#0e7490" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <g className="investigation-constellation__lines">
-        <path d="M92 254 205 146 340 206 485 88 596 158" />
-        <path d="M205 146 246 288 340 206 444 292 596 158" />
-        <path d="M92 254 246 288 444 292" />
-      </g>
-      <g className="investigation-constellation__nodes">
-        <circle cx="92" cy="254" r="5" />
-        <circle cx="205" cy="146" r="7" />
-        <circle cx="246" cy="288" r="4" />
-        <circle cx="340" cy="206" r="9" />
-        <circle cx="444" cy="292" r="5" />
-        <circle cx="485" cy="88" r="6" />
-        <circle cx="596" cy="158" r="8" />
-      </g>
-      <circle
-        className="investigation-constellation__halo"
-        cx="340"
-        cy="206"
-        r="72"
-      />
-      <circle
-        className="investigation-constellation__halo investigation-constellation__halo--wide"
-        cx="596"
-        cy="158"
-        r="50"
-      />
-    </svg>
-  );
-}
 
 type ToolCategory = 'web' | 'threat' | 'personal';
 
@@ -305,11 +219,9 @@ function readPage(hash: string): Page {
 function readTheme(): Theme {
   if (typeof window === 'undefined') return 'dark';
   try {
-    return window.localStorage.getItem('osint-pier-theme') === 'white'
+    return window.localStorage.getItem('osint-pier-workbench-theme') === 'white'
       ? 'white'
-      : window.localStorage.getItem('osint-pier-theme') === 'dark'
-        ? 'dark'
-        : 'dark';
+      : 'dark';
   } catch {
     return 'dark';
   }
@@ -436,7 +348,7 @@ export function App() {
     }
     document.documentElement.dataset.theme = theme;
     try {
-      window.localStorage.setItem('osint-pier-theme', theme);
+      window.localStorage.setItem('osint-pier-workbench-theme', theme);
     } catch {
       // A browser privacy mode can disable local storage; the in-memory choice remains active.
     }
@@ -837,81 +749,28 @@ export function App() {
 
   return (
     <AppShell>
-      <aside className="sidebar" aria-label="Navegação principal">
-        <a
-          className="sidebar__brand"
-          href="#analysis"
-          onClick={() => setPage('analysis')}
-          aria-label="OSINT Pier — análise"
-        >
-          <img src="/piersec-logo.svg" alt="" />
-          <span>OSINT Pier</span>
-        </a>
-        <div className="sidebar__brand-meta">
-          <span>Espaço de investigação</span>
-          <small>Fontes abertas. Decisões informadas.</small>
-        </div>
-        <nav aria-label="Áreas do workspace">
-          {sidebarGroups.map((group) => (
-            <div className="sidebar__nav-group" key={group.label}>
-              {group.items.map(([itemPage, label, icon]) => (
-                <a
-                  className={`sidebar__link ${page === itemPage ? 'sidebar__link--active' : ''}`}
-                  href={`#${itemPage}`}
-                  key={itemPage}
-                  onClick={() => setPage(itemPage)}
-                  aria-current={page === itemPage ? 'page' : undefined}
-                >
-                  <SidebarNavIcon icon={icon} />
-                  <span>{label}</span>
-                </a>
-              ))}
-            </div>
-          ))}
-        </nav>
-        <a
-          className="sidebar__settings sidebar__link"
-          aria-label="Configurações"
-          href="#settings"
-          onClick={() => navigateAccountTab('settings')}
-          aria-current={page === 'settings' ? 'page' : undefined}
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M4 7h16M4 17h16" />
-            <circle cx="9" cy="7" r="3" />
-            <circle cx="15" cy="17" r="3" />
-          </svg>
-          <span>Configurações</span>
-        </a>
-        <div className="sidebar__status" title="Sessão autenticada">
-          <span />
-          <div>
-            <small>OSINT Pier</small>
-            <strong>Sessão autenticada</strong>
-          </div>
-        </div>
-      </aside>
+      <WorkspaceNavigation
+        activePage={page}
+        onNavigate={navigate}
+        onNewInvestigation={() => {
+          startNewAnalysis();
+          navigate('analysis');
+        }}
+        account={
+          <AccountMenu
+            email={user.email}
+            onNavigate={navigateAccountTab}
+            onSignOut={() => void signOut()}
+            trigger={<UserAvatar avatarUrl={avatarUrl} email={user.email} />}
+          />
+        }
+      />
 
       <div className="workspace">
         <PageHeader
           eyebrow={meta.eyebrow}
           title={meta.title}
           description={meta.description}
-          actions={
-            <>
-              <span className="wordmark">
-                OSINT <b>Pier</b>
-              </span>
-              <AccountMenu
-                email={user.email}
-                onNavigate={navigateAccountTab}
-                onSignOut={() => void signOut()}
-                trigger={
-                  <UserAvatar avatarUrl={avatarUrl} email={user.email} />
-                }
-              />
-            </>
-          }
         />
 
         <main ref={animationScopeRef} data-page={page}>
@@ -925,12 +784,6 @@ export function App() {
                 <div
                   className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
                 >
-                  {!lastTarget && (
-                    <div className="investigation-visual">
-                      <InvestigationConstellation />
-                      <span>Conecte os sinais.</span>
-                    </div>
-                  )}
                   <div className="analysis-card__topline">
                     <span>Nova investigação</span>
                     <span>OSINT Pier / Workspace</span>
@@ -943,13 +796,9 @@ export function App() {
                           : 'Central de investigação'}
                       </span>
                       <h2>
-                        {lastTarget ? (
-                          'O que você quer investigar?'
-                        ) : (
-                          <>
-                            Cada investigação começa com <em>uma pergunta.</em>
-                          </>
-                        )}
+                        {lastTarget
+                          ? 'Consultar outro alvo'
+                          : 'Nova investigação'}
                       </h2>
                     </div>
                     {lastTarget && (
@@ -965,8 +814,8 @@ export function App() {
                   </div>
                   <p>
                     {lastTarget
-                      ? 'Digite um domínio, IP, URL ou identidade. As fontes são consultadas em paralelo e o relatório é preenchido conforme cada resposta chega.'
-                      : 'Traga um domínio, IP ou identidade. Encontre evidências, entenda o contexto e acompanhe cada fonte em um só lugar.'}
+                      ? 'As respostas chegam em paralelo e compõem o relatório abaixo.'
+                      : 'Informe um ativo ou identidade para consultar as fontes compatíveis.'}
                   </p>
 
                   <form className="analysis-form" onSubmit={analyze}>
@@ -982,7 +831,7 @@ export function App() {
                         id="target"
                         ref={targetInputRef}
                         onChange={(event) => setTarget(event.target.value)}
-                        placeholder="Domínio, IP, username, e-mail, CPF ou CNPJ"
+                        placeholder="Domínio, IP, e-mail, username, CPF ou CNPJ…"
                         required
                         value={target}
                       />
@@ -1153,6 +1002,14 @@ export function App() {
                   </form>
                 </div>
 
+                {!lastTarget && (
+                  <SourceReadiness
+                    checks={checksQuery.data ?? []}
+                    loading={checksQuery.isLoading}
+                    failed={checksQuery.isError}
+                  />
+                )}
+
                 {lastTarget && (
                   <aside className="analysis-context">
                     <MotionSurface className="analysis-context__motion">
@@ -1212,7 +1069,7 @@ export function App() {
                 )}
 
                 {lastTarget && reportChecks.length > 0 && (
-                  <details className="analysis-insights-disclosure">
+                  <details className="analysis-insights-disclosure" open>
                     <summary>
                       <span>
                         <span className="eyebrow">Leitura de risco</span>
@@ -1230,53 +1087,20 @@ export function App() {
               </section>
 
               {!lastTarget && (
-                <section
-                  className="investigation-start"
-                  aria-label="Recursos de investigação"
-                >
-                  <a href="#results" onClick={() => navigate('results')}>
-                    <span className="investigation-start__icon">
-                      <SidebarNavIcon icon="results" />
-                    </span>
-                    <h3>Ferramentas especializadas</h3>
-                    <p>
-                      Escolha uma fonte e consulte dados de rede, reputação ou
-                      identidade.
-                    </p>
-                    <span className="investigation-start__action">
-                      Explorar ferramentas <span aria-hidden="true">↗</span>
-                    </span>
-                  </a>
-                  <a href="#history" onClick={() => navigate('history')}>
-                    <span className="investigation-start__icon">
-                      <SidebarNavIcon icon="history" />
-                    </span>
-                    <h3>Retome uma investigação</h3>
-                    <p>
-                      Encontre consultas anteriores e use novamente os alvos
-                      analisados.
-                    </p>
-                    <span className="investigation-start__action">
-                      Ver histórico <span aria-hidden="true">↗</span>
-                    </span>
-                  </a>
-                  <a
-                    href="#credentials"
-                    onClick={() => navigate('credentials')}
-                  >
-                    <span className="investigation-start__icon">
-                      <SidebarNavIcon icon="credentials" />
-                    </span>
-                    <h3>Conecte suas fontes</h3>
-                    <p>
-                      Gerencie as integrações e acompanhe a disponibilidade das
-                      ferramentas.
-                    </p>
-                    <span className="investigation-start__action">
-                      Gerenciar integrações <span aria-hidden="true">↗</span>
-                    </span>
-                  </a>
-                </section>
+                <InvestigationBento
+                  checks={checksQuery.data ?? []}
+                  checksLoading={checksQuery.isLoading}
+                  checksFailed={checksQuery.isError}
+                  getCategory={(id) => toolCategories[id] ?? 'web'}
+                  history={visibleHistory}
+                  loading={historyQuery.isLoading}
+                  failed={historyQuery.isError}
+                  onReuse={reuseHistoryEntry}
+                  onTools={(category) => {
+                    setToolCategoryFilter(category);
+                    navigate('results');
+                  }}
+                />
               )}
 
               {lastTarget && (
@@ -1693,7 +1517,7 @@ export function App() {
               <div className="page-lead">
                 <div>
                   <span className="eyebrow">Auditoria interna</span>
-                  <h2>Histórico de análises</h2>
+                  <h2>Suas investigações</h2>
                 </div>
                 <span className="section-count">
                   {visibleHistory.length} registros
@@ -1708,8 +1532,23 @@ export function App() {
               {visibleHistory.length === 0 ? (
                 <div className="empty-state">
                   <span>00</span>
-                  <h3>Nenhuma análise registrada</h3>
-                  <p>As próximas consultas aparecerão aqui para auditoria.</p>
+                  <h3>
+                    {historyQuery.isError
+                      ? 'Não foi possível carregar o histórico'
+                      : 'Seu histórico começa com uma descoberta'}
+                  </h3>
+                  <p>
+                    {historyQuery.isError
+                      ? 'Tente recarregar a página. Você pode continuar fazendo novas análises.'
+                      : 'Inicie uma análise para reunir suas consultas neste espaço.'}
+                  </p>
+                  <a
+                    className="button"
+                    href="#analysis"
+                    onClick={() => navigate('analysis')}
+                  >
+                    Iniciar investigação
+                  </a>
                 </div>
               ) : (
                 <div className="history-list">
@@ -1745,17 +1584,10 @@ export function App() {
 
           {page === 'credentials' && (
             <>
-              <section className="page-lead credentials-lead">
-                <div>
-                  <span className="eyebrow">Acesso autenticado</span>
-                  <h2>Credenciais das integrações</h2>
-                </div>
-                <span className="lock-badge">Cofre local</span>
-              </section>
               <p className="muted page-copy credentials-explainer">
-                Esta página não é um login da plataforma. Ela apenas guarda, de
-                forma criptografada, as chaves que os plugins usam para
-                consultar APIs externas.
+                Conecte suas fontes de inteligência. Gerencie as chaves das APIs
+                em um cofre criptografado e acompanhe a disponibilidade de cada
+                integração.
               </p>
               <CredentialsPanel />
             </>
@@ -1844,7 +1676,7 @@ export function App() {
                           <span className="theme-option__swatch" />
                           <span>
                             <strong>
-                              {option === 'dark' ? 'Dark' : 'Light'}
+                              {option === 'dark' ? 'Escuro' : 'Claro'}
                             </strong>
                             <small>
                               {theme === option
