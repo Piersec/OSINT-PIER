@@ -14,7 +14,7 @@ export function PageHeader({
   return (
     <header className="topbar">
       <div className="topbar__identity">
-        <span className="eyebrow">{eyebrow}</span>
+        <span className="sr-only">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>

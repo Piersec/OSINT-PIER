@@ -848,10 +848,10 @@ export function App() {
           <span>OSINT Pier</span>
         </a>
         <div className="sidebar__brand-meta">
-          <span>INTELLIGENCE PLATFORM</span>
-          <small>Seu espaço de investigação</small>
+          <span>Espaço de investigação</span>
+          <small>Fontes abertas. Decisões informadas.</small>
         </div>
-        <nav>
+        <nav aria-label="Áreas do workspace">
           {sidebarGroups.map((group) => (
             <div className="sidebar__nav-group" key={group.label}>
               {group.items.map(([itemPage, label, icon]) => (
@@ -871,6 +871,7 @@ export function App() {
         </nav>
         <a
           className="sidebar__settings sidebar__link"
+          aria-label="Configurações"
           href="#settings"
           onClick={() => navigateAccountTab('settings')}
           aria-current={page === 'settings' ? 'page' : undefined}
@@ -924,10 +925,15 @@ export function App() {
                 <div
                   className={`analysis-card ${lastTarget ? 'analysis-card--report' : 'analysis-card--landing'}`}
                 >
-                  {!lastTarget && <InvestigationConstellation />}
+                  {!lastTarget && (
+                    <div className="investigation-visual">
+                      <InvestigationConstellation />
+                      <span>Conecte os sinais.</span>
+                    </div>
+                  )}
                   <div className="analysis-card__topline">
                     <span>Nova investigação</span>
-                    <span>Coleta dirigida</span>
+                    <span>OSINT Pier / Workspace</span>
                   </div>
                   <div className="analysis-card__heading">
                     <div>
@@ -941,7 +947,7 @@ export function App() {
                           'O que você quer investigar?'
                         ) : (
                           <>
-                            Comece por um <em>alvo.</em>
+                            Cada investigação começa com <em>uma pergunta.</em>
                           </>
                         )}
                       </h2>
@@ -960,7 +966,7 @@ export function App() {
                   <p>
                     {lastTarget
                       ? 'Digite um domínio, IP, URL ou identidade. As fontes são consultadas em paralelo e o relatório é preenchido conforme cada resposta chega.'
-                      : 'Informe um indicador. A plataforma organiza evidências de rede, exposição e reputação em uma única leitura.'}
+                      : 'Traga um domínio, IP ou identidade. Encontre evidências, entenda o contexto e acompanhe cada fonte em um só lugar.'}
                   </p>
 
                   <form className="analysis-form" onSubmit={analyze}>
@@ -1817,8 +1823,8 @@ export function App() {
                       <span className="eyebrow">Tema de cor</span>
                       <h3>Escolha uma paleta</h3>
                       <p>
-                        Light é o tema padrão; Dark oferece uma leitura
-                        concentrada.
+                        Escolha entre uma leitura clara ou escura. Sua
+                        preferência fica salva neste navegador.
                       </p>
                     </div>
                     <div

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import '../styles.css';
-import '../workspace-ui.css';
+import '../piersec-product.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {

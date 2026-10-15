@@ -90,19 +90,29 @@ function LoginForm({
         className="auth-spotlight"
         aria-label="Sobre a central OSINT Pier"
       >
-        <span className="auth-spotlight__eyebrow">
-          PIERSEC / OSINT OPERATIONS
-        </span>
-        <h2>Investigation workspace</h2>
-        <p>Mapeie sinais. Valide fontes.</p>
-        <p>Conserve contexto para a próxima decisão.</p>
+        <div className="auth-identity">
+          <img src="/piersec-logo.svg" alt="PierSec" />
+          <span>OSINT Pier</span>
+        </div>
+        <h2>
+          Da informação
+          <br />à <em>evidência.</em>
+        </h2>
+        <p>
+          Seu espaço para conectar fontes, investigar sinais e enxergar o que
+          importa.
+        </p>
+        <div className="auth-method">
+          <span>Investigue</span>
+          <span>Conecte</span>
+          <span>Compreenda</span>
+        </div>
       </section>
       <section className="auth-card" aria-labelledby="login-title">
         <div className="auth-brand">
           <img src="/piersec-logo.svg" alt="" />
           <span>OSINT Pier</span>
         </div>
-        <span className="eyebrow">Acesso interno</span>
         <h1 id="login-title">Entrar na central</h1>
         <p className="auth-copy">
           Use seu e-mail e senha autorizados para acessar as ferramentas de

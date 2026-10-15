@@ -7,6 +7,10 @@ as fases avançam — marque os checkboxes conforme cada item for concluído.
 
 ## Visão geral
 
+- [x] Redesign PierSec (15/10/2026): sistema visual compartilhado, entrada de
+      investigação, login, navegação, catálogo, resultados, cofre e documentação.
+      Marca documentada em DESIGN.md; layout responsivo e fluxos existentes preservados.
+
 Plataforma web de análise de domínios/IPs/URLs, com dashboard de checagens rodando em
 paralelo, arquitetura de plugins extensível (ver `AGENTS.md`), e integrações crescentes
 com ferramentas externas de OSINT/segurança (VirusTotal, AbuseIPDB, Shodan e outras a
