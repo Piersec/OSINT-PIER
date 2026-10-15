@@ -23,8 +23,9 @@ Osintgram não faz parte deste redesign.
 
 ## Brand Commitments
 
-Nome OSINT Pier, identidade PierSec conforme Brand Kit 1. Interface moderna e limpa,
-sem clichês de hacker, com dados reais e estados explícitos. Português brasileiro.
+Nome OSINT Pier e logotipo PierSec fornecido. A direção C selecionada substitui o
+design anterior: bancada escura bento com navegação horizontal, sem sidebar.
+Dados reais e estados explícitos; português brasileiro. Detalhes em DESIGN.md.
 
 ## Evidence on Hand
 

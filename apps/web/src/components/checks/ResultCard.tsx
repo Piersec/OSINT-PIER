@@ -529,6 +529,7 @@ export function ResultCard({
   return (
     <article
       aria-busy={state.status === 'loading'}
+      data-check-id={check.id}
       className={`result-card result-card--${visualStatus} result-card--${getPresentation(check.id)}`}
     >
       <header className="result-card__header">
@@ -539,7 +540,7 @@ export function ResultCard({
             className="source-logo"
           />
           <div>
-            <span className="eyebrow">{check.id}</span>
+            <span className="sr-only">{check.id}</span>
             <h3>{check.label}</h3>
           </div>
         </div>
